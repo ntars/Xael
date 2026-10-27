@@ -79,7 +79,7 @@ export async function runFeature(f, birth) {
     case 'liuren': return { title: '大六壬', lead: '', blocks: [{ 类名: '大六壬', 短名: '时家排盘', 数据: liurenChart({ y, m, d, h }) }] };
     case 'liuyao': return { title: '六爻占卜', lead: '', blocks: [{ 类名: '六爻占卜', 短名: '铜钱卦', 数据: liuyaoChart({ y, m, d, h }) }] };
     case 'meihua': return { title: '梅花易数', lead: '', blocks: [{ 类名: '梅花易数', 短名: '起卦', 数据: meihuaChart({ y, m, d, h }) }] };
-    case 'bazhai': return { title: '八宅风水', lead: '', blocks: [{ 类名: '风水堪舆', 短名: '命卦八宅', 数据: bazhaiChart(y, parsed.gender || '男') }] };
+    case 'bazhai': return { title: '八宅风水', lead: '', blocks: [{ 类名: '风水堪舆', 短名: '命卦八宅', 数据: bazhaiChart(y, (birth && birth.gender) || '男') }] };
     case 'feixing': return { title: '玄空飞星', lead: '', blocks: [{ 类名: '风水堪舆', 短名: '紫白飞星', 数据: feixingChart({ y, m, d, h }) }] };
     case 'huangli': {
       const t = birth || today();

@@ -104,17 +104,19 @@ export async function analyze(q) {
     return { type: 'refuse', code: 'nonmeta', message: '没听懂这个问题，换个说法试试。' };
   }
 
-  // 生辰闸门：需要生辰的功能而问句无生辰
+  // 生辰解析：命理类功能必须有生辰；非命理类（按时起盘/查询类）也尝试解析，
+  // 解析不到就用「当前时刻」作默认（奇门/六壬/六爻/梅花/飞星都按时间起局）。
   const needsBirth = hits.some((f) => f.needsBirth);
-  let birth = null;
+  let birth = parseBirth(text);
   if (needsBirth) {
-    birth = parseBirth(text);
     if (!birth) {
       return { type: 'refuse', code: 'birth', message: '请补全出生信息，例如「1990年6月15日 10点 排八字」。' };
     }
     if (birth.error) {
       return { type: 'refuse', code: birth.error, message: '生辰写法没解析出来，请换一种写法（国历/农历/四柱）。' };
     }
+  } else if (!birth || birth.error) {
+    birth = null; // 交给 runFeature 的「今日/此刻」默认
   }
 
   // 逐个执行，多命中并列
