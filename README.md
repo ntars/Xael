@@ -52,7 +52,7 @@
 
 ### 3. 零依赖纯 JavaScript
 
-`package.json` 不存在，因为不需要——全部 1969 行源码（18 个文件）只用 JavaScript 原生能力。**差异化**：同类项目动辄引入 moment、luxon 或各类农历包，Xael 的历法是自己算的。**证据**：`node tests/calendar.test.js` 在裸 Node 下直接运行，无任何 install 步骤。
+`package.json` 不存在，因为不需要——全部 2,633 行源码（23 个文件）只用 JavaScript 原生能力。**差异化**：同类项目动辄引入 moment、luxon 或各类农历包，Xael 的历法是自己算的。**证据**：`node tests/calendar.test.js` 在裸 Node 下直接运行，无任何 install 步骤。
 
 ### 4. 单一真源的字表体系
 
@@ -74,15 +74,22 @@
 
 ### 直接依赖
 
-**运行时：无。** 全部 1969 行源码为纯 JavaScript（CommonJS），仅依赖 Node.js 原生能力，零 npm 依赖。
+**运行时：无。** 全部 2,633 行源码为纯 JavaScript（CommonJS），仅依赖 Node.js 原生能力，零 npm 依赖。
 
 ### 开发与测试
 
-| 工具 | 版本 | 版权方 | 许可证 | 用途 | 是否修改 |
-|---|---|---|---|---|---|
-| Node.js | ≥ 14（测试运行环境） | OpenJS Foundation | MIT | 运行测试与脚本 | 否 |
+| 工具 | 版本 | 版权方 | 许可证 | 官方地址 | 用途 | 是否修改 |
+|---|---|---|---|---|---|---|
+| Node.js | ≥ 14（测试运行环境） | OpenJS Foundation | MIT | https://nodejs.org/ | 运行测试与脚本 | 否 |
 
 测试框架为零依赖的自写断言（`tests/calendar.test.js`），无需安装任何东西。
+
+### 算法与数据来源（非代码依赖，一并声明）
+
+| 来源 | 版权方 | 类型 | 官方地址 | 用途 | 是否修改 |
+|---|---|---|---|---|---|
+| Jean Meeus, *Astronomical Algorithms*（第二版，Willmann-Bell, 1998） | Jean Meeus / Willmann-Bell | 天文算法思想（不受版权约束，本项目独立实现） | https://www.willbell.com/math/mc1.htm | 历法层（solar / astronomy / lunar2 / jieqi2）的太阳黄经、朔日与 ΔT 级数 | 算法思想参照，代码全新实现 |
+| 2007–2026 年国务院历年节假日公告 | 中国政府网 | 公开数据自行录入 | https://www.gov.cn/ | `src/core/calendar/festival.js` 法定节假日与调休数据 | 录入整理 |
 
 ### 间接依赖
 

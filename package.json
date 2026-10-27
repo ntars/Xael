@@ -1,0 +1,24 @@
+{
+  "name": "xael",
+  "version": "5.0.0",
+  "description": "玄玖灵犀 Xael —— 中国传统术数文献整理、校勘与数字化演算工具（微信小程序 / PWA / uni-app 多端）",
+  "type": "module",
+  "private": true,
+  "license": "AGPL-3.0",
+  "homepage": "https://x.ntars.cn/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ntars/Xael.git"
+  },
+  "author": {
+    "name": "星玖工作室 Ntarstudio",
+    "url": "https://x.ntars.cn/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node tests/run.js",
+    "build:mp": "node tools/build-mp.js"
+  }
+}

@@ -52,7 +52,7 @@ The first day of every lunar month must be a true new moon (the day containing t
 
 ### 3. Zero-dependency pure JavaScript
 
-There is no `package.json`, because none is needed — all 1,969 lines of source (18 files) rely only on native JavaScript. **Differentiation**: comparable projects pull in moment, luxon or assorted lunar packages; Xael computes its own calendar. **Evidence**: `node tests/calendar.test.js` runs on bare Node with no install step.
+There is no `package.json`, because none is needed — all 2,633 lines of source (23 files) rely only on native JavaScript. **Differentiation**: comparable projects pull in moment, luxon or assorted lunar packages; Xael computes its own calendar. **Evidence**: `node tests/calendar.test.js` runs on bare Node with no install step.
 
 ### 4. Single source of truth for character tables
 
@@ -74,15 +74,22 @@ Statutory holidays (with adjusted working days) are entered from the 2007–2026
 
 ### Direct dependencies
 
-**Runtime: none.** All 1,969 lines are pure JavaScript (CommonJS) on native Node.js capabilities — zero npm dependencies.
+**Runtime: none.** All 2,633 lines are pure JavaScript (CommonJS) on native Node.js capabilities — zero npm dependencies.
 
 ### Development & testing
 
-| Tool | Version | Copyright | License | Purpose | Modified |
-|---|---|---|---|---|---|
-| Node.js | ≥ 14 (test runtime) | OpenJS Foundation | MIT | running tests and scripts | No |
+| Tool | Version | Copyright | License | Official URL | Purpose | Modified |
+|---|---|---|---|---|---|---|
+| Node.js | ≥ 14 (test runtime) | OpenJS Foundation | MIT | https://nodejs.org/ | running tests and scripts | No |
 
-The test harness is a zero-dependency assertion script (`tests/calendar.test.js`); nothing to install.
+The test harness is a zero-dependency, hand-written assertion script (`tests/calendar.test.js`); nothing to install.
+
+### Algorithm & data sources (non-code provenance, declared together)
+
+| Source | Copyright | Type | Official URL | Purpose | Modified |
+|---|---|---|---|---|---|
+| Jean Meeus, *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998) | Jean Meeus / Willmann-Bell | astronomical algorithm ideas (not copyright-protected; implemented independently here) | https://www.willbell.com/math/mc1.htm | solar longitude, new-moon and ΔT series in the calendar layer (solar / astronomy / lunar2 / jieqi2) | ideas referenced, code written from scratch |
+| State Council holiday announcements 2007–2026 | gov.cn | public data, entered by hand | https://www.gov.cn/ | statutory holiday and adjusted-workday data in `src/core/calendar/festival.js` | transcribed |
 
 ### Indirect dependencies
 

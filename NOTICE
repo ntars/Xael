@@ -26,19 +26,29 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
 
 运行时第三方依赖：无。
 
-  全部 1,969 行源码为纯 JavaScript，仅依赖 ECMAScript 2015+ 语言标准，
+  全部 2,633 行源码为纯 JavaScript，仅依赖 ECMAScript 2015+ 语言标准，
   不引入任何 npm 包、任何字体、任何图标库、任何网络 API。
 
 开发期外部环境（不随本项目分发，无分发义务）：
-  · Node.js（测试与脚本运行环境）—— Copyright OpenJS Foundation，MIT。
+  · Node.js（测试与脚本运行环境）
+    - 版权方：OpenJS Foundation
+    - 许可证：MIT（原文见 https://nodejs.org/en/about/previous-releases 与 Node.js 仓库 LICENSE）
+    - 项目地址：https://nodejs.org/
+    - 用途：运行测试与脚本；是否修改：否；是否分发：否。
 
 算法理论出处（不受版权约束，本项目实现为独立编写）：
-  · Jean Meeus, "Astronomical Algorithms"（第二版，Willmann-Bell, 1998），
-    历法层（solar / astronomy / lunar2 / jieqi2）的级数算法思想来源于此。
+  · Jean Meeus, "Astronomical Algorithms"（第二版，Willmann-Bell, 1998）
+    - 版权方：Jean Meeus / Willmann-Bell, Inc.
+    - 项目地址：https://www.willbell.com/math/mc1.htm
+    - 用途：历法层（src/core/calendar/solar.js / astronomy.js / lunar2.js /
+      jieqi2.js）的太阳几何黄经级数（原书第 25 章）、朔日月日级数（第 49 章）
+      与 ΔT 的 Espenak-Meeus 多项式。
+    - 是否修改：算法思想参照原书，全部代码为本项目全新实现，未复制任何源码。
 
 数据来源说明：
   · 法定节假日与调休数据（src/core/calendar/festival.js）由本项目依据
-    2007–2026 年国务院历年公告自行录入，非第三方数据集拷贝。
+    2007–2026 年国务院历年公告（中国政府网 https://www.gov.cn/ 发布的公开文件）
+    自行录入，非第三方数据集拷贝。
   · 术数流派口径（docs/CALIBER-NOTES.md）依据公开出版的传统文献与主流
     流派共识整理，口径选择已在文档中逐条注明。
 
