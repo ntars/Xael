@@ -65,9 +65,16 @@ export function mingGua(year, gender) {
 
 /**
  * 八宅排布：命卦 → 八方位吉凶。
- * @returns {Object} {命卦, 东西四命, 方位: [{方位, 卦, 星, 吉凶, 五行}]}
+ * 兼容两种调用：bazhaiChart(1985, '男') 与 bazhaiChart({ y: 1985, gender: '男' })。
+ * @returns {Object} {出生年, 性别, 命卦, 东西四命, 八方: [{方位, 卦, 星, 吉凶, 五行}]}
  */
 export function bazhaiChart(year, gender) {
+  if (year && typeof year === 'object') {
+    gender = year.gender || year['性别'] || '男';
+    year = year.y || year.year || year['出生年'];
+  }
+  if (!Number.isFinite(Number(year))) throw new Error('bazhaiChart 需要出生年份');
+  year = Number(year);
   const gua = mingGua(year, gender);
   const dayou = DAYOU[gua];
   const rows = Object.entries(dayou).map(([star, fangGua]) => ({

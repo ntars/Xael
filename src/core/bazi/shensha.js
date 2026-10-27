@@ -129,7 +129,7 @@ export function shenshaOf(input) {
   // 空亡（以日柱旬空）
   const dayIdx = dayGanZhiIndex(c.input.y, c.input.m, c.input.d);
   const xk = xunkongOf(dayIdx);
-  add('空亡', `日柱${JIAZI[dayIdx]}属旬，旬空${xk.join('')}`, xk.flatMap(hitZhi));
+  add('空亡', `日柱${JIAZI[dayIdx].join('')}属旬，旬空${xk.join('')}`, xk.flatMap(hitZhi));
 
   return {
     四柱: `${P.年.干支} ${P.月.干支} ${P.日.干支} ${P.时.干支}`,

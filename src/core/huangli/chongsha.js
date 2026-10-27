@@ -28,8 +28,8 @@ export function chongshaOf(y, m, d) {
   const chongIdx = (idx + 6) % 60;
   const zhi = ZHI[idx % 12].z;
   return {
-    冲: JIAZI[chongIdx],
-    冲生肖: ZODIAC[idx % 12],
+    冲: JIAZI[chongIdx].join(''),
+    冲生肖: ZODIAC[chongIdx % 12],
     煞方: SHA[zhi],
   };
 }

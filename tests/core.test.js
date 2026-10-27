@@ -77,7 +77,8 @@ eq(ly['变卦']['卦名'], '天风姤', '初爻动变天风姤');
 
 // ---- 梅花 ----
 const mh = meihuaChart({ y: 2024, m: 2, d: 10, h: 12 });
-eq(mh['本卦']['名'], '泽天', '梅花 2024-02-10 12时 本卦泽天夬');
+eq(mh['本卦']['名'], '夬', '梅花 2024-02-10 12时 本卦泽天夬（名=夬，象名=泽天）');
+eq(mh['本卦']['象名'], '泽天', '梅花 2024-02-10 12时 本卦象名泽天');
 
 // ---- 八宅 ----
 eq(bazhaiChart(1985, '男')['命卦'], '乾', '1985 男命卦乾');
@@ -91,7 +92,43 @@ eq(fx['三元九运']['运'], 9, '2024 属九运');
 // ---- 黄历 ----
 const hl = daily(2024, 2, 10, 12);
 eq(hl['值星']['名'], '满', '2024-02-10 值星满');
-eq(hl['冲煞']['冲生肖'], '龙', '2024-02-10 甲辰日冲龙（辰戌冲）');
+eq(hl['冲煞']['冲生肖'], '狗', '2024-02-10 甲辰日冲庚戌（辰戌冲，戌为狗）');
+
+// ---- 22 项功能全链路（每条至少产出 1 块结果） ----
+import { analyze } from '../src/core/features/analyzer.js';
+const QUERIES = [
+  '排八字 1990年6月15日 10点', '排紫微 1990年6月15日 10点', '排奇门 2024年12月21日 12点',
+  '排六爻 2024年2月10日', '排梅花 2024年2月10日', '排飞星 2026年10月27日',
+  '查命卦 1990年6月15日', '排运程 1990年6月15日 10点', '解格局 1990年6月15日 10点',
+  '查神煞 1990年6月15日 10点', '解四化 1990年6月15日 10点', '排日家 2024年12月21日',
+  '排刻家 2024年12月21日 12点', '排宝鉴日奇 2024年12月21日', '排年家月家 2026年10月27日',
+  '排飞盘 2024年12月21日 12点', '解奇门格局 2024年12月21日 12点', '排六壬 2025年4月25日 3点',
+  '解毕法 2025年4月25日 3点', '解六爻旺衰 2024年2月10日', '查黄历 2024年2月10日', '查农历 2024年2月10日',
+];
+let fnOk = 0;
+for (const q of QUERIES) {
+  try {
+    const r = await analyze(q);
+    if (r.type === 'results' && r.results.length && String(r.results[0].text || '').length > 20) fnOk++;
+    else failed++, console.error(`✗ 功能链路 ${q}：${r.type} ${r.code || ''}`);
+  } catch (e) {
+    failed++;
+    console.error(`✗ 功能链路 ${q}：${e.message}`);
+  }
+}
+eq(fnOk, QUERIES.length, `22 项功能全链路可执行（${fnOk}/${QUERIES.length}）`);
+
+// 四拒绝码
+const noBirth = await analyze('排八字');
+eq(noBirth.code, 'birth', '缺生辰 → birth 拒绝码');
+const nonMeta = await analyze('今天天气怎么样');
+eq(nonMeta.code, 'nonmeta', '非术数问句 → nonmeta 拒绝码');
+// 主题指令就地切换、不进推演
+const th = await analyze('深色模式');
+eq(th.type, 'theme', '「深色模式」→ 主题指令');
+// 多命中并列：一句话里两项功能都不缺料
+const multi = await analyze('排八字 排紫微 1990年6月15日 10点');
+eq(multi.type === 'results' ? multi.results.length : 0, 2, '多命中并列（排八字 + 排紫微）');
 
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {

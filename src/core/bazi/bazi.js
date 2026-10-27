@@ -35,7 +35,7 @@ function pillarOf(ganZhi, dayGan) {
   const g = ganZhi[0], z = ganZhi[1];
   const gInfo = GAN.find((x) => x.z === g);
   const zInfo = ZHI.find((x) => x.z === z);
-  const gzIdx = JIAZI.indexOf(ganZhi);
+  const gzIdx = JIAZI.findIndex((x) => x[0] === g && x[1] === z);
   const cang = CANGGAN[z] || [];
   return {
     干: g,
@@ -65,8 +65,9 @@ export function chart(input) {
 
   const yearGz = GZJIAZI(yearGanZhiIndexByLichun(eff.y, eff.m, eff.d));
   const monthGz = monthGanZhi(y, m, d);
+  const monthIdx = JIAZI.findIndex((x) => x[0] === monthGz[0] && x[1] === monthGz[1]);
   const dayIdx = dayGanZhiIndex(eff.y, eff.m, eff.d);
-  const dayGz = JIAZI[dayIdx];
+  const dayGz = JIAZI[dayIdx].join('');
   const hourGz = hourGanZhi(dayGz[0], h); // 时干必须用「换日后的日干」现算
   const dayGan = dayGz[0];
 
@@ -101,7 +102,7 @@ export function chart(input) {
     藏干: { 年: pillars.年.藏干, 月: pillars.月.藏干, 日: pillars.日.藏干, 时: pillars.时.藏干 },
     纳音: { 年: pillars.年.纳音, 月: pillars.月.纳音, 日: pillars.日.纳音, 时: pillars.时.纳音 },
     旬空: { 年: pillars.年.旬空, 月: pillars.月.旬空, 日: pillars.日.旬空, 时: pillars.时.旬空 },
-    胎元: taiyuanOf(JIAZI.indexOf(monthGz) % 10, JIAZI.indexOf(monthGz) % 12),
+    胎元: taiyuanOf(monthIdx % 10, monthIdx % 12),
     五行: { 统计: wx, 百分比: pct, 缺: lack, 缺文本: lack.length ? lack.join('、') + '缺' : '五行俱全' },
     换日口径: sect === 'ziZheng' ? '子正(00:00)换日' : '子初(23:00)换日',
   };
@@ -109,7 +110,7 @@ export function chart(input) {
 
 /** 甲子序 → 干支字符串（越界自动取模） */
 function GZJIAZI(i) {
-  return JIAZI[((i % 60) + 60) % 60];
+  return JIAZI[((i % 60) + 60) % 60].join('');
 }
 
 /** 四柱纯文本（供结果页标题） */

@@ -36,8 +36,14 @@ export const ZHI = [
   { z: '亥', wx: '水', yy: 1, sx: '猪' },
 ];
 
-/** 六十甲子（按序生成：干序 = i % 10，支序 = i % 12） */
-export const JIAZI = Array.from({ length: 60 }, (_, i) => GAN[i % 10].z + ZHI[i % 12].z);
+/**
+ * 六十甲子（按序生成：干序 = i % 10，支序 = i % 12）。
+ * 注意：每项是「[干, 支]」二元数组而不是字符串——内核里大量用 JIAZI[i][0] 取干、
+ * JIAZI[i][1] 取支（liuren / liuyao / qimen 都是这个取法），也曾有模块把它当字符串
+ * 索引，导致 dayGz[0] 拿到 '甲' 而不是 '甲子'。统一为数组后取法唯一，两字干支可用
+ * gzText(i) 或 JIAZI[i].join('') 得到。
+ */
+export const JIAZI = Array.from({ length: 60 }, (_, i) => [GAN[i % 10].z, ZHI[i % 12].z]);
 
 /** 地支藏干表（本气 + 中气 + 余气，传统口诀） */
 export const CANGGAN = {

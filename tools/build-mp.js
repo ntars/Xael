@@ -134,8 +134,16 @@ export function build({ check = CHECK } = {}) {
     outputs.set(join('src', rel), transform(readFileSync(f, 'utf8'), f));
   }
 
-  // 小程序壳文件原样拷入
+  // 小程序壳文件拷入。WXSS 的 url() 不支持本地文件（只能网络图 / base64 / <image>），
+  //   所以 .wxss 里的图标 url("/static/icons/x.svg") 在构建期替换为内嵌 base64 data URI；
+  //   源 SVG 仍是 static/icons/ 单一真源，PWA/uni-app 侧继续用路径引用。
   const shellDir = join(ROOT, 'src', 'shells', 'mp-weixin');
+  const iconDir = join(ROOT, 'src', 'shells', 'pwa', 'static', 'icons');
+  const icon64 = (name) => {
+    const p = join(iconDir, name);
+    if (!existsSync(p)) throw new Error(`缺少图标源文件：src/shells/pwa/static/icons/${name}`);
+    return `url("data:image/svg+xml;base64,${readFileSync(p).toString('base64')}")`;
+  };
   const shellFiles = [];
   const walk = (dir) => {
     for (const name of readdirSync(dir)) {
@@ -145,7 +153,24 @@ export function build({ check = CHECK } = {}) {
     }
   };
   if (existsSync(shellDir)) walk(shellDir);
-  for (const f of shellFiles) outputs.set(relative(shellDir, f), readFileSync(f, 'utf8'));
+  for (const f of shellFiles) {
+    let text = readFileSync(f, 'utf8');
+    if (f.endsWith('.wxss')) {
+      text = text.replace(/url\("\/static\/icons\/([\w.-]+\.svg)"\)/g, (_m, name) => icon64(name));
+      // 小程序 WXSS 消毒：剥掉 PWA 专有且 WXSS 不支持（或会打断整段解析）的规则。
+      //   ① ::placeholder 伪元素（微信要 placeholder-class；毒化后续规则 → 图标丢失）
+      //   ② @media (hover:…) 与 :hover（触屏无意义）
+      //   ③ * 通配选择器（WXSS 不支持）
+      text = text.replace(/[^{}]*::placeholder[^{]*\{[^}]*\}/g, '');
+      text = text.replace(/@media\s*\(hover[^{]*\{(?:[^{}]*\{[^}]*\})*[^{}]*\}/g, '');
+      text = text.replace(/[^{}]*:hover[^{]*\{[^}]*\}/g, '');
+      text = text.replace(/(?:^|\})\s*\*\s*[^{]*\{[^}]*\}/g, '$1');
+      // ④ 双重底部避让：page-safe 已有 padB(safe-bottom)，.nt-layer 再 padB 一次会多让 34px
+      //    （内容被顶出屏幕）。小程序层内不再重复让位。
+      text = text.replace(/(\.nt-layer\s*\{[^}]*?)padding-bottom:\s*var\(--safe-bottom\);?\s*/g, '$1');
+    }
+    outputs.set(relative(shellDir, f), text);
+  }
 
   const total = [...outputs.values()].reduce((n, s) => n + Buffer.byteLength(s), 0);
 

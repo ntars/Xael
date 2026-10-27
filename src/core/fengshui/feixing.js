@@ -17,6 +17,7 @@
 
 import { dayNo, solarToJdn } from '../calendar/solar.js';
 import { dayGanZhiIndex, jieqiSeason } from '../calendar/ganzhi.js';
+import { jieqiTable } from '../calendar/jieqi2.js';
 import { ZHI, JIAZI } from '../common/constants.js';
 
 export const STARS = ['一白', '二黑', '三碧', '四绿', '五黄', '六白', '七赤', '八白', '九紫'];
@@ -58,56 +59,96 @@ export function yunOf(year) {
   return ((Math.floor((year - 1864) / 20)) % 9) + 1;
 }
 
-/** 月紫白：入中星（月按节气月 1=寅月？通例用公历月配节气年——此处按通书公历月简法并声明口径） */
-export function monthStar(year, month) {
+/** 月紫白：入中星。
+ *  口径：按「节气月」计，正月=寅月（立春起）。
+ *  子午卯酉年正月起八白、寅申巳亥年起二黑、辰戌丑未年起五黄，逐月逆推入中。
+ *  年支取「立春换年」的干支年支（与历法底座一致）。
+ *  @param {number} year 公历年
+ *  @param {number} yinMonth 节气月序 1..12（1=寅月，即立春所在月）
+ */
+export function monthStar(year, yinMonth) {
   const yZhi = ((year - 4) % 12 + 12) % 12; // 年支序 0=子
   const start = [0, 6, 3, 9].includes(yZhi) ? 8 : [2, 8, 5, 11].includes(yZhi) ? 2 : 5;
-  const ru = n9(start - (month - 1)); // 逐月逆推
-  return ru;
+  return n9(start - (yinMonth - 1)); // 逐月逆推
 }
 
-/** 日紫白：入中星 */
+/** 由公历日期推节气月序（1=寅月）。
+ *  实现：jieqiTable 返回 Y-1 冬至 ~ Y 大雪，因此只需扫 y-1..y+1 三张表，
+ *  把其中所有「节」按日期排序，取「≤ 目标日 且 ≥ 目标日前后最近立春」的最大月序即可。
+ *  月份名与序号的绑定：立春=寅(1) …… 大雪=子(11)、小寒=丑(12)。
+ */
+export function yinMonthOf(y, m, d) {
+  const JIE = [['立春', 1], ['惊蛰', 2], ['清明', 3], ['立夏', 4], ['芒种', 5], ['小暑', 6],
+               ['立秋', 7], ['白露', 8], ['寒露', 9], ['立冬', 10], ['大雪', 11], ['小寒', 12]];
+  const dn = dayNo(y, m, d);
+  const rows = [];
+  for (const yy of [y - 1, y, y + 1]) {
+    const t = jieqiTable(yy);
+    for (const [name, idx] of JIE) {
+      const it = t[name];
+      if (!it || !it.text) continue;
+      const [ty, tm, td] = it.text.split('-').map(Number);
+      rows.push({ sdn: dayNo(ty, tm, td), idx });
+    }
+  }
+  rows.sort((a, b) => a.sdn - b.sdn);
+  // 目标日所处节气年的年首＝≤ 目标日的最后一个「立春」
+  let lichun = -Infinity;
+  for (const r of rows) if (r.idx === 1 && r.sdn <= dn && r.sdn > lichun) lichun = r.sdn;
+  let idx = 1;
+  for (const r of rows) if (r.sdn <= dn && r.sdn > lichun) idx = r.idx;
+  return idx;
+}
+
+/** 日紫白：入中星。
+ *  口径：以「太阳黄经三十分段」各段首日后的第一个甲子日为起星日，
+ *  起星分别为 冬至一白（顺）、雨水七赤（顺）、谷雨四绿（顺）、
+ *  夏至九紫（逆）、处暑三碧（逆）、霜降六白（逆）；入中=起星 ± 相隔天数（mod 9）。
+ */
 export function dayStar(y, m, d) {
   const dn = dayNo(y, m, d);
-  // 分段：[段首节气, 起数, 方向]
   const SEG = [
     ['冬至', 1, 1], ['雨水', 7, 1], ['谷雨', 4, 1],
     ['夏至', 9, -1], ['处暑', 3, -1], ['霜降', 6, -1],
   ];
-  const gz = dayGanZhiIndex(y, m, d);
-  // 找目标日所在段：从当年节气表里取各段首日期，取 ≤ 日的最晚段（跨年）
-  const { jieqiTable } = require0();
   let best = null;
   for (const yy of [y - 1, y]) {
     const t = jieqiTable(yy);
     for (const [name, start, dir] of SEG) {
-      if (t[name] && t[name].text) {
-        const [ty, tm, td] = t[name].text.split('-').map(Number);
-        const segDn = dayNo(ty, tm, td);
-        if (segDn <= dn && (!best || segDn > best.dn)) best = { dn: segDn, start, dir };
-      }
+      const it = t[name];
+      if (!it || !it.text) continue;
+      const [ty, tm, td] = it.text.split('-').map(Number);
+      const segDn = dayNo(ty, tm, td);
+      if (segDn <= dn && (!best || segDn > best.dn)) best = { dn: segDn, start, dir };
     }
   }
-  // 起星日 = 段首后首个甲子日
-  let s = best.dn;
-  while ((solarToJdn(0, 0, 0) + s) % 1 !== 0) s++; // 无意义占位，实际用日柱判定：
-  // 日柱判定：dayNo 1970-01-01 = 辛巳（干支序 5+10*6=47? JIAZI 序 15）——直接用 dayGanZhiIndex 口径：
+  // 起星日＝段首之后（含当天）第一个甲子日
   let q = best.dn;
-  while (true) {
-    const jdn = solarToJdn(1970, 1, 1) + q;
-    // 儒略日 mod 60 = 51 为甲子（1984-02-02 甲子，JDN 2445732 → (2445732+49)%60==0 校准）
-    if ((jdn + 49) % 60 === 0) break;
-    q++;
-  }
+  while (dayGanZhiIndex(...fromDn(q)) % 60 !== 0) q++;
   const span = Math.abs(dn - q);
   return best.dir === 1 ? n9(best.start + span) : n9(best.start - span);
 }
+
+/** 日序 → [y,m,d] */
+function fromDn(dn) {
+  // 以 1970-01-01 为基准反推（dayNo 与儒略日同日序原点）
+  const jdn = JDN_1970 + dn;
+  const a = jdn + 32044, b = Math.floor((4 * a + 3) / 146097), c = a - Math.floor(146097 * b / 4);
+  const dd = Math.floor((4 * c + 3) / 1461), e = c - Math.floor(1461 * dd / 4);
+  const mm = Math.floor((5 * e + 2) / 153);
+  const day = e - Math.floor((153 * mm + 2) / 5) + 1;
+  const month = mm + 3 - 12 * Math.floor(mm / 10);
+  const year = 100 * b + dd - 4800 + Math.floor(mm / 10);
+  return [year, month, day];
+}
+const JDN_1970 = 2440588;
 
 /** 时紫白：入中星 */
 export function hourStar(y, m, d, h) {
   const gz = dayGanZhiIndex(y, m, d);
   const dz = gz % 12; // 日支序 0=子
-  const afterDZ = jieqiSeason(y, m, d) >= 0; // 冬至后~夏至前为阳半（jieqiSeason 返回年节气序或自定义）
+  // 阳半＝冬至后至夏至前（顺）；阴半＝夏至后至冬至前（逆）
+  const afterDZ = yangHalf(y, m, d);
   const grp = [0, 6, 3, 9].includes(dz) ? 'zheng' : [2, 8, 5, 11].includes(dz) ? 'mu' : 'sheng';
   const START = {
     zheng: { shun: 1, ni: 9 },
@@ -121,11 +162,19 @@ export function hourStar(y, m, d, h) {
   return dir === 1 ? n9(start + span) : n9(start - span);
 }
 
-function require0() {
-  // 避免 ESM 循环依赖：jieqiTable 由调用方传入场景多，这里延迟 import 不可用 → 改顶层 import（见下）
-  return jieqiModule;
+/** 判定是否处于「阳半」（冬至后至夏至前），用于日月时紫白顺逆 */
+function yangHalf(y, m, d) {
+  const dn = dayNo(y, m, d);
+  const pick = (t, name) => {
+    const it = t[name];
+    if (!it || !it.text) return null;
+    const [ty, tm, td] = it.text.split('-').map(Number);
+    return dayNo(ty, tm, td);
+  };
+  const tPrev = jieqiTable(y - 1), tCur = jieqiTable(y);
+  const dongzhi = pick(tPrev, '冬至'), xiazhi = pick(tCur, '夏至');
+  return dn >= dongzhi && dn < xiazhi;
 }
-import * as jieqiModule from '../calendar/jieqi2.js';
 
 /**
  * 全套飞星。
@@ -137,10 +186,10 @@ export function feixingChart(input) {
     input,
     三元九运: { 运: yun, 星: STARS[yun - 1], 年份: yun === 9 ? '2024–2043' : '' },
     年紫白: { 入中: STARS[yearStar(y) - 1], 盘: fmt(feiGong(yearStar(y))) },
-    月紫白: { 入中: STARS[monthStar(y, m) - 1], 盘: fmt(feiGong(monthStar(y, m))) },
+    月紫白: { 入中: STARS[monthStar(y, yinMonthOf(y, m, d)) - 1], 盘: fmt(feiGong(monthStar(y, yinMonthOf(y, m, d)))) },
     日紫白: { 入中: STARS[dayStar(y, m, d) - 1], 盘: fmt(feiGong(dayStar(y, m, d))) },
     时紫白: { 入中: STARS[hourStar(y, m, d, h) - 1], 盘: fmt(feiGong(hourStar(y, m, d, h))) },
-    口径: '年紫白公式入中；月紫白年支起正月逆推；日紫白分段甲子起星；时紫白三组起数冬顺夏逆',
+    口径: '年紫白=(11−年数字和)入中；月紫白按节气月（正月=寅月）逆推；日紫白以六段节气后首个甲子日起星、顺逆飞；时紫白三组起数、冬至后顺夏至后逆',
   };
 }
 

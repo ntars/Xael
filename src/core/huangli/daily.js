@@ -19,11 +19,18 @@ import { LUNAR_MONTH_NAMES, LUNAR_DAY_NAMES } from '../calendar/lunar2.js';
 export function lunarTextFull(y, m, d) {
   const l = solarToLunar(y, m, d);
   if (!l) return '';
-  return `${l.y}年${l.isLeap ? '闰' : ''}${LUNAR_MONTH_NAMES[l.m - 1]}月${LUNAR_DAY_NAMES[l.d]}`;
+  // 注：solarToLunar().d 是 1 起日号，数组须取 d-1（旧实现此处差一位，已修）
+  return `${l.y}年${l.isLeap ? '闰' : ''}${LUNAR_MONTH_NAMES[l.m - 1]}月${LUNAR_DAY_NAMES[l.d - 1]}`;
 }
 import { dayGanZhi, yearGanZhiByLichun, monthGanZhi, hourGanZhi } from '../calendar/ganzhi.js';
 import { jieqiTable } from '../calendar/jieqi2.js';
 import { festivalsOf, holidayStatus, isWeekend } from '../calendar/festival.js';
+import { weekday } from '../calendar/solar.js';
+
+/** 星期几：0=日 … 6=六 → 「星期日」…「星期六」 */
+function weekdayText(y, m, d) {
+  return '星期' + '日一二三四五六'[weekday(y, m, d)];
+}
 import { jianchuOf, JIANCHU_MEANING, JIANCHU_LUCK } from './jianchu.js';
 import { tianshenOf, TIANSHEN_MEANING } from './tianshen.js';
 import { xiu28Of } from './xiu28.js';
@@ -69,11 +76,12 @@ export function daily(y, m, d, hour = null) {
   if (ts.天神类 === '黑道') ji.push('大事勿用');
   for (const x of js.凶煞宜忌) if (XIONG_BAN[x]) for (const b of XIONG_BAN[x]) if (!ji.includes(b)) ji.push(b);
   if (js.凶煞宜忌.includes('月破')) { yi.length = 0; ji.length = 0; ji.push('诸事不宜'); }
-  if (pos.彭祖百忌.干) ji.push('忌:' + pos.彭祖百忌.干.slice(0, 4));
+  // 彭祖百忌单列字段，不混入「忌」清单（旧版黄历把彭祖另起一行）
 
   return {
     solar: `${y}-${pad2(m)}-${pad2(d)}`,
-    weekday: isWeekend(y, m, d) ? '周末' : '工作日',
+    weekday: weekdayText(y, m, d),
+    isWeekend: isWeekend(y, m, d),
     lunar: lunarTextFull(y, m, d),
     ganzhi: {
       年: yearGanZhiByLichun(y, m, d),
@@ -82,7 +90,7 @@ export function daily(y, m, d, hour = null) {
       时: hour != null ? hourGanZhi(gz[0], hour) : null,
     },
     值星: { 名: jc, 义理: JIANCHU_MEANING[jc], 吉凶: JIANCHU_LUCK[jc] },
-    天神: ts.天神, 天神类: ts.天神类, 天神吉凶: ts.吉凶, 天神断语: TIANSHEN_MEANING[ts.天神] || '',
+    天神: ts.天神, 天神类: ts.类, 天神吉凶: ts.吉凶, 天神断语: ts.断语 || TIANSHEN_MEANING[ts.天神] || '',
     二十八宿: xiu28Of(y, m, d),
     方位: pos.方位,
     彭祖百忌: pos.彭祖百忌,

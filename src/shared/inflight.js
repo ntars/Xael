@@ -1,19 +1,21 @@
 /**
- * src/shared/inflight.js —— 连点锁（防重复提交）
+ * src/shared/inflight.js —— 连点锁 + 忙碌态钩子
  *
- * 大白话：搜索按钮连点会同时发起多次排盘，结果互相覆盖。
- * 这里给「一次执行」上一把锁：锁期内再点直接忽略；执行结束（含抛错）自动释放。
- * 同时提供 busy 样式钩子（.nt-busy opacity .45）。
+ * 大白话：搜索键连点会同时发起多次排盘，结果互相覆盖。
+ * 这里给「一次执行」上一把锁：锁期内的重复调用直接拿到 null 被忽略；
+ * 无论成功还是抛错，都在 finally 里放锁——绝不把用户永久锁在忙碌态。
+ * 页面上配合 .nt-busy（opacity .45，且不响应按压缩放）。
  */
 
 const locks = new Set();
 
 /**
- * 带锁执行：锁期内重复调用返回 null。
- * @param {String} key 锁名
- * @param {Function} fn 异步任务
+ * 带锁执行。
+ * @param {string} key 锁名（如 'search' / 'export'）
+ * @param {() => any} fn 任务（可为异步）
+ * @returns 任务的返回值；锁被占用时返回 null
  */
-export async function run(key, fn) {
+export async function withLock(key, fn) {
   if (locks.has(key)) return null;
   locks.add(key);
   try {
@@ -23,7 +25,12 @@ export async function run(key, fn) {
   }
 }
 
-/** 当前是否锁定 */
+/** 当前是否有人在用这把锁 */
 export function isBusy(key) {
   return locks.has(key);
+}
+
+/** 测试用：清空所有锁（正常业务不调用） */
+export function resetLocks() {
+  locks.clear();
 }

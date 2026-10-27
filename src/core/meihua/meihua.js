@@ -14,6 +14,7 @@
  */
 
 import { ZHI } from '../common/constants.js';
+import { guaName as guaNameOf } from '../common/iching.js';
 
 /** 先天八卦数 → 卦名 */
 const NUM2GUA = { 1: '乾', 2: '兑', 3: '离', 4: '震', 5: '巽', 6: '坎', 7: '艮', 8: '坤' };
@@ -92,9 +93,9 @@ export function meihuaChart(input) {
   return {
     input,
     起卦: input.num1 != null ? '数字' : '时间',
-    本卦: { 名: Xiang[upper] + Xiang[lower], 上卦: upper, 下卦: lower, 爻: bits },
-    互卦: { 名: Xiang[huUpper] + Xiang[huLower], 上卦: huUpper, 下卦: huLower, 爻: huBits },
-    变卦: { 名: Xiang[bianUpper] + Xiang[bianLower], 上卦: bianUpper, 下卦: bianLower, 爻: bianBits },
+    本卦: { 名: guaNameOf(upper, lower), 象名: Xiang[upper] + Xiang[lower], 上卦: upper, 下卦: lower, 爻: bits },
+    互卦: { 名: guaNameOf(huUpper, huLower), 象名: Xiang[huUpper] + Xiang[huLower], 上卦: huUpper, 下卦: huLower, 爻: huBits },
+    变卦: { 名: guaNameOf(bianUpper, bianLower), 象名: Xiang[bianUpper] + Xiang[bianLower], 上卦: bianUpper, 下卦: bianLower, 爻: bianBits },
     动爻: dongShu,
     体用: { 体: ti + '(' + GUA_WX[ti] + ')', 用: yong + '(' + GUA_WX[yong] + ')', 生克: rel, 断: panJue },
     口径: '先天八卦数起卦；动爻总数除6；互卦二三四/三四五；体用生克',

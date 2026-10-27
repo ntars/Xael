@@ -59,23 +59,21 @@ export function jishenOf(y, m, d) {
 
   // 天赦
   const season = jieqiSeason(y, m, d);
-  if (TIANShe[season] === JIAZI[gzIdx]) ji.push('天赦');
+  if (TIANShe[season] === JIAZI[gzIdx].join('')) ji.push('天赦');
 
   // 月恩/天恩（通行：甲子~戊辰五日为一轮等，简化按通行天恩表）
   const tianen = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己卯', '庚辰', '辛巳', '壬午', '癸未', '己酉', '庚戌', '辛亥', '壬子', '癸丑'];
-  if (tianen.includes(JIAZI[gzIdx])) ji.push('天恩');
+  if (tianen.includes(JIAZI[gzIdx].join(''))) ji.push('天恩');
 
   // 月破
   const dayZhiIdx = gzIdx % 12;
   if ((dayZhiIdx - mZhiIdx + 12) % 12 === 6) xiong.push('月破');
   // 受死
   if (SHOUSI[mZhiIdx % 12] === dayZhi) xiong.push('受死');
-  // 月煞（月三煞：劫煞/灾煞/月煞 按三合局）
-  const sanHe = { 寅: 0, 午: 0, 戌: 0, 申: 1, 子: 1, 辰: 1, 巳: 2, 酉: 2, 丑: 2, 亥: 3, 卯: 3, 未: 3 };
-  const g = sanHe[mZhi];
-  const sas = [['劫煞', '灾煞', '月煞'], ['亥', '子', '丑'], ['巳', '午', '未'], ['申', '酉', '戌']];
-  const shaZhi = sas[g + 1][(mZhiIdx + 1) % 3];
-  if (dayZhi === shaZhi) xiong.push('劫煞');
+  // 月三煞：按「申子辰→巳午未、寅午戌→亥子丑、巳酉丑→寅卯辰、亥卯未→申酉戌」取劫煞
+  // 劫煞 = 三合局绝位（申子辰见巳、寅午戌见亥、巳酉丑见寅、亥卯未见申）
+  const JIESHA = { 申: '巳', 子: '巳', 辰: '巳', 寅: '亥', 午: '亥', 戌: '亥', 巳: '寅', 酉: '寅', 丑: '寅', 亥: '申', 卯: '申', 未: '申' };
+  if (JIESHA[mZhi] === dayZhi) xiong.push('劫煞');
   // 月害（六害：子未 丑午 寅巳 卯辰 申亥 酉戌）
   const hai = { 子: '未', 未: '子', 丑: '午', 午: '丑', 寅: '巳', 巳: '寅', 卯: '辰', 辰: '卯', 申: '亥', 亥: '申', 酉: '戌', 戌: '酉' };
   if (hai[mZhi] === dayZhi) xiong.push('月害');

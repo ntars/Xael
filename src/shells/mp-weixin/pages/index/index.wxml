@@ -1,103 +1,215 @@
-<!-- pages/index/index.wxml —— 五视图单页壳（首页/结果/关于/关于我们/详情） -->
-<view class="nt-page {{dark ? 'nt-dark' : ''}}">
-  <!-- 开屏 -->
-  <view class="nt-splash {{splash ? '' : 'nt-splash-out'}}" wx:if="{{splash}}">
-    <view class="nt-splash-inner">
-      <image class="nt-splash-logo" src="/static/logo.png" mode="aspectFit" />
-      <view class="nt-splash-name">玄玖灵犀</view>
-      <view class="nt-splash-slogan">演乾坤 · 知天命</view>
+<!-- pages/index/index.wxml —— 五视图单页壳（首页/结果/关于/关于我们/详情）
+     结构与 PWA 的 index.html 一一对应：同一个 .nt-stage 舞台、同一套 .nt-layer 视图层、
+     同样的 .nt-mask 弹窗与 .nt-toast 轻提示。类名与 theme.css 完全同名，方便两端对照维护。
+     小程序差异：没有 <div>/<p>/<span>，一律用 view/text/image；点击用 bindtap。 -->
+<view class="nt-page-safe {{dark ? 'nt-dark' : ''}}">
+
+  <!-- ============ 开屏：停 1200ms 后 400ms 缩放退场 ============ -->
+  <view class="nt-splash {{splashOut ? 'nt-splash-out' : ''}}" wx:if="{{splash}}">
+    <view class="nt-splash-brand">
+      <image class="nt-splash-logo" src="{{logoSrc}}" mode="aspectFit" />
+      <text class="nt-splash-name">{{txt.splashTitle}}</text>
     </view>
+    <text class="nt-splash-sub">{{txt.splashSub}}</text>
   </view>
 
-  <!-- 首页 -->
-  <view class="nt-view" wx:if="{{view === 'home'}}">
-    <view class="nt-top">
-      <text class="nt-btn-text" bindtap="goAbout">关于</text>
-    </view>
+  <!-- ============ 视图舞台 ============ -->
+  <view class="nt-stage">
 
-    <!-- 空态（无结果时） -->
-    <view class="nt-home-empty" wx:if="{{!result}}">
-      <image class="nt-home-logo" src="/static/logo.png" mode="aspectFit" />
-      <view class="nt-home-name">玄玖灵犀</view>
-      <view class="nt-search">
-        <view class="nt-halo"></view>
-        <input class="nt-search-input" value="{{query}}" placeholder="{{placeholder}}" confirm-type="search" bindinput="onInput" bindconfirm="onSearch" />
-      </view>
-      <text class="nt-disclaimer">{{disclaimer}}</text>
-    </view>
-
-    <!-- 结果 -->
-    <view class="nt-result" wx:if="{{result}}">
-      <block wx:for="{{result.sections}}" wx:key="title" wx:for-item="sec">
-        <view class="nt-result-title">{{sec.title}}</view>
-        <view class="nt-result-lead" wx:if="{{sec.lead}}">{{sec.lead}}</view>
-        <view class="nt-block" wx:for="{{sec.blocks}}" wx:key="title" wx:for-item="blk">
-          <view class="nt-block-title">{{blk.title}}</view>
-          <view class="nt-row {{row.pair ? '' : 'nt-row-full'}}" wx:for="{{blk.rows}}" wx:key="label" wx:for-item="row">
-            <text class="nt-row-label">{{row.label}}</text>
-            <text class="nt-row-value">{{row.value}}</text>
-          </view>
+    <!-- ---------- 首页 ---------- -->
+    <view class="nt-layer {{layer.home}}" data-view="home" wx:if="{{!hidden.home}}">
+      <view class="home">
+        <view class="nt-nav">
+          <view class="nt-nav-about" bindtap="goAbout" hover-class="nt-hover">{{txt.about}}</view>
         </view>
-      </block>
-      <view class="nt-search nt-search-inline">
-        <input class="nt-search-input" value="{{query}}" placeholder="{{placeholder}}" confirm-type="search" bindinput="onInput" bindconfirm="onSearch" />
+        <view class="nt-hero {{cascadeOn ? 'nt-cascade' : ''}}">
+          <image class="nt-hero-logo" src="{{logoSrc}}" mode="aspectFit" />
+          <text class="nt-hero-title">{{txt.name}}</text>
+          <view class="nt-pill nt-hero-pill {{phOff ? 'nt-ph-off' : ''}}">
+            <view class="nt-halo"></view>
+            <input class="nt-pill-input" placeholder-style="color: transparent" value="{{query}}" bindinput="onInput" bindfocus="onFocus" bindblur="onBlur" bindconfirm="onSend" confirm-type="search" cursor-spacing="24" />
+            <view class="nt-ph">
+              <view class="nt-ph-item">{{txt.searchPlaceholder}}</view>
+            </view>
+            <view class="nt-pill-search {{busy ? 'nt-busy' : ''}}" bindtap="onSend" hover-class="nt-hover">
+              <view class="nt-icon nt-i-search"></view>
+            </view>
+          </view>
+          <text class="nt-hero-note">{{txt.homeDisclaimer}}</text>
+        </view>
+        <view class="nt-foot">
+          <text class="nt-setfoot-line" bindtap="openIcp">{{txt.icp}}</text>
+          <text class="nt-setfoot-line">{{txt.footerCopy}}</text>
+        </view>
       </view>
     </view>
 
-    <view class="nt-footer">
-      <text>{{footer.icp}}</text>
-      <text>{{footer.copyright}}</text>
+    <!-- ---------- 结果页 ---------- -->
+    <view class="nt-layer {{layer.result}}" data-view="result" wx:if="{{!hidden.result}}">
+      <view class="res">
+        <view class="nt-nav">
+          <view class="nt-nav-back" bindtap="goHome" hover-class="nt-hover">
+            <view class="nt-icon nt-i-back"></view>
+          </view>
+          <text class="nt-nav-title">{{txt.navTitle}}</text>
+        </view>
+        <view class="nt-page-h {{cascadeOn ? 'nt-cascade' : ''}}">{{txt.resultPageTitle}}</view>
+        <scroll-view class="nt-pgbody" scroll-y scroll-with-animation>
+          <view class="nt-dl-card">
+            <text class="nt-dl-h1">{{txt.questionLabel}}</text>
+            <text class="nt-dl-text nt-dl-text-light">{{question}}</text>
+            <text class="nt-dl-h1 res-lead-h" wx:if="{{result.kind === 'single' && result.lead}}">{{result.lead}}</text>
+
+            <!-- 单结果：block 序列（kv 组 / text 段） -->
+            <block wx:if="{{result.kind === 'single'}}">
+              <block wx:for="{{result.blocks}}" wx:key="idx" wx:for-item="blk">
+                <view class="res-kvlist" wx:if="{{blk.type === 'kv'}}">
+                  <block wx:for="{{blk.rows}}" wx:key="idx" wx:for-item="row">
+                    <text class="res-kv-label">{{row.label}}</text>
+                    <text class="res-kv-text">{{row.value}}</text>
+                  </block>
+                </view>
+                <view class="res-block" wx:else>
+                  <text class="nt-dl-text nt-dl-text-light">{{blk.text}}</text>
+                </view>
+              </block>
+            </block>
+
+            <!-- 多命中：小节并列 -->
+            <block wx:else>
+              <view class="res-section" wx:for="{{result.sections}}" wx:key="idx" wx:for-item="sec">
+                <text class="res-section-title nt-dl-h1">{{sec.title}}</text>
+                <block wx:for="{{sec.blocks}}" wx:key="idx" wx:for-item="blk">
+                  <view class="res-kvlist" wx:if="{{blk.type === 'kv'}}">
+                    <block wx:for="{{blk.rows}}" wx:key="idx" wx:for-item="row">
+                      <text class="res-kv-label">{{row.label}}</text>
+                      <text class="res-kv-text">{{row.value}}</text>
+                    </block>
+                  </view>
+                  <view class="res-block" wx:else>
+                    <text class="nt-dl-text nt-dl-text-light">{{blk.text}}</text>
+                  </view>
+                </block>
+              </view>
+            </block>
+
+            <text class="res-tail-note" wx:if="{{result.tailNote}}">{{result.tailNote}}</text>
+          </view>
+        </scroll-view>
+        <view class="nt-dual {{cascadeOn ? 'nt-cascade' : ''}}">
+          <view class="nt-pill-btn ghost {{busy ? 'nt-busy' : ''}}" bindtap="onExport" hover-class="nt-hover">{{txt.exportBtn}}</view>
+          <view class="nt-pill-btn" bindtap="goHome" hover-class="nt-hover">{{txt.againBtn}}</view>
+        </view>
+        <view class="nt-foot {{cascadeOn ? 'nt-cascade' : ''}}">
+          <text class="nt-setfoot-line" wx:for="{{footLines}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
     </view>
+
+    <!-- ---------- 关于 ---------- -->
+    <view class="nt-layer {{layer.about}}" data-view="about" wx:if="{{!hidden.about}}">
+      <view class="ab">
+        <view class="nt-nav">
+          <view class="nt-nav-back" bindtap="goHome" hover-class="nt-hover">
+            <view class="nt-icon nt-i-back"></view>
+          </view>
+          <text class="nt-nav-title">{{txt.about}}</text>
+        </view>
+        <scroll-view class="nt-pgbody nt-pt" scroll-y>
+          <view class="nt-brand {{cascadeOn ? 'nt-cascade' : ''}}">
+            <image class="nt-brand-logo" src="{{logoSrc}}" mode="aspectFit" />
+            <text class="nt-brand-name">{{txt.name}}</text>
+            <text class="nt-brand-sub">{{txt.slogan}}</text>
+          </view>
+          <view class="nt-setlist ab-setlist {{cascadeOn ? 'nt-cascade' : ''}}">
+            <view class="nt-setrow {{item.danger ? 'danger' : ''}}" wx:for="{{aboutRows}}" wx:key="id" data-id="{{item.id}}" bindtap="onRow" hover-class="nt-hover">
+              <view class="nt-setl">
+                <text class="nt-setl-title">{{item.title}}</text>
+                <text class="nt-setl-desc">{{item.desc}}</text>
+              </view>
+              <view class="nt-icon {{item.danger ? 'nt-i-chev-danger' : 'nt-i-chev'}}"></view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="nt-foot {{cascadeOn ? 'nt-cascade' : ''}}">
+          <text class="nt-setfoot-line" wx:for="{{footLines}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ---------- 关于我们 ---------- -->
+    <view class="nt-layer {{layer.us}}" data-view="us" wx:if="{{!hidden.us}}">
+      <view class="ab">
+        <view class="nt-nav">
+          <view class="nt-nav-back" bindtap="goAbout" hover-class="nt-hover">
+            <view class="nt-icon nt-i-back"></view>
+          </view>
+          <text class="nt-nav-title">{{txt.usPageTitle}}</text>
+        </view>
+        <scroll-view class="nt-pgbody nt-pt" scroll-y>
+          <view class="nt-setlist {{cascadeOn ? 'nt-cascade' : ''}}">
+            <view class="nt-setrow" wx:for="{{usRows}}" wx:key="id" data-id="{{item.id}}" bindtap="onRow" hover-class="nt-hover">
+              <view class="nt-setl">
+                <text class="nt-setl-title">{{item.title}}</text>
+                <text class="nt-setl-desc">{{item.desc}}</text>
+              </view>
+              <view class="nt-icon nt-i-chev"></view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="nt-foot {{cascadeOn ? 'nt-cascade' : ''}}">
+          <text class="nt-setfoot-line" wx:for="{{footLines}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ---------- 详情（协议条款 / 开源声明 / 功能介绍 / 参考文献 / 星玖工作室） ---------- -->
+    <view class="nt-layer {{layer.detail}}" data-view="detail" wx:if="{{!hidden.detail}}">
+      <view class="dl">
+        <view class="nt-nav">
+          <view class="nt-nav-back" bindtap="goDetailBack" hover-class="nt-hover">
+            <view class="nt-icon nt-i-back"></view>
+          </view>
+          <text class="nt-nav-title">{{txt.navTitle}}</text>
+        </view>
+        <view class="nt-page-h {{cascadeOn ? 'nt-cascade' : ''}}">{{detailTitle}}</view>
+        <scroll-view class="nt-pgbody" scroll-y scroll-with-animation scroll-top="{{detailScrollTop}}">
+          <view class="nt-dl-card {{cascadeOn ? 'nt-cascade' : ''}}">
+            <view class="nt-dl-item" wx:for="{{detailItems}}" wx:key="idx" wx:for-item="it">
+              <text class="{{it.kind === 'book' ? 'nt-dl-h2' : 'nt-dl-h1'}}" wx:if="{{it.h}}">{{it.h}}</text>
+              <text class="nt-dl-text" wx:if="{{it.text}}">{{it.text}}</text>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="nt-foot {{cascadeOn ? 'nt-cascade' : ''}}">
+          <text class="nt-setfoot-line" wx:for="{{footLines}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 转场压暗层（前进时渐显、返回时渐隐） -->
+    <view class="nt-dim {{dimClass}}"></view>
+
   </view>
 
-  <!-- 关于页 -->
-  <view class="nt-view" wx:if="{{view === 'about'}}">
-    <view class="nt-page-head">
-      <text class="nt-btn-back" bindtap="goHome">‹</text>
-      <view class="nt-page-title">关于</view>
-    </view>
-    <view class="nt-cards">
-      <view class="nt-card {{item.danger ? 'nt-card-danger' : ''}}" wx:for="{{aboutCards}}" wx:key="id" data-id="{{item.id}}" bindtap="onAboutCard">
-        <text>{{item.label}}</text>
-        <text class="nt-card-arrow">›</text>
+  <!-- ============ 弹窗：先播后摘 ============ -->
+  <view class="nt-mask {{modal.out ? 'nt-mask-out' : ''}}" wx:if="{{modal.show}}" catchtap="onMaskTap">
+    <view class="nt-modal" catchtap="noop">
+      <text class="nt-modal-title">{{modal.title}}</text>
+      <scroll-view class="nt-modal-desc" scroll-y>
+        <text class="nt-modal-desc-text">{{modal.desc}}</text>
+      </scroll-view>
+      <view class="nt-modal-btns">
+        <view class="nt-pill-btn ghost" wx:if="{{!modal.single}}" bindtap="closeModal" hover-class="nt-hover">{{modal.cancel}}</view>
+        <view class="nt-pill-btn" bindtap="onModalOk" hover-class="nt-hover">{{modal.ok}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 关于我们 -->
-  <view class="nt-view" wx:if="{{view === 'studio'}}">
-    <view class="nt-page-head">
-      <text class="nt-btn-back" bindtap="goAbout">‹</text>
-      <view class="nt-page-title">关于我们</view>
-    </view>
-    <view class="nt-cards">
-      <view class="nt-card" wx:for="{{studioCards}}" wx:key="id" data-id="{{item.id}}" bindtap="onStudioCard">
-        <text>{{item.label}}</text>
-        <text class="nt-card-arrow">›</text>
-      </view>
-    </view>
-  </view>
+  <!-- 轻提示：单例复用，连点不叠一堆 -->
+  <view class="nt-toast" wx:if="{{toastText}}">{{toastText}}</view>
 
-  <!-- 详情页 -->
-  <view class="nt-view" wx:if="{{view === 'doc' && doc}}">
-    <view class="nt-page-head">
-      <text class="nt-btn-back" bindtap="goAbout">‹</text>
-      <view class="nt-page-title">{{doc.title}}</view>
-    </view>
-    <view class="nt-doc-body">
-      <view class="nt-doc-p" wx:for="{{doc.body}}" wx:key="*this">{{item}}</view>
-    </view>
-  </view>
+  <!-- 离屏画布：导出图片用（定位到屏幕外，不参与视觉） -->
+  <canvas type="2d" id="exportCanvas" class="nt-export-canvas"></canvas>
 
-  <!-- 弹窗 -->
-  <view class="nt-modal" wx:if="{{modal.show}}">
-    <view class="nt-modal-mask" bindtap="closeModal"></view>
-    <view class="nt-modal-card">
-      <view class="nt-modal-text">{{modal.text}}</view>
-      <view class="nt-modal-actions">
-        <view class="nt-modal-btn" bindtap="closeModal">取消</view>
-        <view class="nt-modal-btn {{modal.danger ? 'nt-modal-danger' : ''}}" bindtap="onModalOk">确认</view>
-      </view>
-    </view>
-  </view>
 </view>

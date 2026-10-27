@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <!--
-  玄玖灵犀 Xael 5.0.0 —— PWA 入口（五视图单页壳）
+  玄玖灵犀 Xael 5.0.0 —— PWA 入口（单页五视图壳）
   © 2024-2026 Ntarstudio · AGPL-3.0 · https://x.ntars.cn/
-  结构：开屏页 → 首页（搜索唯一入口）→ 结果页 → 关于页 → 关于我们 → 详情页
-  全部演算在设备本地完成；无后端、无网络请求（除站点自身静态资源）。
+
+  结构：开屏 → 首页（搜索唯一入口）→ 结果页 → 关于 → 关于我们 → 详情
+  全部演算在设备本地完成：无后端、无网络请求（站点自身静态资源除外）。
+
+  视图切换走「双层视差转场」：.nt-stage 里叠 .nt-layer.back / .nt-layer.front，
+  中间夹 .nt-dim 做压暗，320ms 结束后摘掉旧层。同一时刻只有一层真正参与布局。
 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#ffffff" />
   <meta name="description" content="中国传统历法与术数文献整理、校勘与数字化演算的学术研究辅助工具，仅供传统文化学习与学术研究参考。无后端、无网络，全部演算在设备本地完成。" />
   <title>玄玖灵犀 Xael</title>
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/static/logo.png" />
-  <link rel="apple-touch-icon" href="/static/logo.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="static/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="static/icons/icon-180.png" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="玄玖灵犀" />
   <meta property="og:locale" content="zh_CN" />
@@ -29,89 +33,185 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="玄玖灵犀" />
-  <link rel="stylesheet" href="/static/theme.css" />
+  <style>
+    /* 根容器：满视口纵向弹性 + 宽屏限宽居中（平板 640 / 电脑 720）——与旧版同一口径 */
+    #app {
+      display: flex; flex-direction: column;
+      height: 100vh; height: 100dvh;
+      margin: 0 auto; position: relative; overflow: hidden;
+    }
+    #app { width: 100%; }
+    @media screen and (min-width: 768px) { #app { max-width: var(--w-tablet); } }
+    @media screen and (min-width: 1024px) { #app { max-width: var(--w-desktop); } }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { width: 0; height: 0; display: none; }
+  </style>
+  <link rel="stylesheet" href="static/theme.css" />
 </head>
 <body>
-  <!-- 开屏页：Logo + 名 + 口号，停 1.2s 后 400ms 缩放退场交接 -->
-  <div class="nt-splash" id="splash" aria-hidden="true">
-    <div class="nt-splash-inner">
-      <img class="nt-splash-logo" src="/static/logo.png" alt="" width="86" height="96" />
-      <div class="nt-splash-name">玄玖灵犀</div>
-      <div class="nt-splash-slogan">演乾坤 · 知天命</div>
+  <!-- 页面主容器：底部留出安全区 -->
+  <div class="nt-page-safe" id="app">
+
+    <!-- ============ 开屏 ============ -->
+    <div class="nt-splash" id="splash" aria-hidden="true">
+      <div class="nt-splash-brand">
+        <img class="nt-splash-logo" src="static/icons/logo.png" alt="" width="86" height="96" />
+        <span class="nt-splash-name" id="splash-name">玄玖灵犀</span>
+      </div>
+      <span class="nt-splash-sub" id="splash-sub">演乾坤 · 知天命</span>
     </div>
+
+    <!-- ============ 视图舞台 ============ -->
+    <div class="nt-stage" id="stage">
+
+      <!-- 首页 -->
+      <section class="nt-layer front nt-layer-web" id="v-home" data-view="home">
+        <div class="home">
+          <div class="nt-nav">
+            <button class="nt-nav-about" id="home-about" type="button">关于</button>
+          </div>
+          <div class="nt-hero">
+            <img class="nt-hero-logo" src="static/icons/logo.png" alt="玄玖灵犀" width="65" height="72" />
+            <h1 class="nt-hero-title" id="home-title">玄玖灵犀</h1>
+            <div class="nt-pill nt-hero-pill" id="home-pill">
+              <span class="nt-halo" aria-hidden="true"></span>
+              <input class="nt-pill-input" id="home-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="今天想了解点什么" />
+              <div class="nt-ph" id="home-ph" aria-hidden="true"></div>
+              <span class="nt-pill-search" id="home-send" role="button" tabindex="0" aria-label="发送">
+                <span class="nt-icon nt-i-search"></span>
+              </span>
+            </div>
+            <p class="nt-hero-note" id="home-note">内容仅供交流学习</p>
+          </div>
+          <footer class="nt-foot">
+            <a class="nt-setfoot-line" id="home-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">蜀ICP备2026027050号</a>
+            <span class="nt-setfoot-line" id="home-copy">© 2024-2026 Ntarstudio</span>
+          </footer>
+        </div>
+      </section>
+
+      <!-- 结果页 -->
+      <section class="nt-layer nt-layer-web" id="v-result" data-view="result" hidden>
+        <div class="res">
+          <div class="nt-nav">
+            <button class="nt-nav-back" id="result-back" type="button" aria-label="返回">
+              <span class="nt-icon nt-i-back"></span>
+            </button>
+            <span class="nt-nav-title" id="result-title">搜索结果</span>
+          </div>
+          <div class="nt-page-h" id="result-pageh">搜索结果</div>
+          <div class="nt-pgbody" id="result-body">
+            <div class="nt-dl-card">
+              <span class="nt-dl-h1" id="result-qlabel">你的提问</span>
+              <span class="nt-dl-text nt-dl-text-light" id="result-question"></span>
+              <span class="nt-dl-h1 res-lead-h" id="result-lead"></span>
+              <div id="result-blocks"></div>
+              <div id="result-sections"></div>
+            </div>
+          </div>
+          <div class="nt-dual">
+            <button class="nt-pill-btn ghost" id="result-export" type="button">保存图片</button>
+            <button class="nt-pill-btn" id="result-again" type="button">再问一次</button>
+          </div>
+          <footer class="nt-foot" id="result-foot">
+            <span class="nt-setfoot-line">内容仅供交流学习</span>
+          </footer>
+        </div>
+      </section>
+
+      <!-- 关于 -->
+      <section class="nt-layer nt-layer-web" id="v-about" data-view="about" hidden>
+        <div class="ab">
+          <div class="nt-nav">
+            <button class="nt-nav-back" id="about-back" type="button" aria-label="返回">
+              <span class="nt-icon nt-i-back"></span>
+            </button>
+            <span class="nt-nav-title">关于</span>
+          </div>
+          <div class="nt-pgbody nt-pt" id="about-body">
+            <div class="nt-brand">
+              <img class="nt-brand-logo" src="static/icons/logo.png" alt="玄玖灵犀" width="65" height="72" />
+              <span class="nt-brand-name">玄玖灵犀</span>
+              <span class="nt-brand-sub" id="about-slogan">演乾坤 · 知天命</span>
+            </div>
+            <div class="nt-setlist ab-setlist" id="about-list"></div>
+          </div>
+          <footer class="nt-foot" id="about-foot">
+            <span class="nt-setfoot-line" id="about-copy">© 2024-2026 Ntarstudio</span>
+          </footer>
+        </div>
+      </section>
+
+      <!-- 关于我们 -->
+      <section class="nt-layer nt-layer-web" id="v-us" data-view="us" hidden>
+        <div class="ab">
+          <div class="nt-nav">
+            <button class="nt-nav-back" id="us-back" type="button" aria-label="返回">
+              <span class="nt-icon nt-i-back"></span>
+            </button>
+            <span class="nt-nav-title">关于我们</span>
+          </div>
+          <div class="nt-pgbody nt-pt" id="us-body">
+            <div class="nt-setlist" id="us-list"></div>
+          </div>
+          <footer class="nt-foot" id="us-foot">
+            <span class="nt-setfoot-line" id="us-copy">© 2024-2026 Ntarstudio</span>
+          </footer>
+        </div>
+      </section>
+
+      <!-- 详情（协议条款 / 开源声明 / 功能介绍 / 参考文献 / 星玖工作室） -->
+      <section class="nt-layer nt-layer-web" id="v-detail" data-view="detail" hidden>
+        <div class="dl">
+          <div class="nt-nav">
+            <button class="nt-nav-back" id="detail-back" type="button" aria-label="返回">
+              <span class="nt-icon nt-i-back"></span>
+            </button>
+            <span class="nt-nav-title" id="detail-navtitle">详情</span>
+          </div>
+          <div class="nt-page-h" id="detail-title">详情</div>
+          <div class="nt-pgbody" id="detail-body">
+            <div class="nt-dl-card" id="detail-items"></div>
+          </div>
+          <footer class="nt-foot" id="detail-foot">
+            <span class="nt-setfoot-line">内容仅供交流学习</span>
+          </footer>
+        </div>
+      </section>
+
+      <!-- 转场压暗层 -->
+      <div class="nt-dim" id="dim" aria-hidden="true"></div>
+
+    </div>
+
+    <!-- ============ 弹窗（先播后摘） ============ -->
+    <div class="nt-mask" id="modal" hidden>
+      <div class="nt-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <span class="nt-modal-title" id="modal-title">清除数据</span>
+        <div class="nt-modal-scroll" id="modal-scroll">
+          <span class="nt-modal-desc" id="modal-desc"></span>
+        </div>
+        <div class="nt-modal-btns">
+          <button class="nt-pill-btn ghost" id="modal-cancel" type="button">取消</button>
+          <button class="nt-pill-btn" id="modal-ok" type="button">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 轻提示 -->
+    <div class="nt-toast" id="toast" hidden></div>
+
+    <!-- 安装引导条：只有浏览器真的允许安装时才由 beforeinstallprompt 放出来 -->
+    <div class="nt-installbar" id="installbar" hidden>
+      <span class="nt-installtext">
+        <span class="nt-installtitle">安装「玄玖灵犀」到桌面</span>
+        <span class="nt-installdesc">可离线运行，安装为 APP</span>
+      </span>
+      <button class="nt-installbtn" id="installbtn" type="button">安装</button>
+    </div>
+
   </div>
 
-  <!-- 首页 -->
-  <main class="nt-view nt-home" id="view-home">
-    <header class="nt-top">
-      <button class="nt-btn-text" id="btn-about" type="button">关于</button>
-    </header>
-    <div class="nt-home-empty" id="home-empty">
-      <img class="nt-home-logo" src="/static/logo.png" alt="玄玖灵犀" width="64" height="72" />
-      <h1 class="nt-home-name">玄玖灵犀</h1>
-      <div class="nt-search" id="search-box">
-        <div class="nt-halo" id="halo" aria-hidden="true"></div>
-        <svg class="nt-search-ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-          <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
-          <line x1="15.6" y1="15.6" x2="20" y2="20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        </svg>
-        <input class="nt-search-input" id="search-input" type="text" placeholder="今天想了解点什么" autocomplete="off" enterkeyhint="search" />
-      </div>
-      <p class="nt-disclaimer">内容仅供交流学习</p>
-    </div>
-    <!-- 结果区（搜索后替换空态） -->
-    <section class="nt-result" id="result" hidden></section>
-    <footer class="nt-footer">
-      <span>蜀ICP备2026027050号</span>
-      <span>© 2024-2026 Ntarstudio</span>
-    </footer>
-  </main>
-
-  <!-- 关于页（4卡） -->
-  <main class="nt-view nt-about" id="view-about" hidden>
-    <header class="nt-page-head">
-      <button class="nt-btn-back" id="btn-about-back" type="button" aria-label="返回">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <h1 class="nt-page-title">关于</h1>
-    </header>
-    <nav class="nt-cards" id="about-cards"></nav>
-  </main>
-
-  <!-- 关于我们（3卡） -->
-  <main class="nt-view nt-studio" id="view-studio" hidden>
-    <header class="nt-page-head">
-      <button class="nt-btn-back" id="btn-studio-back" type="button" aria-label="返回">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <h1 class="nt-page-title">关于我们</h1>
-    </header>
-    <nav class="nt-cards" id="studio-cards"></nav>
-  </main>
-
-  <!-- 详情页（一稿 5 子页：协议条款/开源声明/功能介绍/参考文献/星玖工作室） -->
-  <main class="nt-view nt-doc" id="view-doc" hidden>
-    <header class="nt-page-head">
-      <button class="nt-btn-back" id="btn-doc-back" type="button" aria-label="返回">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <h1 class="nt-page-title" id="doc-title">详情</h1>
-    </header>
-    <article class="nt-doc-body" id="doc-body"></article>
-  </main>
-
-  <!-- 弹窗（清除数据确认等） -->
-  <div class="nt-modal" id="modal" hidden>
-    <div class="nt-modal-mask" id="modal-mask"></div>
-    <div class="nt-modal-card" role="dialog" aria-modal="true">
-      <div class="nt-modal-text" id="modal-text">确认清除全部本地数据？</div>
-      <div class="nt-modal-actions">
-        <button class="nt-modal-btn" id="modal-cancel" type="button">取消</button>
-        <button class="nt-modal-btn nt-modal-danger" id="modal-ok" type="button">确认</button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="/static/app.js"></script>
+  <script type="module" src="static/app.js"></script>
 </body>
 </html>

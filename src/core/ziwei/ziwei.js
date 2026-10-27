@@ -188,7 +188,8 @@ export function ziweiChart(input) {
   };
   const mingGz = palaceGan(mingPos) + ZHI12[mingPos];
   // 五行局：由「命宫干支」的纳音五行定（如壬午=杨柳木→木三局）
-  const ju = JU_OF_WX[nayinOf(JIAZI.indexOf(mingGz)).slice(-1)];
+  const mingIdx = JIAZI.findIndex((x) => x[0] === mingGz[0] && x[1] === mingGz[1]);
+  const ju = JU_OF_WX[nayinOf(mingIdx).slice(-1)];
 
   const main = mainStarMap(ju, lunarDay);
   const aux = auxStarMap(yGanIdx, yZhiIdx, lunarMonth, hourIdx);

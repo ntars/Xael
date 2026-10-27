@@ -18,11 +18,15 @@ let failed = 0;
 for (const f of files) {
   try {
     const mod = await import('./' + f);
-    const passed = mod.passed ?? 0;
-    const failedN = mod.failed ?? 0;
+    // 有的测试是异步的（要等 setTimeout / await），先等它自报完成；
+    // run 是测试导出的「跑完并取计数」函数，同步测试直接 resolve 当前计数。
+    const runner = typeof mod.run === 'function' ? mod.run : null;
+    const r = await (runner ? runner() : { passed: mod.passed ?? 0, failed: mod.failed ?? 0 });
+    const passed = r.passed ?? 0;
+    const failedN = r.failed ?? 0;
     total += passed + failedN;
     failed += failedN;
-    console.log(`${f}: 通过 ${passed} 项，失败 ${failedN} 项`);
+    if (!runner) console.log(`${f}: 通过 ${passed} 项，失败 ${failedN} 项`);
   } catch (e) {
     failed += 1;
     console.error(`${f}: 执行异常 ${e.message}`);

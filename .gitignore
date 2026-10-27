@@ -5,6 +5,7 @@
 /manifest.webmanifest
 /robots.txt
 /sitemap.xml
+/sw.js
 /static/
 /core/
 /shared/

@@ -18,7 +18,9 @@ import { GAN, ZHI, JIAZI } from '../common/constants.js';
 import { CLOCK, STAR_HOME, DOOR_HOME, GODS, GONG_DIR } from './qimen.js';
 
 const YI = ['戊', '己', '庚', '辛', '壬', '癸', '丁', '丙', '乙'];
-const XUNSHOU = { 甲子: '戊', 甲戌: '己', 甲申: '庚', 甲午: '辛', 甲辰: '壬', 甲寅: '癸' };
+const XUNSHOU = { '甲子': '戊', '甲戌': '己', '甲申': '庚', '甲午': '辛', '甲辰': '壬', '甲寅': '癸' };
+/** JIAZI 是 ['甲','戌'] 这样的数组对，取键须拼成「甲戌」 */
+const xunKey = (gz) => gz[0] + gz[1];
 
 /** 日家天盘星环（蓬任冲辅英芮柱心，天禽随天芮） */
 const RI_STAR_RING = ['天蓬', '天任', '天冲', '天辅', '天英', '天芮', '天柱', '天心'];
@@ -74,9 +76,9 @@ export function qimenRiChart(input) {
 
   // 旬首：日干倒推甲日
   const xunGanZhi = JIAZI[(gzIdx - gzIdx % 10 + 60) % 60];
-  const xunshouYi = XUNSHOU[xunGanZhi];
+  const xunshouYi = XUNSHOU[xunKey(xunGanZhi)];
   let fuGong = 0;
-  for (const g in dp) if (dp[g] === xunshouYi) fuGong = +g;
+  for (let g = 1; g <= 9; g++) if (dp[g] === xunshouYi) fuGong = g;
   if (fuGong === 5) fuGong = 2;
   const fuStar = Object.keys(STAR_HOME).find((k) => STAR_HOME[k] === fuGong);
   const fuDoor = Object.keys(DOOR_HOME).find((k) => DOOR_HOME[k] === fuGong);
@@ -84,7 +86,7 @@ export function qimenRiChart(input) {
   // 值符落宫：日干（甲用旬首仪）在地盘宫
   let zhiFuGong = fuGong;
   if (dayGan !== '甲') {
-    for (const g in dp) if (dp[g] === dayGan) zhiFuGong = +g;
+    for (let g = 1; g <= 9; g++) if (dp[g] === dayGan) zhiFuGong = g;
     if (zhiFuGong === 5) zhiFuGong = 2;
   }
 

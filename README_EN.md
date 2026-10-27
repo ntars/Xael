@@ -1,231 +1,265 @@
 [简体中文](README.md) | **English**
 
-# Xuanjiu Lingxi Xael
+# Xael · 玄玖灵犀
 
-> A local, offline library of traditional divination literature. Code name Xael, kernel code name NT-Xhex.
+> *The mystery of mysteries — the gate of all wonders.* (Laozi, Daodejing)
+>
+> Xuanjiu Lingxi · Xael.
 
-Shùshù (数术 — fate calculation, date selection, astrology, hexagram divination) is a body of traditional Chinese knowledge spanning over two thousand years, yet its literature and practice have long been stuck in three states: **formulas memorized by rote**, **calendars consulted by hand**, and **charts plotted manually**. Xael turns this entire system into an open-source computation core that programs can call — calendar conversion, BaZi charts, Ziwei charts, Qimen Dunjia, Da Liu Ren, Liu Yao, Meihua Yishu, and almanac date selection, all computed precisely by code. No lookup tables, no copied web pages, no third-party divination APIs.
+**Xael** (玄玖灵犀) is a local, offline library of traditional Chinese mantic literature (术数), also serving as a toolkit for collating, proofreading and digitally computing that corpus. It computes the calendar, Four Pillars, Zi Wei Dou Shu, Qi Men Dun Jia, Da Liu Ren, Liu Yao, Mei Hua Yi Shu, Xuan Kong Fei Xing and the almanac **from first principles, on your device** — no lookup tables, no network, no third-party divination API.
 
 | | |
 |---|---|
-| Code name | Xael (kernel: NT-Xhex) |
+| Product | Xael (玄玖灵犀) |
+| Version | 5.0.0 |
+| Status | Product live (WeChat Mini Program and official account); kernel 5.0.0 in development |
 | Repository | <https://github.com/ntars/Xael> |
 | Website | <https://x.ntars.cn/> |
-| Status | Product live, with a same-named WeChat mini program and official account; core kernel v4.3.0 implemented and passing 66 assertions |
-| License | AGPL-3.0 |
-| Language | Pure JavaScript (CommonJS), zero npm dependencies |
-| Copyright | Copyright (c) 2026 星玖工作室 Ntarstudio |
+| Targets | browser PWA (implemented) / WeChat Mini Program (buildable) / uni-app (implemented, pending HBuilderX build) |
+| License | AGPL-3.0 (brand and UI © Ntarstudio) |
+| Runtime dependencies | none (pure JavaScript, no npm packages) |
+| Size | 50 kernel modules, 5,764 lines; 1,134 lines shared layer; 59 shell files |
 
-## Introduction
+## Overview
 
-**Background**: the market for traditional divination software is split between two kinds of products — closed-source commercial charting sites (opaque algorithms, ads everywhere, data you don't control) and scattered open-source scripts (one feature each, no unified conventions, no documentation). A developer who wants to seriously study or integrate divination computations has almost no trustworthy, readable, extensible starting point.
+**Background.** Divination software sits on two unsatisfying poles: closed commercial charting sites (opaque algorithms, undocumented conventions, no offline use) and scattered open scripts (single-purpose, no shared calendar base, impossible to audit).
 
-**The problem**: divination computation has three well-known traps. First, **calendars**: Gregorian↔lunar↔sexagenary conversion requires new moons and solar terms precise to the minute — table-based approaches inevitably break on boundary dates. Second, **conventions**: for any given rule (Ziwei's Four Transformations, Qimen'sJu numbers) there are multiple schools, and mixing conventions is the number-one source of computational errors. Third, **verifiability**: closed-source tools give you a result, but nobody can check how it was derived.
+**Problem.** Three hard parts. *Calendar*: the Chinese lunisolar calendar needs true new moons and true solar terms; table-driven code fails on boundary days. *Convention*: Zi Wei four transformations, Qi Men Dun Jia's *dingyuan* rule and Liu Ren's *fayong* chain each have competing schools — mixing them silently produces wrong charts. *Verifiability*: a result without a stated basis cannot be checked.
 
-**Core idea**: strictly layer "astronomical calendrics" above "divination rules". The `calendar/` layer computes new moons, solar terms and Julian day numbers from astronomical series (Meeus algorithms) in real time, with no tables; each divination module consumes only the standardized ganzhi/solar-term output of that layer, and explicitly declares its school convention in `docs/CALIBER-NOTES.md`. Every line of computational code is readable, reviewable and unit-testable.
+**Approach.** Strict layering. `src/core/calendar/` computes solar longitude, new moons and solar terms from astronomical series in real time. Each mantic module only consumes normalized sexagenary/term data. Shells only handle interaction. Every school choice is written down in [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md).
 
-**Use cases**: researchers cross-checking literature and verifying hand-plotted charts; developers integrating features (birthday→BaZi, solar-term reminders, almanac data); teaching traditional calendrics in the classroom; and commercial products with transparency requirements building their own kernel.
+**Who it is for.** Researchers proofreading texts or hand-checking charts; developers integrating birth-data conversion; calendar teaching; anyone who needs a transparent engine.
 
-## Core Features
+## 22 Features
 
-| Module | Capability | Status |
-|---|---|---|
-| calendar | Gregorian↔Julian day↔sexagenary years↔astronomical lunar calendar↔solar terms (to the minute)↔festivals | ✅ implemented + 66 assertions |
-| bazi | BaZi charts: four pillars, five-element strength, Nayin | ✅ implemented |
-| ziwei | Zi Wei Dou Shu: star placement (Zhongzhou school), twelve palaces, Four Transformations | ✅ implemented |
-| huangli | Almanac: daily do's and don'ts, clashes,值班 deities, twelve day officers | ✅ implemented (7 submodules) |
-| qimen | Qimen Dunjia: yang/yin Ju numbers, nine-palace charts | 🚧 planned |
-| liuren | Da Liu Ren: nine-gate lesson casting, four lessons & three transmissions | 🚧 planned |
-| liuyao | Liu Yao: Jingfang Najia, world/reponse lines and six relatives | 🚧 planned |
-| meihua | Meihua Yishu: body/use generation and control | 🚧 planned |
-| fengshui | Eight Mansions / Xuan Kong Flying Stars | 🚧 planned |
+Search is the only entry point: type a sentence into the capsule on the home screen; trigger words match by longest-first, ties shown side by side. Chart features that need a birth date always require one; time-based features (Qi Men, Liu Ren, Liu Yao, Mei Hua) fall back to the current moment when no time is given.
+
+| Group | Feature | Input | Output |
+|---|---|---|---|
+| Almanac | 查黄历 Almanac | date (default today) | Gregorian/lunar/sexagenary, day officer, 12 day gods, 28 mansions, clashes, Peng Zu taboos, fetal deity, do/don't, auspicious and inauspicious spirits |
+| Almanac | 查农历 Lunar | date | lunar month/day, leap month, solar term, zodiac |
+| Ba Zi | 排八字 Four Pillars | birth | four pillars, ten gods, hidden stems, Na Yin, void branches, fetal origin, five-element distribution |
+| Ba Zi | 解格局 Pattern | birth | month command, month ten-god, exposed stems, pattern name, strength score with reasons |
+| Ba Zi | 查神煞 Shen Sha | birth | noble, literary star, peach blossom, travelling horse, canopy, general star, blade, wealth sign, void, solitary stars, etc. (rule cited per entry) |
+| Ba Zi | 排运程 Luck cycles | birth | direction rule, starting age (3 days = 1 year), eight decade pillars, ten yearly pillars |
+| Zi Wei | 排紫微 Zi Wei chart | birth | twelve palaces, five-phase bureau, life/body palaces, 14 major stars, auxiliary stars, decade limits |
+| Zi Wei | 解四化 Four transformations | birth | natal four transformations, their palaces, full ten-stem table |
+| Qi Men | 排奇门 Time Qi Men | date-time | rotating-plate Chaibu: dun bureau, xun head, chief, nine palaces, stars, gates, deities |
+| Qi Men | 排日家 Day Qi Men | date | 180-day yuan rotation: bureau, chief, nine-palace board |
+| Qi Men | 排刻家 Ke Qi Men | date-time | 50-ke division, ke sexagenary, order, day board |
+| Qi Men | 排宝鉴日奇 Baojian | date | gate by day branch, star by day stem, eight-palace board |
+| Qi Men | 排年家月家 Year/Month | date | year bureau and yin/yang dun, month bureaus from 8 |
+| Qi Men | 排飞盘 Flying plate | date-time | Fei Pan school, no hostel, Tian Qin separate |
+| Qi Men | 解奇门格局 Patterns | date-time | stem-combination patterns (Qing Long Fan Shou etc.), Wu Bu Yu hours |
+| Liu Yao | 排六爻 Hexagram | date-time or coins | original/changed hexagrams, palace, generation/response, Na Jia, six relatives, six spirits, void/break/clash |
+| Liu Yao | 解六爻旺衰 Strength | date-time | month/day relations, vigour levels, break/void/hidden-move flags |
+| Mei Hua | 排梅花 Plum Blossom | date-time | original, nuclear, changed hexagrams; body/use mutual production |
+| Feng Shui | 查命卦 Life trigram | birth year + gender | trigram, eight-star ring, direction fortune |
+| Feng Shui | 排飞星 Flying stars | date-time | year/month/day/hour purple-white, three-yuan nine-period |
+| Da Liu Ren | 排六壬 Liu Ren | date-time | month general, heaven/earth plates, four lessons, nine-gate fayong, three transmissions, generals |
+| Da Liu Ren | 解毕法 Bi Fa rules | date-time | structured lessons/transmissions, Bi Fa entries (the 10 with unambiguous conditions) |
 
 ## Highlights
 
-### 1. Astronomical lunar calendar — no tables
+### 1. Calendar recomputed from the bottom up, no tables
 
-The first day of every lunar month must be a true new moon (the day containing the lunar conjunction). `src/core/calendar/lunar2.js` computes lunar and solar ecliptic longitudes from Meeus series, scans day by day for conjunctions, then determines leap months by solar terms — the same approach as the *Chinese Astronomical Almanac*. **Differentiation**: most open-source lunar libraries use pre-generated conversion tables that expire outside their covered range; Xael can compute any year. **Evidence**: `solarToJdn(2026, 1, 1) === 2461042`; all 66 assertions in `tests/calendar.test.js` pass.
+Gregorian ↔ Julian day → solar longitude (Meeus low-precision series) → true new moon → month start → leap month by the "no major solar term between two winter solstices" theorem. **Evidence:** leap second months 2004, 2023; leap fourth 2020; leap tenth 1984 all hit; 1985 has *no* leap month (first month starts Feb 20) — a case that exposed and killed an earlier "nearest solar term from the month midpoint" implementation.
 
-### 2. Explicit conventions: every school choice is documented
+### 2. Fully self-implemented, zero embedded third-party code
 
-`docs/CALIBER-NOTES.md` records each computation convention line by line: sexagenary years turn at **Lichun** (an iron rule); Ziwei's Four Transformations follow the mainstream **Zhongzhou school** table; Qimen Ju numbers follow the standard yang/yin table; Liu Yao uses the **Jingfang** Najia system; Da Liu Ren uses the **nine-gate** casting method. **Differentiation**: other implementations bury school choices inside code; Xael turns them into a document that can be discussed and swapped. **Evidence**: 78 lines covering every implemented and planned module.
+Before 5.0.0 the kernel embedded third-party calendar and Zi Wei packages. They are **all gone**: lunar calendar, sexagenary, solar terms, Zi Wei star placement, Qi Men, Liu Ren, Liu Yao, Mei Hua and flying stars are independent implementations (50 files, 5,764 lines). Referenced projects are declared in [NOTICE](NOTICE) — ideas and rules only, never code or data.
 
-### 3. Zero-dependency pure JavaScript
+### 3. Conventions made explicit, disagreements named
 
-There is no `package.json`, because none is needed — all 2,633 lines of source (23 files) rely only on native JavaScript. **Differentiation**: comparable projects pull in moment, luxon or assorted lunar packages; Xael computes its own calendar. **Evidence**: `node tests/calendar.test.js` runs on bare Node with no install step.
+Zi Wei leap-month attribution (day 15 belongs to the current month), four transformations per the Zhongzhou mainstream table, Qi Men *chaibu* dingyuan, Liu Ren daytime noble starting at the *mao* hour, Ke-school 50-ke division — every one is stated in [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md) with "what the other school does".
 
-### 4. Single source of truth for character tables
+### 4. Large features split into small modules
 
-Heavenly stems, earthly branches (with hidden stems), five elements, yin-yang and zodiac animals are defined once in `src/core/common/constants.js` (163 lines); every other module references instead of repeating them. **Value**: one fix takes effect everywhere, eliminating the classic bug of two modules disagreeing on hidden stems. **Evidence**: grep confirms all ganzhi references across modules resolve to constants.
+Qi Men is split by school: `qimen.js` (time), `qimen-ri.js` (day), `ke.js`, `baojian.js`, `nianyue.js`, `feipan.js`, `ge.js`. Liu Ren into `tables.js` / `fayong.js` / `tianjiang.js` / `bifa.js` / `liuren.js`. One responsibility per file, independently testable.
 
-### 5. In-house holiday data that can't be taken away
+### 5. One kernel, three shells
 
-Statutory holidays (with adjusted working days) are entered from the 2007–2026 State Council announcements and stored in `src/core/calendar/festival.js`. **Differentiation**: the common approach calls a third-party holiday API, and the feature dies when the API is retired; Xael's data ships with the source and works offline. **Evidence**: `festival.js`, 98 lines, 20 full years.
+The kernel knows nothing about platforms. The Mini Program build transpiles ESM to CommonJS file by file (`tools/build-mp.js`); the PWA build copies ESM to the site root (`tools/build-web.js`); uni-app reuses the same modules. Artifact consistency is checked file by file by `npm run check`.
+
+### 6. Deployable as-is: the web build lives in the repository root
+
+`npm run build:web` emits `index.html` / `static/` / `core/` / `shared/` into the repository root, so EdgeOne or any static host can auto-deploy straight from the repo.
 
 ## Design details
 
-- **Solar terms to the minute**: `jieqi2.js` solves for the precise instant the apparent solar longitude crosses multiples of 15°, used in `huangli` to decide the "month pillar changes on the solar-term day" boundary — exactly where table-based implementations go wrong.
-- **2-gram inverted index**: memory and document search (planned) share one 2-gram tokenizer (per-character for Chinese, lowercased whole words for English), avoiding a segmentation dependency.
-- **Four-layer calendar separation**: `solar` (Gregorian↔JDN) → `astronomy` (celestial positions) → `lunar2` (new moons / leap months) → `ganzhi` / `jieqi` (sexagenary and solar terms); each layer depends only on the one below and is tested in isolation.
-- **Tests as documentation**: the 66 assertions cover new-moon boundaries, leap-month placement, the Lichun year boundary and Julian-day round trips; reading the tests reveals the conventions.
-- **Shell/kernel separation**: `shells/` (mini program, PWA, uni-app) only wrap the same kernel; `src/core/` knows nothing about any platform.
+- **Single search entry**: four birth-date notations (Gregorian / lunar / four pillars) with Chinese-numeral and full-width normalization; missing hour defaults to 14:00; birth-dependent features raise four rejection codes in place; query-type features (today's almanac, lunar date) are never gated.
+- **Three result shapes**: single feature / multiple matches / full chart grouped into seven categories, laid out as "label: value" columns.
+- **Motion**: 1.2s splash hold plus 400ms handoff; double-layer parallax page transitions; 120ms press; modals animate out before removal; a 4400ms breathing halo.
+- **Themes**: 320ms cross-fade, manual choice overrides system, `wx.setBackgroundColor` mirrored on the Mini Program.
+- **Responsive**: full width below 360px, design width 360–767, centred 640 (768–1023), centred 720 (≥1024); type sizes constant.
+- **Units**: px / rem throughout, never rpx. Conditional compilation for Mini Program sizing is documented in [docs/DEPLOY.md](docs/DEPLOY.md).
+- **Image export**: mirrored layout, 2× DPR, automatic paging beyond 4096pt with "(continued)" and "page i/n" marks.
+- **Storage contract**: reads never throw, defaults on miss, only the `xael_` prefix is cleared, 1MB cap.
+- **Error guard**: listens to `window` error / unhandledrejection only, never swallows, never leaks stack traces, rate-limited.
+- **Offline**: three-tier service-worker fallback, external-request-free 404 page.
 
-## Tech Stack & Dependencies
+## Tech stack and dependencies
 
 ### Direct dependencies
 
-**Runtime: none.** All 2,633 lines are pure JavaScript (CommonJS) on native Node.js capabilities — zero npm dependencies.
+**Runtime: none.** Zero npm dependencies, ECMAScript 2015+ only.
 
-### Development & testing
+### Development and testing
 
-| Tool | Version | Copyright | License | Official URL | Purpose | Modified |
+| Tool | Version | Owner | License | URL | Purpose | Modified |
 |---|---|---|---|---|---|---|
-| Node.js | ≥ 14 (test runtime) | OpenJS Foundation | MIT | https://nodejs.org/ | running tests and scripts | No |
+| Node.js | ≥ 18 | OpenJS Foundation | MIT | <https://nodejs.org/> | tests and build scripts | no |
+| uni-app | 3.x (optional) | DCloud | Apache-2.0 | <https://uniapp.dcloud.net.cn/> | uni-app build only | no |
+| Vue 3 | 3.x (optional) | Evan You | MIT | <https://vuejs.org/> | uni-app framework only | no |
 
-The test harness is a zero-dependency, hand-written assertion script (`tests/calendar.test.js`); nothing to install.
+Tests use hand-written assertions (`tests/calendar.test.js`, `tests/core.test.js`); no test framework is needed.
 
-### Algorithm & data sources (non-code provenance, declared together)
+### Referenced projects (ideas only, no code copied)
 
-| Source | Copyright | Type | Official URL | Purpose | Modified |
-|---|---|---|---|---|---|
-| Jean Meeus, *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998) | Jean Meeus / Willmann-Bell | astronomical algorithm ideas (not copyright-protected; implemented independently here) | https://www.willbell.com/math/mc1.htm | solar longitude, new-moon and ΔT series in the calendar layer (solar / astronomy / lunar2 / jieqi2) | ideas referenced, code written from scratch |
-| State Council holiday announcements 2007–2026 | gov.cn | public data, entered by hand | https://www.gov.cn/ | statutory holiday and adjusted-workday data in `src/core/calendar/festival.js` | transcribed |
+| Project | Owner | License | URL | What was referenced |
+|---|---|---|---|---|
+| lunar-javascript | 6tail | MIT | <https://github.com/6tail/lunar-javascript> | API organisation for lunar/sexagenary/terms; day changes at 23:00 and year changes at Lichun conventions |
+| iztro | Sylar Long | MIT | <https://github.com/SylarLong/iztro> | Zi Wei star placement order and leap-month handling (convention reference and output cross-check only) |
+| "Wan Nian Li algorithm" reverse-engineered material | unknown (circulated) | none stated | — | feature partitioning only; neither code nor embedded data used |
+
+Astronomical series follow Jean Meeus, *Astronomical Algorithms*, 2nd ed. (algorithms are not copyrightable; the implementation here is independent). Public-holiday data are transcribed from State Council announcements. Full statement in [NOTICE](NOTICE).
 
 ### Indirect dependencies
 
-None. There are no transitive dependencies.
+None.
 
-## Installation & Deployment
-
-No installation. Clone and run:
+## Install and run
 
 ```bash
 git clone https://github.com/ntars/Xael.git
 cd Xael
-node tests/calendar.test.js   # 66 assertions verify the environment
+npm test          # 133 assertions
+npm run build     # web build (repo root) + Mini Program build (dist/mp-weixin)
+npm run build:uni # validate uni-app shell (imports/style constraints; artifacts come from HBuilderX)
+npm run check     # eight pre-release checks
 ```
 
-Import as a library:
+As a library:
 
 ```javascript
-const { solarToJdn } = require('./src/core/calendar/solar');
-const { getBazi } = require('./src/core/bazi/bazi');
+import { chart } from './src/core/bazi/bazi.js';
+const c = chart({ y: 1990, m: 6, d: 15, h: 10 });
+console.log(c.pillars.年.干支, c.pillars.月.干支, c.pillars.日.干支, c.pillars.时.干支);
+// 庚午 壬午 辛亥 癸巳
 ```
 
-The multi-platform shells (WeChat mini program / PWA / uni-app) have reserved directories under `shells/` but development has not started.
-
-## Quick Start
+## Quick start
 
 ```javascript
-// 1. Gregorian → Julian day number
-const { solarToJdn } = require('./src/core/calendar/solar');
-const jdn = solarToJdn(2026, 1, 1);   // 2461042
+// 1. Lunisolar conversion (true new moons, no tables)
+import { solarToLunar } from './src/core/calendar/lunar2.js';
+solarToLunar(2004, 3, 21);   // { m: 2, d: 1, isLeap: true, monthName: '闰二月' }
 
-// 2. Gregorian → sexagenary year (turning at Lichun)
-const { getGanzhiYear } = require('./src/core/calendar/ganzhi');
-getGanzhiYear(2026, 2, 5);   // 丙午 (after Lichun on 2026-02-04)
+// 2. Four pillars
+import { chart } from './src/core/bazi/bazi.js';
+chart({ y: 2024, m: 2, d: 10, h: 12 }).pillars;   // 甲辰 丙寅 甲辰 庚午
 
-// 3. BaZi chart
-const { getBazi } = require('./src/core/bazi/bazi');
-getBazi(2026, 1, 15, 10);
+// 3. Almanac
+import { daily } from './src/core/huangli/daily.js';
+daily(2024, 2, 10).宜;
 
-// 4. Daily almanac (do's and don'ts, clashes, day officer)
-const { getDaily } = require('./src/core/huangli/daily');
-getDaily(2026, 1, 15);
+// 4. Full search path, identical to the UI
+import { analyze } from './src/core/features/analyzer.js';
+await analyze('排奇门 2024年12月21日 12点');
 ```
 
-## API / Module Reference
+## API
 
-The kernel exports pure functions as CommonJS modules, organised by the four calendar layers and the divination modules:
+| Module | Entry | Exports |
+|---|---|---|
+| calendar/solar | `src/core/calendar/solar.js` | `solarToJdn` / `jdnToSolar` / `dayNo` / `fromDayNo` / `weekday` |
+| calendar/astronomy | `src/core/calendar/astronomy.js` | apparent solar longitude, new-moon JDE, ΔT |
+| calendar/jieqi2 | `src/core/calendar/jieqi2.js` | `jieqiTable(y)` / `jieqiAround` |
+| calendar/lunar2 | `src/core/calendar/lunar2.js` | `solarToLunar` / `lunarToSolar` |
+| calendar/ganzhi | `src/core/calendar/ganzhi.js` | `dayGanZhi` / `monthGanZhi` / `yearGanZhiByLichun` / `hourGanZhi` / `effectiveDay` |
+| huangli/daily | `src/core/huangli/daily.js` | `daily` / `monthView` / `jieqiAround` |
+| bazi | `src/core/bazi/{bazi,pattern,shensha,dayun}.js` | `chart` / `patternOf` / `shenshaOf` / `dayunOf` |
+| ziwei | `src/core/ziwei/{ziwei,sihua}.js` | `ziweiChart` / `sihuaOf` |
+| qimen | `src/core/qimen/{qimen,qimen-ri,ke,baojian,nianyue,feipan,ge}.js` | seven Qi Men boards and pattern detection |
+| liuren | `src/core/liuren/{liuren,fayong,tianjiang,bifa}.js` | `liurenChart` / `bifaOf` |
+| liuyao | `src/core/liuyao/{liuyao,gonggua,najia,wangshuai}.js` | `liuyaoChart` / `wangshuaiOf` |
+| meihua / fengshui | `src/core/meihua/meihua.js`, `src/core/fengshui/{bazhai,feixing}.js` | `meihuaChart` / `bazhaiChart` / `feixingChart` |
+| features | `src/core/features/{registry,analyzer}.js` | `FEATURES` / `matchFeature` / `runFeature` / `analyze` |
 
-| Module | Entry | Exports (examples) | Description |
-|---|---|---|---|
-| calendar/solar | `src/core/calendar/solar.js` | `solarToJdn(y,m,d)` / `jdnToSolar(jdn)` | Gregorian↔Julian day number; the base of all conversions |
-| calendar/ganzhi | `src/core/calendar/ganzhi.js` | `getGanzhiYear(y,m,d)` and siblings | Sexagenary year/month/day, with the year turning at Lichun |
-| calendar/lunar2 | `src/core/calendar/lunar2.js` | lunar year/month/day and leap-month determination | Astronomical new-moon lunar calendar, no tables |
-| calendar/jieqi2 | `src/core/calendar/jieqi2.js` | solar-term instants (minute precision) | Solving the apparent solar longitude at 15° multiples |
-| calendar/festival | `src/core/calendar/festival.js` | statutory holiday / adjusted workday lookup | 2007–2026 announcement data |
-| bazi | `src/core/bazi/bazi.js` | `getBazi(y,m,d,h)` | Four pillars, five-element strength, Nayin |
-| ziwei | `src/core/ziwei/ziwei.js` | star placement and Four Transformations | Zhongzhou school conventions |
-| huangli | `src/core/huangli/daily.js` | `getDaily(y,m,d)` | Daily do's and don'ts, clashes, duty deity, twelve day officers |
-| common/constants | `src/core/common/constants.js` | stems/branches/hidden stems/elements/zodiac tables | Single source of truth, referenced by all other modules |
-
-Every function is a side-effect-free pure function: Gregorian date-time in, structured result out; no I/O, no network requests.
+Every function is pure: date-time or birth data in, structured object out. No IO, no network.
 
 ## Configuration
 
-The kernel has no configuration file — all conventions are declared as documentation in `docs/CALIBER-NOTES.md`. Changing a convention means changing code; the two are never allowed to separate. This is deliberate: the classic failure mode of divination software is "the docs say one thing, the code computes another".
+The kernel has no config file; all conventions are documented in [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md). Shell configuration:
 
-## Directory Structure
+- `src/shells/mp-weixin/project.config.json`: Mini Program appid `wx7d40cfd5e4849d0d`;
+- `src/shells/uniapp/manifest.json`: app name and `mp-weixin.appid` (same appid);
+- `src/shells/pwa/manifest.webmanifest`: PWA name, theme colour, icons.
+
+## Project structure
 
 ```
 Xael/
+├── index.html              # web entry (generated by npm run build:web)
+├── static/ core/ shared/   # web assets and kernel copy (generated)
 ├── src/
-│   ├── core/
-│   │   ├── calendar/       # calendrical kernel
-│   │   │   ├── solar.js        # Gregorian↔Julian day number
-│   │   │   ├── astronomy.js    # celestial longitudes (Meeus series)
-│   │   │   ├── lunar2.js       # astronomical new-moon lunar calendar & leap months
-│   │   │   ├── jieqi2.js       # solar terms (to the minute)
-│   │   │   ├── ganzhi.js       # sexagenary year/month/day
-│   │   │   └── festival.js     # statutory holidays (2007–2026 announcements)
-│   │   ├── bazi/           # BaZi charts
-│   │   ├── ziwei/          # Zi Wei Dou Shu (Zhongzhou school)
-│   │   ├── huangli/        # almanac (7 submodules)
-│   │   ├── qimen/ liuren/ liuyao/ meihua/ fengshui/   # planned
-│   │   └── common/constants.js  # stems/branches/hidden stems/elements/zodiac — single source
-│   └── shells/             # mini program / PWA / uni-app shells (planned)
-├── tests/
-│   └── calendar.test.js    # 66 zero-dependency assertions
-├── docs/
-│   └── CALIBER-NOTES.md    # convention notes (school choices and rationale)
-└── tools/                  # auxiliary tools (planned)
+│   ├── core/               # kernel (platform-agnostic)
+│   │   ├── calendar/       #   solar / astronomy / jieqi2 / lunar2 / ganzhi / festival
+│   │   ├── huangli/        #   daily / jianchu / tianshen / xiu28 / position / jishen / chongsha
+│   │   ├── bazi/           #   bazi / pattern / shensha / dayun
+│   │   ├── ziwei/          #   ziwei / ziwei-support / sihua
+│   │   ├── qimen/          #   qimen / qimen-ri / ke / baojian / nianyue / feipan / ge
+│   │   ├── liuren/         #   liuren / fayong / tianjiang / tables / bifa
+│   │   ├── liuyao/         #   liuyao / gonggua / najia / wangshuai
+│   │   ├── meihua/ fengshui/  #   meihua / bazhai / feixing
+│   │   ├── common/         #   constants (single source of tables) / iching (64 hexagrams)
+│   │   └── features/       #   registry (22 features) / analyzer (search path)
+│   ├── shared/             # storage / conversation / result-format / settings /
+│   │                       # refs / theme / inflight / guard / export-image
+│   └── shells/             # pwa / mp-weixin / uniapp
+├── tests/                  # calendar.test.js (66) / core.test.js (35) / run.js
+├── tools/                  # build-web.js / build-mp.js / preflight.js
+├── docs/                   # CALIBER-NOTES.md / DEPLOY.md
+└── dist/mp-weixin/         # Mini Program build output (generated, not committed)
 ```
 
 ## Performance
 
-Calendar computation is pure math: a full BaZi chart takes under 1 ms, lunar conversion under 5 ms, entirely offline with zero network requests.
+Pure arithmetic: lunar conversion < 5ms, Four Pillars < 1ms, Qi Men / Liu Ren < 2ms (Node 24, Apple M1). Mini Program bundle 270KB, web build 425KB.
 
-## Security & Privacy
+## Security and privacy
 
-The kernel makes no network requests, touches no file system (holiday data is embedded in the source), and collects nothing. Birth data passes through pure functions — nothing is written to disk or uploaded.
+The kernel makes no network requests, touches no filesystem (holiday data ships in the source) and collects no telemetry; the shells load only the site's own static assets. Birth data passes through pure functions, is stored locally under the `xael_` prefix only, never uploaded.
 
 ## Compatibility
 
-The runtime needs only ECMAScript 2015+ features; Node.js ≥ 14 and all modern browsers run it directly. No Node-specific APIs are used, so the same code can be reused in mini programs and browsers.
+ECMAScript 2015+; runs directly on Node ≥ 18 and modern browsers; Mini Program via `tools/build-mp.js`; uni-app via Vue 3 compilation.
 
-## Known Issues & Limitations
+## Known limitations
 
-- The Qimen, Liuren, Liuyao, Meihua and Fengshui directories exist but contain no implementation;
-- The platform shells (mini program / PWA / uni-app) have not started; the mini program and official account are the primary entry points for now;
-- Holiday data covers State Council announcements through 2026; later years require a source update;
-- The astronomical algorithms differ from the *Chinese Astronomical Almanac* at the seconds level — irrelevant for divination use, but unsuitable for direct astronomical observation.
+- Ke school, Baojian, year/month Qi Men and the flying plate differ widely between schools; one convention each is implemented and documented, not matched to commercial software.
+- Only the 10 Bi Fa entries with unambiguous conditions are implemented; no invented rules.
+- Qi Men patterns are limited to stem-combination patterns; unlisted cases are never generated.
+- Holiday data end at the 2026 State Council announcement.
+- Astronomical accuracy is within seconds; unsuitable for observational astronomy.
 
 ## Roadmap
 
-1. Complete Qimen Dunjia and Da Liu Ren (conventions already fixed, see CALIBER-NOTES);
-2. Liu Yao, Meihua Yishu and Fengshui modules;
-3. The first platform shell (PWA first — it shares the kernel's pure JavaScript);
-4. Polish the content of `x.ntars.cn` and register it here.
+1. More Bi Fa entries and Qi Men patterns (each needs a stated condition and a textual source);
+2. Liu Yao: extra shen-sha layer and month/day weighting for six relatives;
+3. Website <https://x.ntars.cn/> content and documentation site;
+4. Further Mini Program subpackage optimisation.
 
 ## Contributing
 
-Issues are welcome, both for challenging conventions (please cite literature) and for bug reports (please include a reproducible input and expected output). Keep two disciplines when contributing code: any convention change must update `docs/CALIBER-NOTES.md` in the same commit, and boundary calendrical behaviour must come with test assertions.
+Open an issue to question a convention (cite the source text) or report a bug (include reproducible input and expected output). Two rules for code: **convention changes must update `docs/CALIBER-NOTES.md`; calendar boundary behaviour must have assertions.**
 
-## Copyright & License
+## License
 
-Copyright (c) 2026 星玖工作室 Ntarstudio
+Copyright (c) 2024–2026 Ntarstudio
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**; the full text is in [LICENSE](./LICENSE). In short: you may freely use, modify and redistribute it, but derivatives must also be licensed under AGPL-3.0, and if you offer it as a network service you must provide the complete source code to the users of that service. The authoritative English legal text is the [LICENSE](./LICENSE) file; this section is a summary only.
+Licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**; see [LICENSE](LICENSE). You may use, modify and redistribute, provided derivative works stay AGPL-3.0 and, if you offer it as a network service, users can obtain the complete source. 「星玖工作室」, Ntarstudio, 玄玖灵犀 (Xael) and its marks belong to Ntarstudio; AGPL-3.0 grants rights to code only, not to trademarks.
 
 ## NOTICE
 
-Third-party components and provenance:
-
-| Component | Version | Copyright | License | URL | Purpose | Modified |
-|---|---|---|---|---|---|---|
-| None | — | — | — | — | zero third-party runtime dependencies | — |
-
-Node.js (OpenJS Foundation, MIT) is used during development as an external runtime and is not distributed with this project. The theoretical provenance of the astronomical series algorithms is Jean Meeus, *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998) — algorithmic ideas are not copyrightable, and this project's implementation was written independently.
-
-Any new third-party component must be registered in this table (name, version, copyright holder, license, URL, purpose, modified or not) before its code is merged.
+No third-party runtime dependencies. Referenced projects (lunar-javascript, iztro, the reverse-engineered "Wan Nian Li" material), the astronomical textbook, and holiday data sources are listed one by one in [NOTICE](NOTICE). Any new third-party component must be registered there (name, version, owner, licence, URL, purpose, modified) before it is merged.

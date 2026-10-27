@@ -10,8 +10,8 @@ const CACHE = 'xael-v5';
 const PRECACHE = [
   '/',
   '/index.html',
-  '/static/theme.css',
-  '/static/app.js',
+  'static/theme.css',
+  'static/app.js',
   '/offline.html',
 ];
 

@@ -1,70 +1,359 @@
 /**
- * src/shared/settings.js —— 设置单一真源（主题/口径/文案）
+ * src/shared/settings.js —— 全站文案与设置的单一真源
  *
- * 大白话：所有「可配置的文案与开关」只在这一处：
- *   · 品牌/页脚/声明文案（详情页 5 子页共用）；
- *   · 主题（跟随系统 / 浅色 / 深色，手动优先系统）；
- *   · 口径开关（八字换日子时口径等）。
- * 小程序与 PWA 都从这里取值，保证逐字同源。
+ * 大白话：界面上出现的每一句话（品牌名、关于页每张卡的标题与描述、参考文献与
+ * 功能介绍详情页正文、协议条款全文、弹窗文案、页脚、导出图片上的文字）都只写在这里。
+ * 小程序、网页版、uni-app 都从这里取，谁都不许在壳里另抄一份——否则改一句话要改三处，
+ * 早晚三端说的不一样。
+ *
+ * 这里同时管「主题」（跟随系统/深色/浅色）的读写，和「清除数据」的动作分发。
  */
 
-export const SETTINGS = {
-  version: '5.0.0',
-  slogan: '玄之又玄，众妙之门。',
-  brand: '玄玖灵犀 Xael',
-  studio: '星玖工作室 Ntarstudio',
-  icp: '蜀ICP备2026027050号',
-  copyright: '© 2024-2026 Ntarstudio',
-  site: 'https://x.ntars.cn/',
-  disclaimer: '内容仅供交流学习',
-  searchPlaceholder: '今天想了解点什么',
-  pages: {
-    about: {
-      title: '关于',
-      cards: [
-        { id: 'refs', label: '参考文献' },
-        { id: 'features', label: '功能介绍' },
-        { id: 'studio', label: '关于我们' },
-        { id: 'clear', label: '清除数据', danger: true },
-      ],
-    },
-    studio: {
-      title: '关于我们',
-      cards: [
-        { id: 'protocol', label: '协议条款' },
-        { id: 'oss', label: '开源声明' },
-        { id: 'intro', label: '功能介绍' },
-      ],
-    },
-  },
-  theme: {
-    default: 'system', // system | light | dark（手动优先系统）
-  },
-  caliber: {
-    baziSect: 'ziChu', // 子初换日（默认）；可切 ziZheng
-  },
-};
+import { storage, clearAll } from './storage.js';
 
-/** 主题关键词（搜索「切换主题/深色模式」直接生效） */
-export const THEME_KEYWORDS = [
-  { words: ['深色模式', '夜间模式', '切换深色'], value: 'dark' },
-  { words: ['浅色模式', '日间模式', '切换浅色'], value: 'light' },
-  { words: ['跟随系统', '切换主题'], value: 'system' },
+/** 版本真值（与 package.json 同步，preflight 会校验） */
+export const VERSION = '5.0.0';
+
+/** 开屏引言（旧版开屏页在品牌下方另有一行小字） */
+export const SPLASH_LEAD = '玄者，众妙之门；灵犀者，通也。';
+
+/* ------------------------------------------------------------------ *
+ * 一、开源项目清单（「开源声明」页正文用）
+ * 只列随发布产物一同分发或构成算法口径来源的项目；
+ * 构建期依赖（uni-app / Vue）不随产物分发，列在仓库 NOTICE。
+ * ------------------------------------------------------------------ */
+const DEPS = [
+  {
+    name: 'lunar-javascript', ver: 'v1.6.x', lic: 'MIT', holder: 'Copyright (c) 6tail',
+    why: '历法换算的算法思路参照（农历、节气、干支纪年月日时、纳音等口径的组织方式）；本项目按同一口径独立实现，未复制其代码',
+    url: 'https://github.com/6tail/lunar-javascript',
+  },
+  {
+    name: 'iztro', ver: '2.6.2', lic: 'MIT', holder: 'Copyright (c) SylarLong',
+    why: '紫微斗数安星法的口径参照（十二宫、五行局、十四主星布位、四化表、闰月归属），用于对拍验证；本项目独立实现，未复制其代码',
+    url: 'https://github.com/SylarLong/iztro',
+  },
+  {
+    name: 'Jean Meeus《Astronomical Algorithms》', ver: '2nd ed.', lic: '算法公开（书籍著作权不属于算法本身）', holder: 'Willmann-Bell',
+    why: '太阳黄经低精度级数、朔（新月）时刻级数、ΔT 修正的经验公式来源；本项目自行编写实现',
+    url: 'https://www.willbell.com/math/mc1.htm',
+  },
 ];
 
-/** 设置读写（走 storage） */
-import { storage } from './storage.js';
+/* ------------------------------------------------------------------ *
+ * 二、主题
+ * ------------------------------------------------------------------ */
+export const THEME_VALUES = ['system', 'light', 'dark'];
 
+/** 读主题偏好：system | light | dark */
 export function getTheme() {
-  return storage.get('theme', SETTINGS.theme.default);
+  const v = storage.get('theme', 'system');
+  return THEME_VALUES.includes(v) ? v : 'system';
 }
 
+/** 写主题偏好（非法值不写） */
 export function setTheme(v) {
-  if (!['system', 'light', 'dark'].includes(v)) return false;
+  if (!THEME_VALUES.includes(v)) return false;
   storage.set('theme', v);
   return true;
 }
 
-export function getBaziSect() {
-  return storage.get('baziSect', SETTINGS.caliber.baziSect);
+/** 当前实际生效的深浅色（system 时看系统） */
+export function effectiveTheme() {
+  const t = getTheme();
+  if (t !== 'system') return t;
+  try {
+    if (typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+  } catch (e) { /* 无 matchMedia 的环境按浅色 */ }
+  return 'light';
+}
+
+/* ------------------------------------------------------------------ *
+ * 三、主题切换指令词
+ * 在搜索框里输入这些词，直接切换主题并给一句回执，不进入推演。
+ * ------------------------------------------------------------------ */
+export const THEME_COMMANDS = [
+  { words: ['切换主题', '主题切换'], value: null },      // null = 深浅互换
+  { words: ['深色模式', '夜间模式', '深色主题'], value: 'dark' },
+  { words: ['浅色模式', '日间模式', '浅色主题'], value: 'light' },
+  { words: ['跟随系统'], value: 'system' },
+];
+
+/** 全部主题指令词（analyzer 做命中判定用，扁平数组） */
+export const THEME_KEYWORDS = THEME_COMMANDS.flatMap((c) => c.words);
+
+/** 主题切换成功的回执文案（按切换后的实际颜色取值） */
+export const themeSwitched = {
+  dark: '已切换为深色主题',
+  light: '已切换为浅色主题',
+  system: '已跟随系统主题',
+};
+
+/* ------------------------------------------------------------------ *
+ * 四、关于面板全部文案（about() 单一真源）
+ * ------------------------------------------------------------------ */
+export function about() {
+  return {
+    name: '玄玖灵犀',
+    en: 'Xael',
+    version: 'v' + VERSION,
+    desc: '中国传统术数文献整理、校勘与数字化演算的学术研究辅助工具。',
+    slogan: '演乾坤 · 知天命',
+    icp: '蜀ICP备2026027050号',
+    footerCopy: '©2024-2026 Ntarstudio. All Rights Reserved.',
+
+    // —— 开屏页 ——
+    splash: { title: '玄玖灵犀', sub: '演乾坤 · 知天命', lead: SPLASH_LEAD },
+
+    // —— 导出图片版式文案（导出与结果页同版式，文字统一取这里） ——
+    exportMeta: {
+      brand: '玄玖灵犀',
+      slogan: '演乾坤 · 知天命',
+      questionLabel: '你的提问',
+      infoLabel: '推演信息：',
+      resultLabel: '玄玖灵犀推演结果：',
+      footLines: [
+        '仅本地生成 · 未经任何上传与存储',
+        '小程序：玄玖灵犀（公众号同名）',
+        '网页版：https://x.ntars.cn/',
+      ],
+      pageLabel: '第 %i / %n 张',
+      qrUrl: 'https://x.ntars.cn/',
+      // 导出图右下角的两个码（相对站点根的路径，三端各自解析）
+      qrImages: [
+        { path: 'static/icons/export-webqr.png', label: '网页版' },
+        { path: 'static/icons/export-minicode.png', label: '小程序' },
+      ],
+    },
+
+    // —— 起始页 ——
+    searchPlaceholder: '今天想了解点什么',
+    homeDisclaimer: '内容仅供交流学习',
+
+    // —— 关于页（顶级）4 张卡 ——
+    aboutRows: [
+      { id: 'refs', title: '参考文献', desc: '本应用的算法依据与来源' },
+      { id: 'intro', title: '功能介绍', desc: '查阅本应用的功能和算法' },
+      { id: 'us', title: '关于我们', desc: '了解相关开源声明与条款' },
+      { id: 'clear', title: '清除数据', desc: '将清除本应用所有本地缓存', danger: true },
+    ],
+
+    // —— 关于我们（二级）3 张卡 ——
+    usRows: [
+      { id: 'studio', title: '星玖工作室', desc: '联系方式与反馈渠道' },
+      { id: 'terms', title: '协议条款', desc: '此应用使用前应阅读本应用协议' },
+      { id: 'open', title: '开源声明', desc: '本项目以 AGPL-3.0 协议开源' },
+    ],
+
+    // —— 内容详情页标题 ——
+    resTitle: { refs: '参考文献', intro: '功能介绍', studio: '星玖工作室', terms: '协议条款', open: '开源声明' },
+
+    usPageTitle: '关于我们',
+    navTitle: '玄玖灵犀',
+    resultPageTitle: '搜索结果',
+    questionLabel: '你的提问',
+
+    // —— 结果页底部双按钮 ——
+    resultActions: { export: '导出图片', again: '再问一个', fail: '导出失败，请重试' },
+
+    // —— 详情页返回指向 ——
+    backTarget: { refs: 'about', intro: 'about', studio: 'us', terms: 'us', open: 'us' },
+
+    // —— 内容详情页正文 ——
+    aboutNotes: {
+      refs: refsPage(),
+      intro: introPage([
+        { h: '使用方法', text: '在搜索框中输入你想了解的信息，软件会根据算法告诉你答案。' },
+        { h: '切换主题', text: '主题跟随系统深浅色显示；也可以在搜索框输入「切换主题」，在深色与浅色之间切换。' },
+      ]),
+      studio: [
+        { h: '应用介绍', text: '玄玖灵犀 Xael：中国传统文化文献整理与查阅的学习研究工具。无后端、无网络、无登录、无大模型，所有内容在你设备本地完成，不收集、不外传任何数据；内容仅供传统文化学习与学术研究参考，不构成任何预测、建议或决策依据。' },
+        { h: '工作室', text: '星玖工作室 Ntarstudio。旗下三个在营项目：玄玖灵犀 Xael（传统文化文献数字化查阅工具）、玄宠 NT-Dpet、玄玖大模型 NT-Sine。' },
+        { h: '官网', text: 'https://www.ntars.cn/' },
+        { h: '玄玖灵犀 Xael · 网页版', text: 'https://x.ntars.cn/' },
+        { h: '玄玖灵犀 Xael · 项目主页', text: 'https://github.com/ntars/Xael' },
+        { h: '玄宠 NT-Dpet · 官网', text: 'https://pet.ntars.cn/' },
+        { h: '玄玖大模型 NT-Sine · 官网', text: 'https://ai.ntars.cn/' },
+        { h: '向我们提交反馈', text: '打开官网 https://www.ntars.cn/ ，点击页面右上角「联系我们」，即可向我们提交反馈。' },
+      ],
+      terms: [
+        { h: '一、总则', text: '1.1 本应用「玄玖灵犀 Xael」（下称「本应用」）由星玖工作室 Ntarstudio（下称「我们」）开发并提供。你下载、安装或使用本应用，即视为已阅读、理解并同意本协议全部内容；若不同意，请停止使用。\n\n1.2 本协议的变更与适用：我们可能随版本更新调整本协议条款，重大变更会以版本说明告知；你在条款调整后继续使用本应用，即视为接受调整后的条款。\n\n1.3 本应用面向具备完全民事行为能力的使用者；未成年人应在监护人陪同与指导下使用。' },
+        { h: '二、服务性质与内容边界', text: '2.1 本应用定位于中国传统文化与古籍整理领域，仅提供七类传统术数知识体系（八字命理、紫微斗数、六爻纳甲、奇门遁甲、大六壬、梅花易数、风水堪舆）与干支节气等历法常识的本地整理、校勘与数字化查阅，属传统文化学习与学术研究辅助工具，不构成命理、医疗、心理、投资、法律、婚恋或任何其他专业服务或建议。\n\n2.2 本应用的全部计算在你设备本地完成，不连接网络、不接入任何在线服务、不含任何付费项目。\n\n2.3 内容中出现的任何结论均属传统文化范畴的文献整理结果，不对任何现实事项作出判断或预测，不得作为现实决策的依据。\n\n2.4 我们不承诺任何内容的完整性与准确性：古籍原文存在版本差异与流传讹误，不同流派口径亦有分歧，结果页对此如实标注。你应自行甄别，并结合其他可靠资料使用本应用内容。' },
+        { h: '三、知识产权', text: '3.1 本应用代码以 GNU AGPL v3.0 协议开源（详见「开源声明」页），但界面、品牌「玄玖灵犀 Xael」、版式与设计归 Ntarstudio 所有，第三方不得盗用品牌标识。\n\n3.2 本应用引用的古籍原文均已进入公有领域；所整理的数字化文本、数据库结构与自研算法实现为我们或相应权利人所有，代码以外部分未经许可不得挪作他用。\n\n3.3 「玄玖灵犀」「Ntarstudio」及相关标识受法律保护，任何人不得在同类产品中冒用。' },
+        { h: '四、个人信息与隐私', text: '4.1 本应用不收集任何个人信息。本应用无账号、无登录、无注册，不读取你的设备标识、位置、通讯录、相册、剪贴板与麦克风，不申请任何系统权限（含微信隐私接口），也不含任何统计、推送或广告类第三方 SDK。\n\n4.2 除加载本应用自身的页面、脚本与图标等静态文件外，本应用不发起任何网络请求，不上传你的任何输入内容。\n\n4.3 你输入的内容（出生日期与时辰、提问文字）与据此生成的结果，仅保存在你所使用设备的本地存储中（网页版为浏览器本地存储，小程序版为微信本地缓存，应用版为应用沙盒），用于离线查阅与再次打开时恢复，不写入任何服务器。\n\n4.4 除你主动点击「清除数据」外，上述本地数据会一直保留在同一台设备上：关闭或重开应用、升级版本、重启设备均不会自动删除。\n\n4.5 「清除数据」会一次性删除本地保存的全部内容（当前设置与最近一轮问答结果），删除后不可恢复，本应用不保留任何副本。卸载应用、在系统设置中清除应用数据、清理浏览器站点数据或在微信中删除本小程序，亦会将这些本地数据一并删除。\n\n4.6 本应用不向任何第三方提供、共享、转让或公开你的数据；因不采集数据，亦不存在数据出境与跨境传输情形。' },
+        { h: '五、使用规范', text: '5.1 你应在法律允许的范围内使用本应用，不得利用本应用从事任何违法违规活动，不得将本应用内容用于宣扬迷信、诈骗或其他损害他人权益的用途。\n\n5.2 本应用代码以 AGPL-3.0 开源，合法的学习、研究与二次开发不受限制；除此之外，你不得对服务进行干扰、破坏或植入恶意程序。\n\n5.3 你不得删除、遮盖本应用内的版权声明与开源声明，不得以本应用名义对外提供收费服务或冒充我们发布信息。\n\n5.4 违反本章约定的，我们有权中止向你提供服务，并保留依法追责的权利。' },
+        { h: '六、免责声明', text: '6.1 本应用内容与结论仅供传统文化学习与学术研究参考，非科学结论，不构成任何预测、建议或决策依据；你依本应用结果所做的任何决定，责任自负。\n\n6.2 本应用按「现状」提供：在法律允许的最大范围内，我们不对内容的适用性、准确性、完整性作出任何明示或默示的担保。\n\n6.3 对因使用或无法使用本应用而产生的任何直接或间接损失（包括但不限于决策失误、财产损失与精神困扰），Ntarstudio 不承担责任。\n\n6.4 因不可抗力、设备故障、系统维护或微信等平台规则调整导致服务中断或数据丢失的，我们不承担责任；本地数据请自行妥善保管。\n\n6.5 本应用不含广告、不含付费项目、不向你收取任何费用；任何以本应用名义进行的收费行为均与我们无关，请勿轻信。' },
+        { h: '七、服务的变更与中止', text: '7.1 我们可能因版本迭代、平台规则或不可抗力，调整、暂停或终止本应用的部分或全部功能。\n\n7.2 本应用不设账号体系、不在服务器存储任何数据：服务中止不影响你已保存在本机的数据；卸载应用或在应用内「清除数据」，即彻底删除全部本地数据。' },
+        { h: '八、法律适用与争议解决', text: '8.1 本协议的订立、履行与解释均适用中华人民共和国法律。\n\n8.2 因本协议产生的争议，双方应先友好协商解决；协商不成的，任何一方可向开发者所在地有管辖权的人民法院提起诉讼。\n\n8.3 本协议任何条款被认定无效或不可执行的，不影响其余条款的效力。' },
+      ],
+      open: [
+        { h: '开源方式与复刻要求', text: '1. 本应用全部代码以 GNU AGPL v3.0（GNU Affero 通用公共许可证第 3 版）开源。\n2. 你可以自由使用、复制、修改、再分发；分发修改版时须同样以 AGPL-3.0 开放对应源码，并保留本开源声明与版权声明。\n3. 若把修改版作为网络服务提供给他人使用，须按协议第 13 条向使用者提供对应的完整源码。\n4. 名称「玄玖灵犀 / Xael」、Logo、界面版式与设计稿归星玖工作室 Ntarstudio 所有：AGPL-3.0 只授予代码权利，不授予品牌与视觉资产的使用许可，修改版不得盗用品牌标识，也不得暗示原作者为其背书。\n5. 复刻时请保持「无后端、无网络、无登录、全本地计算」的边界，不得接入网络回传用户输入。' },
+        { h: 'AGPL-3.0 协议（全文与源码获取）', text: 'Copyright (C) 2026 星玖工作室 (Ntarstudio)\n\n本应用为自由软件：你可以在自由软件基金会发布的 GNU Affero 通用公共许可证第 3 版（或你选择的任何更新版本）条款下再分发和/或修改它。\n\n本应用希望其有用，但不提供任何担保，甚至不提供适销性或特定用途适用性的默示担保。详见 GNU Affero 通用公共许可证。\n\n协议全文随源码提供（仓库根目录 LICENSE 文件）：https://github.com/ntars/Xael/blob/main/LICENSE\n\n依第 13 条，通过网络与本应用交互的使用者有权获得对应源码，源码仓库：https://github.com/ntars/Xael' },
+        { h: '本应用参照的开源项目与文献', text: '本应用的历法与全部术数算法均为自研实现，不内嵌任何第三方运行时代码（零依赖），运行时零网络请求。以下项目与文献在算法口径上被参照，特此致谢：\n\n'
+          + DEPS.map((d, i) => `${i + 1}. ${d.name}${d.ver && d.ver !== '—' ? ' ' + d.ver : ''}（${d.lic}，${d.holder}）\n项目主页：${d.url}\n参照内容：${d.why}`).join('\n\n')
+          + '\n\n完整书目见「参考文献」页；第三方声明见仓库根 NOTICE。' },
+      ],
+    },
+
+    // —— 页脚两行 ——
+    aboutFoot: [
+      '仅供传统文化学习与学术研究参考',
+      '玄玖灵犀 ' + VERSION + ' · 星玖工作室',
+    ],
+
+    // —— 清除数据确认弹窗 ——
+    clearModal: {
+      title: '清除缓存',
+      desc: '我们不会上传和记录你的任何信息，此操作将彻底清除本应用所有的本地记录和缓存',
+      cancel: '取消',
+      confirm: '确认',
+      done: '已彻底清除缓存',
+    },
+
+    // —— 生辰拦下弹窗 ——
+    birthModal: {
+      title: '请输入生辰',
+      desc: '只支持农历、国历、四柱、八字四种写法，例「2005年6月9日子时 女」。',
+      confirm: '知道了',
+      lunarTitle: '农历日期不存在',
+      lunarDesc: '该年没有这个闰月或没有这一天，请核对后重新输入。',
+      pillarTitle: '四柱查不到日期',
+      pillarDesc: '请检查四柱是否写错（年柱、月柱、日柱、时柱各两个字）。',
+      nonmetaTitle: '不在知识范围',
+      nonmetaDesc: '本应用只做玄学与传统文化的本地推演。',
+      kernelTitle: '排盘暂时算不出来',
+      kernelDesc: '请核对输入的年月日时是否存在，再试一次。',
+    },
+
+    kernelLoading: '正在准备排盘，请稍候',
+    exportPaging: '内容较长，已分为 %n 张图片',
+    themeSwitched,
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * 五、「参考文献」页（书目单一真源）
+ * ------------------------------------------------------------------ */
+const REF_GROUPS = [{ 名: '文献清单', 说明: '本工具各算法所依据的书目与口径来源。' }];
+
+const BOOKS = [
+  // 历法底座
+  { id: 'wuhu-wushu', 书名: '五虎遁·五鼠遁（月干时干起法）', 作者: '传统口诀（作者不详传本）' },
+  { id: 'ziping', 书名: '《子平真诠》', 作者: '清·沈孝瞻' },
+  { id: 'qiongtong', 书名: '《穷通宝鉴》', 作者: '明·余春台' },
+  { id: 'ditiansui', 书名: '《滴天髓》', 作者: '相传唐·京图' },
+  { id: 'sanming', 书名: '《三命通会》', 作者: '明·万民英' },
+  { id: 'yuanhai', 书名: '《渊海子平》', 作者: '宋·徐子平（题）' },
+  { id: 'ziwei-quanshu', 书名: '《紫微斗数全书》', 作者: '明·罗洪先辑（旧题宋·陈希夷）' },
+  { id: 'ziwei-sihua', 书名: '紫微四化表（中州派口径）', 作者: '中州派传本 · 陆斌兆（现代）' },
+  // 三式推演
+  { id: 'qimen-tongzong', 书名: '《奇门遁甲统宗》（时家/年家/月家诸篇）', 作者: '明·佚名（传本）' },
+  { id: 'qimen-jing', 书名: '《烟波钓叟歌》', 作者: '传本（作者不详）' },
+  { id: 'qimen-geju', 书名: '《奇门遁甲的预测依据与信息象意》', 作者: '易德轩 / 玄霖易学（现代整理）' },
+  { id: 'zengshan', 书名: '《增删卜易》', 作者: '清·野鹤老人' },
+  { id: 'bushi', 书名: '《卜筮正宗》', 作者: '清·王洪绪' },
+  { id: 'huangjin', 书名: '《黄金策》', 作者: '明·刘基（题）' },
+  // 风水堪舆
+  { id: 'zhouyi', 书名: '《周易》', 作者: '先秦传本' },
+  { id: 'meihua', 书名: '《梅花易数》', 作者: '宋·邵雍（题）' },
+  { id: 'bazhai', 书名: '八宅命卦', 作者: '八宅传统（作者不详传本）' },
+  { id: 'feixing', 书名: '玄空飞星（紫白飞星）', 作者: '玄空传统（作者不详传本）' },
+  // 黄历择日
+  { id: 'jinhanyujing', 书名: '《金函玉镜》（神煞口诀）', 作者: '题汉·诸葛亮（传本）' },
+  { id: 'qimen-rike', 书名: '日家奇门口诀（六十日一局）', 作者: '传统日家口诀（作者不详传本）' },
+  { id: 'qimen-ke', 书名: '刻家奇门起例', 作者: '传统时刻分派（作者不详传本）' },
+  { id: 'qimen-baojian', 书名: '《奇门宝鉴》附日奇门起例（日支定局）', 作者: '传本（作者不详）' },
+  { id: 'qimen-feipan', 书名: '飞盘奇门（飞宫法）', 作者: '传统技法（传本）' },
+  { id: 'liuren-zhinan', 书名: '《大六壬指南》', 作者: '明·陈公献' },
+  { id: 'ren-gui', 书名: '《壬归》', 作者: '清·佚名' },
+  { id: 'xinyin-fu', 书名: '《心印赋》', 作者: '传本' },
+  { id: 'liuren-daquan', 书名: '《六壬大全》', 作者: '明·佚名（四库本）' },
+  { id: 'bifa', 书名: '《毕法赋》一百法', 作者: '清·凌福之（四库《六壬大全》卷九/卷十一）' },
+  { id: 'jianchu', 书名: '建除十二神·黄黑道口诀', 作者: '传统口诀（作者不详传本）' },
+  { id: 'pengzu', 书名: '彭祖百忌', 作者: '传为彭祖（作者不详传本）' },
+  { id: 'taishen', 书名: '胎神逐日方位', 作者: '传统口诀（作者不详传本）' },
+  // 工具与算法来源
+  { id: 'lunar-js', 书名: 'lunar-javascript（历法口径参照）', 作者: '6tail（MIT 授权；本项目独立实现，未复制代码）' },
+  { id: 'iztro', 书名: 'iztro（紫微安星法口径参照）', 作者: 'SylarLong（MIT 授权；本项目独立实现，未复制代码）' },
+  { id: 'meeus', 书名: '《Astronomical Algorithms》', 作者: 'Jean Meeus（太阳黄经、朔望、ΔT 经验公式）' },
+];
+
+/** 取某分组书目 */
+export function booksOf(group) {
+  return BOOKS.filter((b) => b.组 === group || group === undefined);
+}
+
+const CN_NUM = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+
+/** 「参考文献」详情页条目：[{h, text, kind}] */
+export function refsPage() {
+  const out = [];
+  let seq = 0;
+  out.push({
+    h: CN_NUM[seq++] + '、凡例',
+    kind: 'group',
+    text: '本页只列参考文献的书名与作者，与各算法的源码注释一一对应。'
+      + '公版古籍的经文以结构化数据内嵌在对应算法里，本页不载原文；现代著作与开源库有版权，请阅原书。',
+  });
+  REF_GROUPS.forEach((g) => {
+    out.push({ h: CN_NUM[seq++] + '、' + g.名, kind: 'group', text: g.说明 });
+    BOOKS.forEach((b) => {
+      const name = /[《》]/.test(b.书名) ? b.书名 : '《' + b.书名 + '》';
+      out.push({ h: name, kind: 'book', text: b.作者 });
+    });
+  });
+  return out;
+}
+
+/** 书目总数与分组数（测试与文档引用） */
+export const REF_COUNT = { 书目: BOOKS.length, 分组: REF_GROUPS.length };
+
+/* ------------------------------------------------------------------ *
+ * 六、「功能介绍」页（由功能表派生，不在别处再抄一份清单）
+ * ------------------------------------------------------------------ */
+function introPage(fixed) {
+  let seq = 0;
+  const num = () => (CN_NUM[seq++] || String(seq)) + '、';
+  const out = [{ h: num() + fixed[0].h, text: fixed[0].text }];
+  out.push({
+    h: num() + '功能清单',
+    kind: 'group',
+    text: FEATURE_GROUPS.map((g) => g.板块 + ' · ' + g.items.length + ' 项\n'
+      + g.items.map((it, k) => `${k + 1}. ${it.简介}`).join('\n')).join('\n\n'),
+  });
+  out.push({ h: num() + fixed[1].h, text: fixed[1].text });
+  return out;
+}
+
+/**
+ * 功能介绍用的板块清单（与 kernel 的功能表同构，只保留展示所需字段）。
+ * 由 features/registry.js 在加载时注入，避免 settings 直接依赖内核（保持壳层轻量）。
+ */
+export let FEATURE_GROUPS = [];
+
+/** 注入功能板块（analyzer/registry 加载后调用一次） */
+export function setFeatureGroups(groups) {
+  if (Array.isArray(groups) && groups.length) FEATURE_GROUPS = groups;
+}
+
+/* ------------------------------------------------------------------ *
+ * 七、动作分发与清除数据
+ * ------------------------------------------------------------------ */
+
+/**
+ * 一张关于卡点下去该去哪：
+ *   'clear'  → 就地弹确认弹窗
+ *   'us'     → 关于我们页
+ *   'detail' → 内容详情页
+ */
+export function rowAction(row) {
+  if (!row) return null;
+  if (row.danger) return 'clear';
+  if (row.id === 'us') return 'us';
+  return 'detail';
+}
+
+/** 清除全部本地数据（只清本应用自己的键） */
+export function clearData() {
+  clearAll();
 }

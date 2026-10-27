@@ -78,6 +78,6 @@ export function positionOf(y, m, d) {
   return {
     方位: { 喜神: XISHEN[gzIdx % 10], 财神: CAISHEN[gzIdx % 10], 福神: FUSHEN[gzIdx % 10], 阳贵: YANGGUI[gzIdx % 10], 阴贵: YINGUI[gzIdx % 10] },
     彭祖百忌: { 干: PENGZU_GAN[gan], 支: PENGZU_ZHI[zhi] },
-    胎神: TAISHEN[JIAZI[gzIdx]] || '',
+    胎神: TAISHEN[JIAZI[gzIdx].join('')] || '',
   };
 }

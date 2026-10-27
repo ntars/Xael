@@ -1,7 +1,7 @@
 /**
- * tools/preflight.js —— 发布前七项自检（一条命令知全部状态）
+ * tools/preflight.js —— 发布前八项自检（一条命令知全部状态）
  *
- * 七项：① 版本号单一真源一致 ② 网页版/小程序产物与源一致 ③ 小程序包体 ≤2MB
+ * 八项：① 版本号单一真源一致 ② 网页版/小程序产物与源一致 ③ 小程序包体 ≤2MB
  *      ④ 全量测试断言通过 ⑤ 关键文件齐全 ⑥ 文档里的数字与实测一致 ⑦ 多端 appid/版本配置齐全
  *
  * 大白话：文档最容易写「66 项断言」而实际变 98 项，所以这里把文档里的数字
@@ -98,11 +98,16 @@ for (const f of docFiles) {
 }
 item('⑥ 文档数字与实测一致', docBad.length === 0, docBad.length ? docBad.join('；') : `${claims} 处断言数字均等于实测 ${assertCount}`);
 
-// ---- ⑦ 多端配置 ----
+// ---- ⑦ 多端配置 ⑧ 三壳引用 ----
 const mpCfg = JSON.parse(readFileSync(join(ROOT, 'src/shells/mp-weixin/project.config.json'), 'utf8'));
 const uniCfg = JSON.parse(readFileSync(join(ROOT, 'src/shells/uniapp/manifest.json'), 'utf8'));
 const appidOk = /^wx[0-9a-f]{16}$/.test(mpCfg.appid) && uniCfg['mp-weixin'].appid === mpCfg.appid;
 item('⑦ 多端配置', appidOk && uniCfg.versionName === ver, `appid ${mpCfg.appid}，小程序与 uni-app 一致；versionName ${uniCfg.versionName}`);
+
+// ---- ⑧ 三壳一致 ----
+// 三端共用同一套 core/shared，壳层只是手工写的薄壳：最容易出的事是壳引用了已删除的接口。
+const uniCheck = await import('./build-uni.js').then((m) => m.check());
+item('⑧ 三壳引用一致', uniCheck.ok, uniCheck.ok ? 'uni-app 壳导入与样式约束全部成立' : (uniCheck.problems || []).join('；'));
 
 // ---- 汇总 ----
 const bad = results.filter((r) => !r.ok);

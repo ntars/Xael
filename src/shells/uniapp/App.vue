@@ -5,7 +5,8 @@
 -->
 <script>
 import { setStorageDriver } from '../../shared/storage.js';
-import { applyTheme, getTheme } from '../../shared/theme.js';
+import { getTheme } from '../../shared/settings.js';
+import { resolveTheme } from './theme-uni.js';
 
 export default {
   onLaunch() {
@@ -18,7 +19,7 @@ export default {
       removeItem(k) { try { uni.removeStorageSync(k); } catch (e) { /* 删不抛 */ } },
       keys() { try { return uni.getStorageInfoSync().keys || []; } catch (e) { return []; } },
     });
-    applyTheme(getTheme());
+    resolveTheme(getTheme());
   },
 };
 </script>

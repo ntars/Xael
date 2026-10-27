@@ -26,7 +26,7 @@ const SHELL = join(SRC, 'shells', 'pwa');
 const CHECK = process.argv.includes('--check');
 
 /** 站点根目录下由构建生成、可以整体重建的路径（其余一律不碰） */
-const GENERATED = ['index.html', 'offline.html', '404.html', 'manifest.webmanifest', 'robots.txt', 'sitemap.xml', 'static', 'core', 'shared'];
+const GENERATED = ['index.html', 'offline.html', '404.html', 'manifest.webmanifest', 'robots.txt', 'sitemap.xml', 'sw.js', 'static', 'core', 'shared'];
 
 /** 递归收集目录下所有文件（相对路径，posix 分隔） */
 function walk(dir, base = dir, acc = []) {
@@ -40,21 +40,35 @@ function walk(dir, base = dir, acc = []) {
 
 /**
  * 把 app.js 里的相对导入改成站点根可达的路径：
- *   '../core/features/analyzer.js' → './core/features/analyzer.js'
+ *   '../core/features/analyzer.js' → '/core/features/analyzer.js'
+ *   （写成站点绝对路径，因为 app.js 本身就在 /static/ 下，
+ *     './core/…' 会被解析成 /static/core/…，部署后必然 404）
  */
 function rewriteImports(code) {
-  return code.replace(/(from\s+['"])\.\.\/(?:\.\.\/)*((?:core|shared)\/)/g, '$1./$2');
+  return code.replace(/(from\s+['"])\.\.\/(?:\.\.\/)*((?:core|shared)\/)/g, '$1/$2');
 }
+
+/** 需要按文本处理并改写导入的扩展名（其余一律按字节拷） */
+const TEXT_EXT = ['.html', '.js', '.css', '.json', '.webmanifest', '.txt', '.xml', '.svg', '.md'];
+
+const isText = (rel) => TEXT_EXT.some((e) => rel.endsWith(e));
 
 /** 生成全部站点文件（相对路径 → 内容） */
 export function buildWeb() {
   const files = new Map();
 
   // 1) 壳的静态页与资源
+  //    ⚠️ 二进制（png 图标、二维码）必须原样拷字节：早先统一当 utf8 读，
+  //    非 UTF-8 字节会被替换成 U+FFFD（EF BF BD），PNG 直接损坏、浏览器解码失败。
   for (const rel of walk(SHELL)) {
-    let content = readFileSync(join(SHELL, rel), 'utf8');
-    if (rel.endsWith('.js') || rel.endsWith('.html')) content = rewriteImports(content);
-    files.set(rel, content);
+    const abs = join(SHELL, rel);
+    if (isText(rel)) {
+      let content = readFileSync(abs, 'utf8');
+      if (rel.endsWith('.js') || rel.endsWith('.html')) content = rewriteImports(content);
+      files.set(rel, content);
+    } else {
+      files.set(rel, readFileSync(abs));
+    }
   }
 
   // 2) 内核与共享模块（保持目录结构，ESM 原样，只改写引号无关的路径无需动）
@@ -66,20 +80,34 @@ export function buildWeb() {
     }
   }
 
+  // 3) Service Worker 必须挂在站点根：它的 scope 就是自己所在的目录，
+  //    放在 /static/sw.js 只能管 /static/ 下的请求，页面本身不在管辖内。
+  files.set('sw.js', files.get('static/sw.js'));
+
   return files;
+}
+
+/** 产物与源是否一致（文本比内容，二进制比字节） */
+function sameFile(p, content) {
+  if (Buffer.isBuffer(content)) {
+    const cur = readFileSync(p);
+    return cur.length === content.length && cur.equals(content);
+  }
+  return readFileSync(p, 'utf8') === content;
 }
 
 /** 主构建 */
 export function build({ check = CHECK } = {}) {
   const files = buildWeb();
-  const total = [...files.values()].reduce((n, s) => n + Buffer.byteLength(s), 0);
+  const sizeOf = (v) => (Buffer.isBuffer(v) ? v.length : Buffer.byteLength(v));
+  const total = [...files.values()].reduce((n, v) => n + sizeOf(v), 0);
 
   if (check) {
     const problems = [];
     for (const [rel, content] of files) {
       const p = join(ROOT, rel);
       if (!existsSync(p)) problems.push(`缺产物：${rel}`);
-      else if (readFileSync(p, 'utf8') !== content) problems.push(`产物与源不一致：${rel}`);
+      else if (!sameFile(p, content)) problems.push(`产物与源不一致：${rel}`);
     }
     for (const rel of GENERATED) {
       if (!existsSync(join(ROOT, rel))) problems.push(`缺产物：${rel}`);
