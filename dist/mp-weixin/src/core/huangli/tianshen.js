@@ -1,0 +1,80 @@
+// 由 tools/build-mp.js 自 src/core/huangli/tianshen.js 生成，请勿手改
+/**
+ * src/core/huangli/tianshen.js —— 每日天神（黄道黑道）与吉凶（自研，零依赖）
+ *
+ * 大白话：黄历里的「黄道吉日/黑道凶日」来自当天值日的天神。
+ * 口径（《协纪辨方书》通例）：
+ *   青龙起法：正月起子、二月在寅、三月在辰、四月在午、五月在申、六月在戌，
+ *             七月起子、八月在寅……周而复始（寅申月起子，卯酉月起寅，辰戌月起辰，
+ *             巳亥月起午，子午月起申？——以通例表为准，见 TS_START）。
+ *   青龙=黄道，明堂=黄道，天刑=黑道，朱雀=黑道，金匮=黄道，天德(宝光)=黄道，
+ *   白虎=黑道，玉堂=黄道，天牢=黑道，玄武=黑道，司命=黄道，勾陈=黑道。
+ * 十二神顺序：青龙→明堂→天刑→朱雀→金匮→天德→白虎→玉堂→天牢→玄武→司命→勾陈，
+ * 自青龙位起顺排十二支。
+ */
+
+const { monthZhiIndex, dayGanZhiIndex } = require('../calendar/ganzhi.js');
+const { ZHI } = require('../common/constants.js');
+
+/** 十二天神顺序（自青龙起） */
+const TIANSHEN_ORDER = ['青龙', '明堂', '天刑', '朱雀', '金匮', '天德', '白虎', '玉堂', '天牢', '玄武', '司命', '勾陈'];
+
+/** 青龙起位：键=农历月建支序（0 子…），值=青龙所落支序 */
+const TS_START = {
+  0: 8,  // 子月青龙起申
+  1: 2,  // 丑月青龙起寅
+  2: 2,  // 寅月起寅
+  3: 8,  // 卯月起申
+  4: 4,  // 辰月起辰
+  5: 2,  // 巳月起寅
+  6: 8,  // 午月起申
+  7: 2,  // 未月起寅
+  8: 4,  // 申月起辰
+  9: 8,  // 酉月起申
+  10: 4, // 戌月起辰
+  11: 2, // 亥月起寅
+};
+
+/** 黄道天神（其余为黑道） */
+const HUANGDAO = ['青龙', '明堂', '金匮', '天德', '玉堂', '司命'];
+
+/** 断语（通例自撰） */
+const TIANSHEN_MEANING = {
+  青龙: '黄道吉神，主喜气盈门，诸事皆宜。',
+  明堂: '黄道吉神，主明堂得道，宜见贵人、上书、行惠。',
+  天刑: '黑道凶神，主刑狱事，宜守静，忌词讼。',
+  朱雀: '黑道凶神，主口舌是非，忌文书、词讼。',
+  金匮: '黄道吉神，主福金藏宝，宜纳财、订婚。',
+  天德: '黄道吉神（宝光），主天德庇佑，百事可行。',
+  白虎: '黑道凶神，主伤害疾患，宜祭祀祈禳。',
+  玉堂: '黄道吉神，主玉堂少微，宜安床、会亲。',
+  天牢: '黑道凶神，主牢狱阴人，忌出行、词讼。',
+  玄武: '黑道凶神，主暗昧不明，忌交易、行船。',
+  司命: '黄道吉神，主司命主寿，宜祭祀、作灶。',
+  勾陈: '黑道凶神，主勾连牵绊，忌土工、词讼。',
+};
+
+/**
+ * 当日值日天神及吉凶。
+ * @returns {{天神, 类:'黄道'|'黑道', 吉凶:'吉'|'凶', 断语}}
+ */
+function tianshenOf(y, m, d) {
+  const monthZhi = monthZhiIndex(y, m, d);
+  const dayZhi = dayGanZhiIndex(y, m, d) % 12;
+  const start = TS_START[monthZhi];
+  // 天神序 = (日支序 − 青龙起位 + 12) % 12
+  const god = TIANSHEN_ORDER[((dayZhi - start) % 12 + 12) % 12];
+  const isHuang = HUANGDAO.includes(god);
+  return {
+    天神: god,
+    类: isHuang ? '黄道' : '黑道',
+    吉凶: isHuang ? '吉' : '凶',
+    断语: TIANSHEN_MEANING[god],
+  };
+}
+
+
+module.exports.tianshenOf = tianshenOf;
+module.exports.TIANSHEN_ORDER = TIANSHEN_ORDER;
+module.exports.HUANGDAO = HUANGDAO;
+module.exports.TIANSHEN_MEANING = TIANSHEN_MEANING;
