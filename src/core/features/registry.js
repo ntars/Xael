@@ -18,6 +18,17 @@ import { feixingChart } from '../fengshui/feixing.js';
 import { daily } from '../huangli/daily.js';
 import { solarToLunar, lunarToSolar } from '../calendar/lunar2.js';
 import { GUA64_ORDER } from '../common/iching.js';
+import { patternOf } from '../bazi/pattern.js';
+import { shenshaOf } from '../bazi/shensha.js';
+import { dayunOf } from '../bazi/dayun.js';
+import { wangshuaiOf } from '../liuyao/wangshuai.js';
+import { qimenKeChart } from '../qimen/ke.js';
+import { qimenBaojianChart } from '../qimen/baojian.js';
+import { qimenNianChart, qimenYueChart } from '../qimen/nianyue.js';
+import { qimenFeiChart } from '../qimen/feipan.js';
+import { qimenGeOf } from '../qimen/ge.js';
+import { bifaOf } from '../liuren/bifa.js';
+import { sihuaOf } from '../ziwei/sihua.js';
 
 /** 全套排盘的 7 类分组（结果页分组标题） */
 export const GROUPS = ['万年历黄历', '八字命理', '紫微斗数', '六爻占卜', '奇门遁甲', '梅花易数', '风水堪舆'];
@@ -81,6 +92,20 @@ export async function runFeature(f, birth) {
     case 'meihua': return { title: '梅花易数', lead: '', blocks: [{ 类名: '梅花易数', 短名: '起卦', 数据: meihuaChart({ y, m, d, h }) }] };
     case 'bazhai': return { title: '八宅风水', lead: '', blocks: [{ 类名: '风水堪舆', 短名: '命卦八宅', 数据: bazhaiChart(y, (birth && birth.gender) || '男') }] };
     case 'feixing': return { title: '玄空飞星', lead: '', blocks: [{ 类名: '风水堪舆', 短名: '紫白飞星', 数据: feixingChart({ y, m, d, h }) }] };
+    case 'bazi-pattern': return { title: '八字格局', lead: '', blocks: [{ 类名: '八字命理', 短名: '格局判定', 数据: patternOf({ y, m, d, h }) }] };
+    case 'bazi-shensha': return { title: '八字神煞', lead: '', blocks: [{ 类名: '八字命理', 短名: '神煞', 数据: shenshaOf({ y, m, d, h }) }] };
+    case 'dayun': return { title: '大运流年', lead: '', blocks: [{ 类名: '八字命理', 短名: '大运', 数据: dayunOf({ y, m, d, h, gender: (birth && birth.gender) || '男' }) }] };
+    case 'sihua': return { title: '紫微四化', lead: '', blocks: [{ 类名: '紫微斗数', 短名: '四化', 数据: sihuaOf({ y, m, d, h }) }] };
+    case 'qimen-ke': return { title: '刻家奇门', lead: '', blocks: [{ 类名: '奇门遁甲', 短名: '刻家', 数据: qimenKeChart({ y, m, d, h }) }] };
+    case 'qimen-baojian': return { title: '宝鉴日奇', lead: '', blocks: [{ 类名: '奇门遁甲', 短名: '宝鉴日奇', 数据: qimenBaojianChart({ y, m, d }) }] };
+    case 'qimen-nianyue': return { title: '年家月家奇门', lead: '', blocks: [
+      { 类名: '奇门遁甲', 短名: '年家', 数据: qimenNianChart({ y, m, d }) },
+      { 类名: '奇门遁甲', 短名: '月家', 数据: qimenYueChart({ y, m, d }) },
+    ] };
+    case 'qimen-fei': return { title: '飞盘奇门', lead: '', blocks: [{ 类名: '奇门遁甲', 短名: '飞盘', 数据: qimenFeiChart({ y, m, d, h }) }] };
+    case 'qimen-ge': return { title: '奇门格局', lead: '', blocks: [{ 类名: '奇门遁甲', 短名: '格局判读', 数据: qimenGeOf({ y, m, d, h }) }] };
+    case 'liuren-bifa': return { title: '六壬毕法', lead: '', blocks: [{ 类名: '大六壬', 短名: '毕法判读', 数据: bifaOf({ y, m, d, h }) }] };
+    case 'liuyao-wangshuai': return { title: '六爻旺衰', lead: '', blocks: [{ 类名: '六爻占卜', 短名: '旺衰', 数据: wangshuaiOf({ y, m, d, h }) }] };
     case 'huangli': {
       const t = birth || today();
       return { title: '黄历', lead: '', blocks: [{ 类名: '万年历黄历', 短名: '每日黄历', 数据: daily(t.y, t.m, t.d, t.h) }] };

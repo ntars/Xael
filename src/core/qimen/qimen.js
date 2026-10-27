@@ -247,6 +247,7 @@ export function qimenChart(input) {
     局: `${['上', '中', '下'][yuan]}元${ju}局`,
     旬首: xunGanZhi,
     值符: fuStar,
+    值符宫: zhiFuGong,
     值使: fuDoor,
     地盘: dp,
     cells,

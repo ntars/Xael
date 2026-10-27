@@ -13,7 +13,7 @@ GNU Affero General Public License v3.0（AGPL-3.0）授权，全文见 LICENSE�
 
   版权所有：Copyright (c) 2026 星玖工作室 Ntarstudio
   项目地址：https://github.com/ntars/Xael
-  内核代号：NT-Xhex（当前版本 4.3.0，真值见内核头注释与测试输出）
+  内核代号：Xael（当前版本 5.0.0，真值见 package.json，preflight 校验 9 处一致性）
 
 AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准）：
   · 衍生作品必须整体以 AGPL-3.0 授权并公开完整对应源码；
@@ -24,10 +24,15 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
 二、第三方组件
 ================================================================================
 
-运行时第三方依赖：无。
+运行时第三方依赖：无（零依赖）。
 
-  全部 2,633 行源码为纯 JavaScript，仅依赖 ECMAScript 2015+ 语言标准，
+  全部 3,631 行内核源码（30 个文件）+ 共享层与三端外壳均为纯 JavaScript，
+  仅依赖 ECMAScript 2015+ 语言标准与各端自身运行时，
   不引入任何 npm 包、任何字体、任何图标库、任何网络 API。
+
+  历史版本曾内嵌 lunar-javascript 与 iztro 的发行包文件；5.0.0 重构后这些
+  内嵌第三方代码已全部移除，对应算法（农历、干支、节气、紫微安星）由本项目
+  依据天文算法与传统规则独立重写。
 
 开发期外部环境（不随本项目分发，无分发义务）：
   · Node.js（测试与脚本运行环境）
@@ -45,6 +50,29 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
       与 ΔT 的 Espenak-Meeus 多项式。
     - 是否修改：算法思想参照原书，全部代码为本项目全新实现，未复制任何源码。
 
+算法思想参考（仅参考思路与规则，未复制任何代码或数据）：
+
+  · lunar-javascript 1.6.x（版权方：6tail，许可证 MIT）
+    - 项目地址：https://github.com/6tail/lunar-javascript
+    - 参考内容：农历/干支/节气接口的组织方式、四柱换日（子初/子正）与立春换年
+      的口径设计。5.0.0 的历法层（src/core/calendar/）为本项目独立实现，
+      使用儒略日 + Meeus 级数 + 朔日定月 + 无中气置闰，不含其代码。
+    - 是否修改：未复制代码，仅作口径参照。
+
+  · iztro 2.6.2（版权方：Sylar Long，许可证 MIT）
+    - 项目地址：https://github.com/SylarLong/iztro
+    - 参考内容：紫微斗数安星步骤的顺序与五行局/命宫取法、闰月归属的通行处理。
+      5.0.0 的紫微模块（src/core/ziwei/）为本项目独立实现。
+    - 是否修改：未复制代码，仅作口径参照与结果对拍（对拍脚本不随源码分发）。
+
+  · 《万年历算法》逆向整理材料（网络流传的 APK 逆向 JS 片段，无明确许可证）
+    - 参考内容：仅参考「九星、节气、干支、神煞方位、黄历宜忌」等功能的
+      功能划分与大致口径；其源码与内嵌数据（观音灵签、解梦、黄历宜忌库）
+      一律未采用、未复制、未分发。
+
+  · 各术数流派口径（奇门拆补法、六壬九宗门、京房纳甲、八宅大游年等）
+    依据公开出版的传统文献整理，属公有领域知识，本项目独立实现。
+
 数据来源说明：
   · 法定节假日与调休数据（src/core/calendar/festival.js）由本项目依据
     2007–2026 年国务院历年公告（中国政府网 https://www.gov.cn/ 发布的公开文件）
@@ -56,9 +84,14 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
 三、本项目自有文件
 ================================================================================
 
-  · src/ 下全部模块（calendar / bazi / ziwei / huangli 及后续模块）
-  · tests/calendar.test.js
-  · docs/CALIBER-NOTES.md
+  · src/core/ 下全部内核模块（calendar / huangli / bazi / ziwei / qimen / liuren /
+    liuyao / meihua / fengshui / common / features，共 30 个文件）
+  · src/shared/ 共享层（storage / conversation / result-format / settings / refs /
+    theme / inflight / guard / export-image）
+  · src/shells/ 三端外壳（pwa / mp-weixin / uniapp）
+  · tests/ 全部测试（calendar.test.js / core.test.js / run.js）
+  · tools/ 构建与自检脚本（build-web.js / build-mp.js / preflight.js）
+  · docs/ 全部文档（CALIBER-NOTES.md 等）
   · README.md / README_EN.md / 本 NOTICE
 
 ================================================================================
@@ -73,4 +106,4 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
 ================================================================================
 
 本文件最后核对：2026-10-27
-核对范围：src/ 全部源文件的外部依赖扫描、tests/ 运行环境、节假日数据来源、算法出处。
+核对范围：src/ 全部源文件的外部依赖扫描（确认零第三方内嵌）、tests/ 运行环境、节假日数据来源、算法思想参考项目声明。

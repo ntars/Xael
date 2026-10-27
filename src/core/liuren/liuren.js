@@ -27,7 +27,8 @@ export function liurenChart(input) {
 
   // 天盘：月将加占时（天盘[占时支位]=月将）
   const tian = [];
-  for (let x = 0; x < 12; x++) tian[x] = (x + M - T) % 12;
+  // 天盘位 = (地盘位 + 月将 − 占时) mod 12，必须做 12 的负模归一（否则 M<T 时出负数下标）
+  for (let x = 0; x < 12; x++) tian[x] = ((x + M - T) % 12 + 12) % 12;
 
   // 四课
   const dayGanIdx = GAN.findIndex((g) => g.z === dayGan);

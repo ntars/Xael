@@ -1,4 +1,5 @@
 // pages/app.js —— 小程序入口：注入 storage 驱动 + 主题 + 全局错误守卫
+// 版本 5.0.0（与 package.json 单一真源同步，preflight 会校验）
 const { setStorageDriver } = require('./src/shared/storage.js');
 const { applyTheme, getTheme } = require('./theme-mp.js');
 
