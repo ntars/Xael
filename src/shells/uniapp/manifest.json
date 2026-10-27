@@ -1,0 +1,17 @@
+{
+  "name": "玄玖灵犀 Xael",
+  "appid": "__UNI__XAEL500",
+  "description": "中国传统历法与术数文献整理、校勘与数字化演算工具。",
+  "versionName": "5.0.0",
+  "versionCode": "500",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "TOURISTAPPID",
+    "setting": { "urlCheck": false, "es6": true, "minified": true },
+    "usingComponents": true
+  },
+  "h5": {
+    "title": "玄玖灵犀 Xael",
+    "router": { "mode": "history", "base": "/" }
+  }
+}
