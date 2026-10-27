@@ -110,39 +110,99 @@ function buildMonthsFrom(k0, y) {
   let curMonth = 11; // 从 y-1 年十一月开始
   let leapDone = false;
   let firstDayNo = null;
+
+  // ── 两遍法预计算 ─────────────────────────────────────────────
+  // 定理（《时宪历》置闰法）：两冬至之间的朔望月数为 13 → 其中第一个无中气月为闰月；
+  // 为 12 → 无闰月。先预解出本循环会用到的所有冬至日序，再逐月置 isLeap 标。
+  // 冬至日序表：y-2 .. y+1 的冬至
+  const zhiDay = {};
+  for (let yy = y - 2; yy <= y + 1; yy++) zhiDay[yy] = jdeToBeijing(solveLon(270, yy), yy).dayNo;
+  // 逐朔段扫：找出「冬至落在该朔段内」的月序，与下一冬至月序之间的月数决定置闰
+  function computeLeapFlags() {
+    // 收集所有月段 [start, start+days) 与其中气序（-1 表示无）
+    const all = [];
+    let i2 = k;
+    let cm = 11;
+    let leap2 = false;
+    while (all.length < 40) {
+      const st = newMoonDayNo(i2), nd = newMoonDayNo(i2 + 1);
+      all.push({ start: st, days: nd - st, k: i2, m: cm });
+      i2++; cm++;
+      if (cm > 13) cm = 1;
+    }
+    // 对每对相邻冬至（zhi in zhiDay）：找冬至所在的月段序 a 与下一次冬至所在月段序 b，
+    // 两冬至之间（a, b）的月段 = (a, b) 开区间含 b? 定义：冬至所在月=十一月（含冬至的那段）。
+    // 区间 [a, b) 内月段数 = 12 或 13。13 → 其中第一个无中气月闰。
+    // 中气检查用月中点法（同主循环）。
+    const hasZQ = (seg) => {
+      const mid = seg.start + Math.floor(seg.days / 2);
+      const jde = dayToJde(mid);
+      const lon = sunLon(jde);
+      const zi = ((Math.round((lon - 330) / 30) % 12) + 12) % 12;
+      const z = (330 + zi * 30) % 360;
+      const diff = ((lon - z) % 360 + 540) % 360 - 180;
+      let j = jde - diff / 0.9856473;
+      for (let it = 0; it < 10; it++) {
+        const d2 = ((sunLon(j) - z) % 360 + 540) % 360 - 180;
+        j -= d2 / 0.9856473;
+      }
+      const b = jdeToBeijing(j, 2025);
+      return b.dayNo >= seg.start && b.dayNo < seg.start + seg.days;
+    };
+    // 冬至所在段序
+    const zhiSeg = {};
+    for (const yy in zhiDay) {
+      const zd = zhiDay[yy];
+      for (let i = 0; i < all.length; i++) {
+        const seg = all[i];
+        if (zd >= seg.start && zd < seg.start + seg.days) { zhiSeg[yy] = i; break; }
+      }
+    }
+    // 置闰标记
+    for (const yy in zhiDay) {
+      const a = zhiSeg[yy];
+      const b = zhiSeg[Number(yy) + 1];
+      if (a == null || b == null) continue;
+      const span = b - a; // [a, b) 段数 = 12 或 13
+      if (span === 13) {
+        for (let i = a + 1; i < b; i++) {
+          if (!hasZQ(all[i])) { all[i].isLeap = true; break; }
+        }
+      }
+    }
+    return all;
+  }
+  const leapTable = computeLeapFlags(); // {start→isLeap}
+  const leapByStart = {};
+  for (const seg of leapTable) if (seg.isLeap) leapByStart[seg.start] = true;
   while (true) {
     const start = newMoonDayNo(idx);
     const next = newMoonDayNo(idx + 1);
     const days = next - start;
-    // 该月是否含中气：解出距月中最近的两个中气交节时刻，看北京日期是否落在本月内
+    // 该月是否含「中气」（节气序列中每个月的标志气：雨水/春分/谷雨/小满/夏至/大暑/
+    // 处暑/秋分/霜降/小雪/冬至/大寒，黄经 330+30k）：
+    //   取本月「月中点」的太阳黄经，最近的 30° 整倍数即该月应有的中气；
+    //   牛顿解出该中气的交节时刻，若其北京日期落在本月初一~月末之间 → 本月有中气。
     let zq = -1;
-    const midJde = dayToJde(start + Math.floor(days / 2));
+    const midJdn = start + Math.floor(days / 2);
+    const midJde = dayToJde(midJdn);
     const midLon = sunLon(midJde);
-    for (let zi = 0; zi < 12; zi++) {
-      const z = (330 + zi * 30) % 360;
+    // 中气黄经序列：雨水 330、春分 0、谷雨 30 … 大寒 300（每 30° 一气）
+    // 由「月中点黄经」反推最近的中气序号（0..11），再还原黄经
+    const zi = ((Math.round((midLon - 330) / 30) % 12) + 12) % 12;
+    const z = (330 + zi * 30) % 360;
+    {
       const diff = ((midLon - z) % 360 + 540) % 360 - 180;
-      if (Math.abs(diff) > 20) continue; // 中气不在本月附近
-      // 牛顿解交节 JDE
       let jde = midJde - diff / 0.9856473;
       for (let it = 0; it < 10; it++) {
         const d2 = ((sunLon(jde) - z) % 360 + 540) % 360 - 180;
         jde -= d2 / 0.9856473;
       }
       const b = jdeToBeijing(jde, 2025);
-      if (b.dayNo >= start && b.dayNo < start + days) { zq = zi; break; }
+      if (b.dayNo >= start && b.dayNo < start + days) zq = zi;
     }
-    let isLeap = false;
-    let mNo = curMonth;
-    if (zq < 0 && curMonth !== 11) {
-      // 无中气 → 闰月（重复前一月编号）；一年只闰一次
-      if (!leapDone && curMonth !== 11) {
-        isLeap = true;
-        leapDone = true;
-      }
-      // 已经闰过的年份，其后无中气月只能让编号后移？——真实历法：
-      // 一旦置闰，后续月份编号正常 +1。若 leapDone 且又遇无中气月，
-      // 说明起点排错（极少见），如实置 leap 标志（本应用范围 1900-2100 内出现率≈0）。
-    }
+    const isLeap = !!leapByStart[start]; // 两遍法结果（见 computeLeapFlags）
+    const mNo = curMonth;
     if (curMonth === 12) {
       // 腊月之后进入次年正月
       if (y - 1 + 1 === y) { /* noop */ }
@@ -179,8 +239,10 @@ function buildMonthsFrom(k0, y) {
 /** 北京日序 → JDE(TT)（正午近似，用于中气检查） */
 function dayToJde(dayNumber) {
   // 北京正午 = UTC 04:00 = JDE ≈ dayNo + jdn1970 + 0.5 - 0.5 + 4/24 + ΔT/86400
+  // JDN 以「当日正午」为整数点（本仓 solarToJdn 口径）；要取北京时间 12:00 的 TT：
+  //   TT = 北京时 − 8h + ΔT；北京 12:00 对应 JDN 当日 + 0.5 天 → JDE = JDN + 0.5 - 8/24 + ΔT/86400
   const jdn = dayNumber + solarToJdn(1970, 1, 1);
-  return jdn + 0.5 - 8 / 24 + (60 + 4 / 24) / 86400; // ΔT≈60-70s，粗略即可
+  return jdn + 0.5 - 8 / 24 + 65 / 86400;
 }
 
 /**

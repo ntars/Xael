@@ -100,3 +100,16 @@ export function zodiacByLichun(y, m, d) {
 }
 
 export { GZ, pad2 };
+
+/**
+ * 按节气判定季节（天赦等用）：立夏前=春、立秋前=夏、立冬前=秋、其余=冬。
+ */
+export function jieqiSeason(y, m, d) {
+  const t = jieqiTable(y);
+  const target = y * 10000 + m * 100 + d;
+  const j = (name) => { const [yy, mm, dd] = t[name].text.split('-').map(Number); return yy * 10000 + mm * 100 + dd; };
+  if (target < j('立夏')) return '春';
+  if (target < j('立秋')) return '夏';
+  if (target < j('立冬')) return '秋';
+  return '冬';
+}
