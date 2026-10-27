@@ -118,5 +118,10 @@ eq(jieqiAround(2024, 2, 10).prev.name, '立春', '2024-02-10 上一节气');
 eq(jieqiAround(2024, 2, 10).next.name, '雨水', '2024-02-10 下一节气');
 eq(monthView(2024, 2).length, 29, '2024-02 月视图 29 天');
 
-console.log(`\n通过 ${pass} 项断言，失败 ${fail} 项`);
-process.exit(fail ? 1 : 0);
+export const passed = pass;
+export const failed = fail;
+
+if (process.argv[1] && process.argv[1].endsWith('calendar.test.js')) {
+  console.log(`\n通过 ${pass} 项断言，失败 ${fail} 项`);
+  process.exit(fail ? 1 : 0);
+}
