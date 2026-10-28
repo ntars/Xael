@@ -30,13 +30,16 @@ const YY = ['阳', '阴'];
  * 单柱对象：把「干/支」展开成八字需要的全部属性。
  * @param {String} ganZhi 两字干支
  * @param {String} dayGan 日干（用于十神/星运）
+ * @param {String} [pos] 柱位（年/月/日/时）；日柱十神固定写「日主」
  */
-function pillarOf(ganZhi, dayGan) {
+function pillarOf(ganZhi, dayGan, pos) {
   const g = ganZhi[0], z = ganZhi[1];
   const gInfo = GAN.find((x) => x.z === g);
   const zInfo = ZHI.find((x) => x.z === z);
   const gzIdx = JIAZI.findIndex((x) => x[0] === g && x[1] === z);
   const cang = CANGGAN[z] || [];
+  // 十神：日柱标「日主」，年/月/时一律按日干推（同干记比肩）；藏干十神以日干为参照
+  const shiShenGan = pos === '日' ? '日主' : shiShen(dayGan, g);
   return {
     干: g,
     支: z,
@@ -44,9 +47,9 @@ function pillarOf(ganZhi, dayGan) {
     干五行: gInfo.wx,
     支五行: zInfo.wx,
     阴阳: YY[gInfo.yy],
-    十神: g === dayGan ? '日主' : shiShen(dayGan, g),
+    十神: shiShenGan,
     藏干: cang,
-    藏干十神: cang.map((c) => (c === dayGan ? '日主' : shiShen(dayGan, c))),
+    藏干十神: cang.map((c) => shiShen(dayGan, c)),
     纳音: nayinOf(gzIdx),
     旬空: xunkongOf(gzIdx),
     星运: cs12Of(dayGan, z), // 日干在该柱地支的十二长生
@@ -59,12 +62,13 @@ function pillarOf(ganZhi, dayGan) {
  * @param {Object} input {y,m,d,h=12, minute=0, gender='男'|'女', sect='ziChu'|'ziZheng'}
  */
 export function chart(input) {
-  const { y, m, d, h = 12, gender = '男', sect = 'ziChu' } = input;
+  const { y, m, d, h = 12, minute = 0, gender = '男', sect = 'ziChu' } = input;
   // 日柱换日：ziChu=子初(23:00) 换日（默认），ziZheng=子正(00:00) 换日
   const eff = sect === 'ziZheng' ? { y, m, d } : effectiveDay(y, m, d, h);
 
-  const yearGz = GZJIAZI(yearGanZhiIndexByLichun(eff.y, eff.m, eff.d));
-  const monthGz = monthGanZhi(y, m, d);
+  // 立春当日交节时刻前出生仍属上一年：传 hour 供时刻判定（换日后的 eff 日期 + 原始 h）
+  const yearGz = GZJIAZI(yearGanZhiIndexByLichun(eff.y, eff.m, eff.d, h));
+  const monthGz = monthGanZhi(y, m, d, h, minute); // 交节时刻前仍属上一月（精确到分钟）
   const monthIdx = JIAZI.findIndex((x) => x[0] === monthGz[0] && x[1] === monthGz[1]);
   const dayIdx = dayGanZhiIndex(eff.y, eff.m, eff.d);
   const dayGz = JIAZI[dayIdx].join('');
@@ -72,10 +76,10 @@ export function chart(input) {
   const dayGan = dayGz[0];
 
   const pillars = {
-    年: pillarOf(yearGz, dayGan),
-    月: pillarOf(monthGz, dayGan),
-    日: pillarOf(dayGz, dayGan),
-    时: pillarOf(hourGz, dayGan),
+    年: pillarOf(yearGz, dayGan, '年'),
+    月: pillarOf(monthGz, dayGan, '月'),
+    日: pillarOf(dayGz, dayGan, '日'),
+    时: pillarOf(hourGz, dayGan, '时'),
   };
 
   // 五行统计（8 字本气）
@@ -93,7 +97,7 @@ export function chart(input) {
   const shengxiao = zodiacByLichun(eff.y, eff.m, eff.d);
 
   return {
-    input: { y, m, d, h, gender, sect },
+    input: { y, m, d, h, minute, gender, sect },
     solar: `${eff.y}-${String(eff.m).padStart(2, '0')}-${String(eff.d).padStart(2, '0')} ${String(h).padStart(2, '0')}:00`,
     lunar: lunar ? `${lunar.y}年${lunar.isLeap ? '闰' : ''}${LUNAR_MONTH_NAMES[lunar.m - 1]}月${LUNAR_DAY_NAMES[lunar.d]}` : '',
     shengxiao,

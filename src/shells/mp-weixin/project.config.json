@@ -3,7 +3,7 @@
   "projectname": "xael",
   "miniprogramRoot": "./",
   "compileType": "miniprogram",
-  "libVersion": "3.5.5",
+  "libVersion": "3.17.3",
   "setting": {
     "urlCheck": false,
     "es6": true,
@@ -11,10 +11,27 @@
     "postcss": true,
     "minified": true,
     "packNpmManually": false,
-    "ignoreDevUnusedFiles": false
+    "ignoreDevUnusedFiles": false,
+    "babelSetting": {
+      "ignore": [
+        "vendor/*",
+        "src/core/vendor/*"
+      ],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "packOptions": {
-    "include": [{ "type": "folder", "value": "src" }, { "type": "folder", "value": "static" }],
+    "include": [
+      {
+        "type": "folder",
+        "value": "src"
+      },
+      {
+        "type": "folder",
+        "value": "static"
+      }
+    ],
     "ignore": []
   }
 }

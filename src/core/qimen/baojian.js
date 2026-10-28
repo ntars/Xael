@@ -1,35 +1,61 @@
 /**
  * src/core/qimen/baojian.js —— 奇门遁甲·宝鉴日奇（自研，零依赖）
  *
- * 大白话：《奇门宝鉴》一系的「日奇」用法，是日家奇门的一个具体流派做法：
- * 以日干为「值事」，日支定门，按六十日轮转布八门九星，专用于一日之内的择时择方。
- * 本项目取《奇门宝鉴》通行口诀，独立实现，与「排日家」的 180 日一元轮派并存——
- * 两派结果不完全相同，输出中分别标注，避免混算。
+ * 大白话：《奇门宝鉴》一系的「日奇」起例，与 180 日一元轮派的日家奇门是两套系统：
+ *   ① 局数 = 日支定局表（子午 2、丑未 6、寅申 1、卯酉 8、辰戌 4、巳亥 9，不分遁式）；
+ *   ② 地盘三奇六仪按阴阳遁顺/逆布九宫（含中五，与时家同法）；
+ *   ③ 九星自甲子日「天蓬起艮八」起每日顺移一位，走洛书九宫数序（含中五占位）；
+ *   ④ 八门自甲子日「休门在坎一」起每三日顺转一宫（不入中五）。
+ * 原文未给八神/天盘/值符值使（本式无旬首概念），故不输出——不臆造。
  *
- * 口径（本项目采用，文档同步声明）：
- *   · 值符星：由日干支所在旬首仪落宫取本宫星（与日家同法）；
- *   · 八门：日支三合局定起门——申子辰日起休门、寅午戌日起景门、
- *     巳酉丑日起生门、亥卯未日起开门，按八门环序顺布；
- *   · 九星：日干五合定起星（甲己起天蓬、乙庚起天芮、丙辛起天冲、
- *     丁壬起天辅、戊癸起天心），顺布。
+ * 口径（docs/CALIBER-NOTES.md「奇门」节同步声明）：
+ *   · 与转盘日家并列展示、不合并；原文按语自存疑（门三日过一宫…皆不可解，姑存之）。
  */
 
-import { JIAZI, GAN, ZHI } from '../common/constants.js';
-import { dayGanZhi, dayGanZhiIndex } from '../calendar/ganzhi.js';
-import { qimenRiChart } from './qimen-ri.js';
+import { JIAZI, ZHI } from '../common/constants.js';
+import { dayGanZhiIndex, dayGanZhi } from '../calendar/ganzhi.js';
+import { jieqiTable, JIE_ONLY } from '../calendar/jieqi2.js';
 
-/** 八门环序（阳顺） */
-const DOOR_RING = ['休门', '生门', '伤门', '杜门', '景门', '死门', '惊门', '开门'];
-/** 九星环序 */
-const STAR_RING = ['天蓬', '天芮', '天冲', '天辅', '天英', '天柱', '天任', '天心'];
-/** 八宫（不含中五） */
-const GONG8 = [1, 8, 3, 4, 9, 2, 7, 6];
+/** 日支定局表（原文「子午日用二局」不分遁式） */
+const ZHI_JU = { 子: 2, 丑: 6, 寅: 1, 卯: 8, 辰: 4, 巳: 9, 午: 2, 未: 6, 申: 1, 酉: 8, 戌: 4, 亥: 9 };
+/** 三奇六仪布仪序（戊己庚辛壬癸丁丙乙） */
+const SEQ = ['戊', '己', '庚', '辛', '壬', '癸', '丁', '丙', '乙'];
+/** 洛书九宫数序（含中五）——九星环 */
+const LUO9 = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+/** 洛书数序跳过中五——八门环 */
+const LUO8 = [1, 2, 3, 4, 6, 7, 8, 9];
+/** 九星序（含天禽占中五） */
+const STAR9 = ['天蓬', '天芮', '天冲', '天辅', '天禽', '天心', '天柱', '天任', '天英'];
+/** 八门环序（休→生→伤→杜→景→死→惊→开） */
+const GATE_RING = ['休', '生', '伤', '杜', '景', '死', '惊', '开'];
 
-/** 日支三合局起门 */
-const START_DOOR = { 申: '休门', 子: '休门', 辰: '休门', 寅: '景门', 午: '景门', 戌: '景门', 巳: '生门', 酉: '生门', 丑: '生门', 亥: '开门', 卯: '开门', 未: '开门' };
+/** 节气名 → 阳遁判断（冬至~芒种半周阳遁） */
+const YANG_JIE = ['冬至', '小寒', '大寒', '立春', '雨水', '惊蛰', '春分', '清明', '谷雨', '立夏', '小满', '芒种'];
 
-/** 日干五合起星 */
-const START_STAR = { 甲: '天蓬', 己: '天蓬', 乙: '天芮', 庚: '天芮', 丙: '天冲', 辛: '天冲', 丁: '天辅', 壬: '天辅', 戊: '天心', 癸: '天心' };
+/** 本地日序（与 calendar/solar.dayNo 同口径，避免循环依赖） */
+function jdnOf(y, m, d) {
+  const a = Math.floor((14 - m) / 12);
+  const y2 = y + 4800 - a;
+  const m2 = m + a * 12 - 3;
+  return d + Math.floor((153 * m2 + 2) / 5) + 365 * y2 + Math.floor(y2 / 4) - Math.floor(y2 / 100) + Math.floor(y2 / 400) - 32045;
+}
+
+/**
+ * 阴阳遁：由当前节气定（冬至后阳遁、夏至后阴遁）。
+ * 节气按「日」界取（宝鉴原文只论节后，不细化时刻），取 y-1/y/y+1 跨年安全。
+ */
+function dunOf(y, m, d) {
+  const target = jdnOf(y, m, d);
+  let best = null, bestT = -Infinity;
+  for (const yy of [y - 1, y, y + 1]) {
+    const t = jieqiTable(yy);
+    for (const k of YANG_JIE.concat(['夏至'])) {
+      const jt = jdnOf(t[k].y, t[k].m, t[k].d);
+      if (jt <= target && jt > bestT) { bestT = jt; best = k; }
+    }
+  }
+  return YANG_JIE.includes(best) ? '阳遁' : '阴遁';
+}
 
 /**
  * 宝鉴日奇。
@@ -37,27 +63,56 @@ const START_STAR = { 甲: '天蓬', 己: '天蓬', 乙: '天芮', 庚: '天芮',
  */
 export function qimenBaojianChart(input) {
   const { y, m, d } = input;
-  const gz = dayGanZhi(y, m, d);
-  const [gan, zhi] = gz;
 
-  const dStart = DOOR_RING.indexOf(START_DOOR[zhi]);
-  const sStart = STAR_RING.indexOf(START_STAR[gan]);
+  const gzIdx = dayGanZhiIndex(y, m, d) % 60;
+  const gz = JIAZI[gzIdx];
+  const gan = gz[0], zhi = gz[1];
 
-  const cells = GONG8.map((gong, i) => ({
-    宫: gong,
-    门: DOOR_RING[(dStart + i) % 8],
-    星: STAR_RING[(sStart + i) % 8],
-  }));
+  const yang = dunOf(y, m, d) === '阳遁';
+  const ju = ZHI_JU[zhi];
 
-  // 与「日家」并列输出，便于对照
-  const ri = qimenRiChart({ y, m, d });
+  // 地盘：三奇六仪阳顺阴逆布九宫（含中五），起局数宫
+  const 地盘 = {};
+  for (let s = 0; s < 9; s += 1) {
+    const pal = yang ? ((ju + s - 1) % 9) + 1 : ((ju - s - 1 % 9 + 2 * 9) % 9) + 1;
+    地盘[pal] = SEQ[s];
+  }
+
+  // 甲子锚 + 日差：甲子日序 = (dayGanZhiIndex % 60) === 0（JDN-11 口径），
+  // 直接用 solarToJdn 同式本地日序对齐
+  let N = 0;
+  for (let i = 0; i < 60; i += 1) {
+    const day = jdnOf(y, m, d) - i;
+    if (((day - 11) % 60 + 60) % 60 === 0) { N = i; break; }
+  }
+
+  // 九星：甲子日天蓬起艮八，每日顺移一位（含中五数序）
+  const 九星 = {};
+  const base9 = LUO9.indexOf(8);
+  for (let i = 0; i < 9; i += 1) {
+    九星[LUO9[(base9 + N + i) % 9]] = STAR9[i];
+  }
+
+  // 八门：甲子日休门在坎一，每三日顺转一宫（不入中五）
+  const 八门 = {};
+  const base8 = LUO8.indexOf(1);
+  const xiuPos = LUO8[(base8 + Math.floor(N / 3)) % 8];
+  for (let gi = 0; gi < 8; gi += 1) {
+    八门[LUO8[(LUO8.indexOf(xiuPos) + gi) % 8]] = GATE_RING[gi];
+  }
 
   return {
-    日干支: gz,
-    起门: `${zhi}日三合局 → ${START_DOOR[zhi]}`,
-    起星: `${gan}干五合 → ${START_STAR[gan]}`,
-    cells,
-    对照日家: { 遁: ri['遁'], 局: ri['局'], 值符: ri['值符'], 值使: ri['值使'] },
-    口径: '宝鉴日奇按《奇门宝鉴》日奇口诀：日支定起门、日干定起星，八宫顺布；与 180 日一元轮派日家并列展示，两派不混算。',
+    名: '日支定局法（奇門寶鑑·附日奇门起例）',
+    日干支: gan + zhi,
+    阴阳遁: yang ? '阳遁' : '阴遁',
+    局数: ju,
+    定局依据: '日支' + zhi + ' → ' + ju + ' 局',
+    日差: N,
+    地盘, 九星, 八门,
+    缺口: [
+      '原文只给定局、九星、八门三事，八神排法、天盘三奇六仪、值符值使（本式无旬首概念）原文未给，故不输出——不臆造。',
+      '九星走洛书九宫数序「顺飞九宫」（含中五占位）：原文「天蓬起艮八、芮在离九」两例只在含中五数序下成立，八门明写「不入中五」，两环分用。',
+      '本式与按六十甲子日分局的转盘日家（日家奇门）是两套系统，输出并列不合并，混排即错盘。',
+    ],
   };
 }

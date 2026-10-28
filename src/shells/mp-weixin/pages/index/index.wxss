@@ -23,18 +23,20 @@ a { color: inherit }
 .nt-nav-back:active,
 .nt-nav-about:active { opacity: 0.6 }
 .nt-page-h { flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: var(--sp-5); height: 44px; font-size: var(--fs-h); line-height: var(--lh-h); font-weight: var(--fw-mid) }
-.nt-pgbody { flex: 1; min-height: 0; height: 0; padding: 0 var(--gutter) 24px; overflow-y: auto; -webkit-overflow-scrolling: touch }
+.nt-pgbody { flex: 1; min-height: 0; height: 0; box-sizing: border-box; padding: 0 var(--gutter) 24px; overflow-y: auto; -webkit-overflow-scrolling: touch }
 .res .nt-pgbody { padding-bottom: 72px }
 
 .nt-pgbody.nt-pt { padding-top: var(--sp-5) }
 /* 五、图标（背景图承载，几何尺寸与设计稿一致） */
-.nt-icon { display: inline-block; flex-shrink: 0; background-repeat: no-repeat; background-position: center; background-size: contain; filter: invert(0) }
-.nt-i-back { width: var(--ic-chevron-w); height: var(--ic-chevron-h); background-image: url("/static/icons/icon-back.svg") }
-.nt-i-chev { width: var(--ic-chevron-w); height: var(--ic-chevron-h); background-image: url("/static/icons/icon-forward.svg") }
-.nt-i-chev-danger { width: var(--ic-chevron-w); height: var(--ic-chevron-h); background-image: url("/static/icons/icon-forward-danger.svg") }
-.nt-i-search { width: var(--ic-search-w); height: var(--ic-search-h); background-image: url("/static/icons/icon-search.svg") }
+.nt-icon { flex-shrink: 0 }
+/* 小程序：图标用 <image> 标签渲染（view 的 background-image 在部分基础库不认 data URI，
+ *   且 WXSS 不支持本地 url()）——这里只给尺寸，图像由 wxml 里 image 的 src 提供。 */
+.nt-i-back { width: var(--ic-chevron-w); height: var(--ic-chevron-h) }
+.nt-i-chev { width: var(--ic-chevron-w); height: var(--ic-chevron-h) }
+.nt-i-chev-danger { width: var(--ic-chevron-w); height: var(--ic-chevron-h) }
+.nt-i-search { width: var(--ic-search-w); height: var(--ic-search-h) }
 .nt-dark .nt-icon { filter: invert(1) }
-.nt-dark .nt-i-chev-danger { filter: invert(1) brightness(1.33) }
+.nt-dark .nt-i-chev-danger { filter: brightness(1.33) }  /* 深色红箭头只提亮：invert 会把 #BF3F12 反成青（旧仓 theme.wxss:1036 同款教训） */
 /* 六、首屏（品牌 + 搜索胶囊） */
 .nt-hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 var(--gutter) calc(var(--band-top) - var(--band-bottom)) }
 .nt-hero-logo,
@@ -252,7 +254,9 @@ to { transform: translateX(0); opacity: 1 }
 .nt-theme-fade .nt-icon { transition: background-color var(--d-theme) var(--ease-standard),
     color var(--d-theme) var(--ease-standard),
     border-color var(--d-theme) var(--ease-standard),
-    filter var(--d-theme) var(--ease-standard) }
+    filter var(--d-theme) var(--ease-standard),
+    opacity var(--d-press) var(--ease-standard),
+    transform var(--d-press) var(--ease-standard) }
 /* 十五、响应式与桌面态 */
 @media (hover: hover) and (min-width: 768px) { .nt-setrow:hover {
     background: var(--nt-elevated) }

@@ -173,3 +173,136 @@ export function jdeToSolarDate(jde) {
 }
 
 export { sin, cos, RAD, jcen };
+
+/* ───────────────────────── 高精度太阳黄经（节气求解用） ─────────────────────────
+ * 上面的 sunLon 是 Meeus 低精度式，误差可达 10 分钟；节气时刻要与权威万年历对齐到
+ * 分钟以内，必须换成 VSOP87 截断级数（6 阶）。系数在 data/astro-tables.js。
+ * 下面三个函数是同一套级数的三段拼装：
+ *   eLon(t, n)        —— 地球黄经（VSOP87 截断，按精度 n 截项）
+ *   nutationLon2(t)   —— 章动黄经
+ *   gxcSunLon(t)      —— 光行差修正
+ * 三者相加再加 π，得「视太阳黄经」，t 的单位是「儒略千年（J2000 起）」。
+ */
+
+import { XL0, NUT_B, DT_AT } from './data/astro-tables.js';
+
+const SECOND_PER_RAD = 648000 / Math.PI;
+const ONE_THIRD = 1 / 3;
+
+/**
+ * 地球黄经级数（VSOP87 截断）。
+ * @param {Number} t 儒略千年（J2000 起算，即「儒略世纪数 / 10」）
+ * @param {Number} n 精度档：0=最省、10=中、-1=全量
+ */
+export function eLon(t, n) {
+  const tt = t / 10; // 级数内部以「千年」为单位
+  let v = 0;
+  let tn = 1;
+  const pn = 1;
+  const m0 = XL0[pn + 1] - XL0[pn];
+  for (let i = 0; i < 6; i += 1, tn *= tt) {
+    const n1 = Math.floor(XL0[pn + i]);
+    const n2 = Math.floor(XL0[pn + 1 + i]);
+    const n0 = n2 - n1;
+    if (n0 === 0) continue;
+    let m;
+    if (n < 0) {
+      m = n2; // 全量
+    } else {
+      m = Math.floor(3 * n * n0 / m0 + 0.5) + n1;
+      if (i !== 0) m += 3;
+      if (m > n2) m = n2;
+    }
+    let c = 0;
+    for (let j = n1; j < m; j += 3) c += XL0[j] * Math.cos(XL0[j + 1] + tt * XL0[j + 2]);
+    v += c * tn;
+  }
+  v /= XL0[0];
+  const t2 = tt * tt;
+  v += (-0.0728 - 2.7702 * tt - 1.1019 * t2 - 0.0996 * t2 * tt) / SECOND_PER_RAD;
+  return v;
+}
+
+/** 章动黄经（弧度）。t 单位同上 */
+export function nutationLon2(t) {
+  let a = -1.742 * t;
+  const t2 = t * t;
+  let dl = 0;
+  for (let i = 0; i < NUT_B.length; i += 5) {
+    dl += (NUT_B[i + 3] + a) * Math.sin(NUT_B[i] + NUT_B[i + 1] * t + NUT_B[i + 2] * t2);
+    a = 0;
+  }
+  return dl / 100 / SECOND_PER_RAD;
+}
+
+/** 光行差修正（弧度） */
+export function gxcSunLon(t) {
+  const t2 = t * t;
+  const v = -0.043126 + 628.301955 * t - 0.000002732 * t2;
+  const e = 0.016708634 - 0.000042037 * t - 0.0000001267 * t2;
+  return -20.49552 * (1 + e * Math.cos(v)) / SECOND_PER_RAD;
+}
+
+/** 视太阳黄经（弧度，含章动与光行差） */
+export function saLon(t, n) {
+  return eLon(t, n) + nutationLon2(t) + gxcSunLon(t) + Math.PI;
+}
+
+/** 太阳黄经变化率（弧度/日），用于牛顿迭代 */
+function evOf(t) {
+  const f = 628.307585 * t;
+  return 628.332 + 21 * Math.sin(1.527 + f) + 0.44 * Math.sin(1.48 + f * 2)
+    + 0.129 * Math.sin(5.82 + f) * t + 0.00055 * Math.sin(4.21 + f) * t * t;
+}
+
+/**
+ * 解「视太阳黄经 = w（弧度）」的时刻，返回儒略千年（J2000 起）。
+ * 三步牛顿：粗解 → 中精度修正 → 高精度修正。
+ */
+export function saLonT(w) {
+  const v0 = 628.3319653318;
+  let t = (w - 1.75347 - Math.PI) / v0;
+  t += (w - saLon(t, 10)) / evOf(t);
+  t += (w - saLon(t, -1)) / evOf(t);
+  return t;
+}
+
+/** ΔT 分段表插值（秒），比上面的 deltaT 更贴近实测表 */
+export function dtTable(year) {
+  const size = DT_AT.length;
+  const y0 = DT_AT[size - 2];
+  const t0 = DT_AT[size - 1];
+  if (year >= y0) {
+    const jsd = 31;
+    const ext = (y) => { const dy = (y - 1820) / 100; return -20 + jsd * dy * dy; };
+    if (year > y0 + 100) return ext(year);
+    return ext(year) - (ext(y0) - t0) * (y0 + 100 - year) / 100;
+  }
+  let i = 0;
+  for (; i < size; i += 5) if (year < DT_AT[i + 5]) break;
+  const t1 = (year - DT_AT[i]) / (DT_AT[i + 5] - DT_AT[i]) * 10;
+  const t2 = t1 * t1;
+  const t3 = t2 * t1;
+  return DT_AT[i + 1] + DT_AT[i + 2] * t1 + DT_AT[i + 3] * t2 + DT_AT[i + 4] * t3;
+}
+
+/** 儒略千年 → ΔT（天） */
+function dtT(t) {
+  return dtTable(t / 365.2425 + 2000) / 86400;
+}
+
+/**
+ * 求「视黄经 = w」的气时刻，返回「自 J2000 起的天数（北京时）」。
+ * 这个数与 jieqi2 的日序换算方式配套：J2000 起点 + 天数 → 北京日期时刻。
+ */
+export function qiAccurate(w) {
+  const t = saLonT(w) * 36525;
+  return t - dtT(t) + ONE_THIRD; // +1/3 天 = 东八区
+}
+
+/** 节气序号 → 相对天数（给 jieqi2 用）：w 为弧度，一档 15° */
+export function qiAt(w) {
+  return qiAccurate(w);
+}
+
+export { SECOND_PER_RAD, ONE_THIRD };

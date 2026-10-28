@@ -2,13 +2,10 @@
  * src/core/huangli/daily.js —— 黄历每日全量（自研，零依赖）
  *
  * 大白话：把前面所有部件（干支/建除/黄黑道/二十八宿/方位/冲煞/吉凶神/节日）
- * 拼成一张完整黄历。宜忌由规则推导：
- *   1. 建除十二神给宜忌大类（如「成日宜开市结婚、破日忌嫁娶」）；
- *   2. 黄黑道天神修正（黄道吉事可用、黑道诸事谨慎）；
- *   3. 凶煞禁项（月破日诸事不宜、受死忌嫁娶/安葬等）；
- *   4. 彭祖百忌补充干支级忌项。
- * 断语句式与覆盖度按《协纪辨方书》《玉匣记》通例自撰，输出标注「通例参考」。
- * 与逐日宜忌数据表（商业黄历 APP 的数据库）覆盖可能不同，属口径差异，如实声明。
+ * 拼成一张完整黄历。宜忌采用《玉匣记》系通书逐日条目表（见 yiji.js）：
+ *   以「六十甲子日 × 十二月」为索引查表得 宜/忌 与 吉神宜趋/凶煞宜忌，
+ *   另以建除/黄黑道做参考注记（值星、天神字段单列）。
+ * 数据为公版古籍条目；查表算法参考声明见 NOTICE 与 settings.js DEPS。
  */
 
 import { pad2 } from '../calendar/solar.js';
@@ -22,7 +19,7 @@ export function lunarTextFull(y, m, d) {
   // 注：solarToLunar().d 是 1 起日号，数组须取 d-1（旧实现此处差一位，已修）
   return `${l.y}年${l.isLeap ? '闰' : ''}${LUNAR_MONTH_NAMES[l.m - 1]}月${LUNAR_DAY_NAMES[l.d - 1]}`;
 }
-import { dayGanZhi, yearGanZhiByLichun, monthGanZhi, hourGanZhi } from '../calendar/ganzhi.js';
+import { dayGanZhi, yearGanZhiByLichun, monthGanZhi, hourGanZhi, monthZhiIndex } from '../calendar/ganzhi.js';
 import { jieqiTable } from '../calendar/jieqi2.js';
 import { festivalsOf, holidayStatus, isWeekend } from '../calendar/festival.js';
 import { weekday } from '../calendar/solar.js';
@@ -37,6 +34,7 @@ import { xiu28Of } from './xiu28.js';
 import { positionOf } from './position.js';
 import { chongshaOf } from './chongsha.js';
 import { jishenOf } from './jishen.js';
+import { dayYiJi, dayJiXiongSha } from './yiji.js';
 import { GAN, ZHI } from '../common/constants.js';
 
 /** 建除 → 宜忌大类映射（通例） */
@@ -69,14 +67,16 @@ export function daily(y, m, d, hour = null) {
   const fest = festivalsOf(y, m, d);
   const holiday = holidayStatus(y, m, d);
 
-  // 宜忌合成
-  const yi = [...(JC_YI[jc] || [])];
-  const ji = [...(JC_JI[jc] || [])];
-  if (ts.天神类 === '黄道') yi.push('吉事可用');
-  if (ts.天神类 === '黑道') ji.push('大事勿用');
-  for (const x of js.凶煞宜忌) if (XIONG_BAN[x]) for (const b of XIONG_BAN[x]) if (!ji.includes(b)) ji.push(b);
-  if (js.凶煞宜忌.includes('月破')) { yi.length = 0; ji.length = 0; ji.push('诸事不宜'); }
-  // 彭祖百忌单列字段，不混入「忌」清单（旧版黄历把彭祖另起一行）
+  // 黄历的两套月柱口径（与参考实现逐字一致，别把两者合并）：
+  //   ① 展示用的「月干支」走精确交节：按当日 0 时判定，交节时刻未到仍算旧月；
+  //   ② 宜忌 / 吉凶神查表走「整日粒度」：交节当日整天已算新月。
+  const monthGz = monthGanZhi(y, m, d, 0);
+  const wholeMonthGz = monthGanZhi(y, m, d); // 不传时辰 = 当日内已过交节
+  const yj = dayYiJi(wholeMonthGz, gz);
+  // 吉凶神查表要「月支序号」（0=寅起算），不是月支字
+  const jxs = dayJiXiongSha(monthZhiIndex(y, m, d), gz);
+  const yi = yj.宜;
+  const ji = yj.忌;
 
   return {
     solar: `${y}-${pad2(m)}-${pad2(d)}`,
@@ -85,7 +85,7 @@ export function daily(y, m, d, hour = null) {
     lunar: lunarTextFull(y, m, d),
     ganzhi: {
       年: yearGanZhiByLichun(y, m, d),
-      月: monthGanZhi(y, m, d),
+      月: monthGz,
       日: gz,
       时: hour != null ? hourGanZhi(gz[0], hour) : null,
     },
@@ -98,8 +98,8 @@ export function daily(y, m, d, hour = null) {
     冲煞: cs,
     宜: [...new Set(yi)],
     忌: [...new Set(ji)],
-    吉神宜趋: js.吉神宜趋,
-    凶煞宜忌: js.凶煞宜忌,
+    吉神宜趋: jxs.吉神宜趋,
+    凶煞宜忌: jxs.凶煞宜忌,
     节日: fest,
     法定假期: holiday,
     通例参考: '《协纪辨方书》《玉匣记》通例，断语为自研文案；宜忌为规则推导，与商业逐日宜忌库覆盖或有出入',

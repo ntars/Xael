@@ -40,13 +40,15 @@ export function sihuaOf(input) {
   const table = c['四化'] || {};
   const found = { 禄: table['禄'], 权: table['权'], 科: table['科'], 忌: table['忌'] };
 
-  // 落宫：遍历十二宫找主星/辅星含该星者
+  // 落宫：遍历十二宫找主星/辅星含该星者，输出格式对齐旧版盘「X化Y入Z宫（干支）」
   const cells = c['cells'] || [];
   const 落宫 = {};
   for (const [化, star] of Object.entries(found)) {
     if (!star) continue;
     const hit = cells.find((cell) => (cell['主星'] || []).includes(star) || (cell['辅星'] || []).includes(star));
-    落宫[化] = hit ? `${hit['宫']}宫（${hit['支']}）` : '不在十二宫（可能为未安之星）';
+    落宫[化] = hit
+      ? { 宫名: hit['宫'], 干支: hit['干支'], 文本: star + '化' + 化 + '入' + hit['宫'] + '（' + hit['干支'] + '）' }
+      : { 宫名: null, 干支: null, 文本: star + '化' + 化 + '不在十二宫' };
   }
 
   // 依年干查全表（用于对照展示）
@@ -57,6 +59,10 @@ export function sihuaOf(input) {
     四化: found,
     落宫,
     全表: ganFromTable ? SIHUA_TABLE[ganFromTable] : null,
+    命宫: c['命宫'],
+    身宫: c['身宫'],
+    命主星: c['命主星'],
+    身主星: c['身主星'],
     五行局: c['五行局'],
     口径: '按农历正月初一换年取年干；戊、壬两干取中州主流表（分歧见 docs/CALIBER-NOTES.md）。',
   };

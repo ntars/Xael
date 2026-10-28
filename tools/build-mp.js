@@ -81,7 +81,7 @@ export function transform(src, filePath) {
   code = code.replace(/^import\s+['"]([^'"]+)['"];?/gm, (_m, from) => `require('${from}');`);
 
   // 2) export default function / class（带名字）
-  code = code.replace(/^export\s+default\s+(async\s+)?function\s+(\w+)/gm, (_m, asyncKw, name) => {
+  code = code.replace(/^export\s+default\s+(async\s+)?function\s+([\w$\u4e00-\u9fa5]+)/gm, (_m, asyncKw, name) => {
     exported.push(`module.exports.${name} = ${name};`);
     return `${asyncKw || ''}function ${name}`;
   });
@@ -89,17 +89,21 @@ export function transform(src, filePath) {
   code = code.replace(/^export\s+default\s+/gm, 'module.exports.default = ');
 
   // 4) export async function / function / class / const / let / var
-  code = code.replace(/^export\s+(async\s+)?function\s+(\w+)/gm, (_m, asyncKw, name) => {
+  code = code.replace(/^export\s+(async\s+)?function\s+([\w$\u4e00-\u9fa5]+)/gm, (_m, asyncKw, name) => {
     exported.push(`module.exports.${name} = ${name};`);
     return `${asyncKw || ''}function ${name}`;
   });
-  code = code.replace(/^export\s+class\s+(\w+)/gm, (_m, name) => {
+  code = code.replace(/^export\s+class\s+([\w$\u4e00-\u9fa5]+)/gm, (_m, name) => {
     exported.push(`module.exports.${name} = ${name};`);
     return `class ${name}`;
   });
-  code = code.replace(/^export\s+(const|let|var)\s+(\w+)/gm, (_m, kw, name) => {
+  // ★ 名字要允许中文等非 \w 标识符（如 export const 支合 = ...）：
+  //   旧写法 \w+ 在中文名上不匹配，会整条漏掉，产物里就会残留 export 关键字 → 小程序/Node 直接语法报错。
+  //   这里用「贪婪到 = 或 ; 之前」的宽松捕获，再 trim 名字。
+  code = code.replace(/^export\s+(const|let|var)\s+([^=;]+?)\s*=/gm, (_m, kw, rawName) => {
+    const name = rawName.trim();
     exported.push(`module.exports.${name} = ${name};`);
-    return `${kw} ${name}`;
+    return `${kw} ${name} =`;
   });
 
   // 5) export { a, b as c }
@@ -142,7 +146,10 @@ export function build({ check = CHECK } = {}) {
   const icon64 = (name) => {
     const p = join(iconDir, name);
     if (!existsSync(p)) throw new Error(`缺少图标源文件：src/shells/pwa/static/icons/${name}`);
-    return `url("data:image/svg+xml;base64,${readFileSync(p).toString('base64')}")`;
+    // 小程序 background-image 的 SVG 解析器很挑：去掉 XML 注释（部分基础库不认），
+    //   压成单行再 base64，排除一切非必要字符。
+    const svg = readFileSync(p, 'utf8').replace(/<!--[\s\S]*?-->/g, '').replace(/\s*\n\s*/g, ' ').trim();
+    return `url("data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}")`;
   };
   const shellFiles = [];
   const walk = (dir) => {
@@ -154,6 +161,11 @@ export function build({ check = CHECK } = {}) {
   };
   if (existsSync(shellDir)) walk(shellDir);
   for (const f of shellFiles) {
+    // 二进制文件（png 等）原样拷贝 —— 绝不能当 UTF-8 文本读写（0x89 会被换成 U+FFFD 损坏）
+    if (!/\.(js|json|wxss|wxml|md|txt)$/.test(f)) {
+      outputs.set(relative(shellDir, f), readFileSync(f));
+      continue;
+    }
     let text = readFileSync(f, 'utf8');
     if (f.endsWith('.wxss')) {
       text = text.replace(/url\("\/static\/icons\/([\w.-]+\.svg)"\)/g, (_m, name) => icon64(name));
@@ -165,9 +177,22 @@ export function build({ check = CHECK } = {}) {
       text = text.replace(/@media\s*\(hover[^{]*\{(?:[^{}]*\{[^}]*\})*[^{}]*\}/g, '');
       text = text.replace(/[^{}]*:hover[^{]*\{[^}]*\}/g, '');
       text = text.replace(/(?:^|\})\s*\*\s*[^{]*\{[^}]*\}/g, '$1');
-      // ④ 双重底部避让：page-safe 已有 padB(safe-bottom)，.nt-layer 再 padB 一次会多让 34px
-      //    （内容被顶出屏幕）。小程序层内不再重复让位。
-      text = text.replace(/(\.nt-layer\s*\{[^}]*?)padding-bottom:\s*var\(--safe-bottom\);?\s*/g, '$1');
+      // ④ 底部避让单一真源=每一层（旧仓 v3.1.35 结论）：页面根 .nt-page-safe 不留底，
+      //    否则转场舞台不满屏（手势条露白）+ 内容区被双重压缩（「卡片超出屏幕」即此因）。
+      //    剥根、保层。
+      text = text.replace(/(\.nt-page-safe\s*\{[^}]*?)padding-bottom:\s*var\(--safe-bottom\);?\s*/g, '$1');
+      // ⑤ 动画失效修复：WXSS 的 animation 简写中 duration 写 var(--d-…) 时整条声明会被
+      //    丢弃（呼吸光环/视差转场/错落入场全部不动）。构建期把 var(--d-*)/var(--ease-*)
+      //    展开为字面值 —— 数值与 theme.css 单一真源一致。
+      const MOTION_VARS = {
+        '--d-press': '120ms', '--d-drawer': '280ms', '--d-page': '320ms',
+        '--d-theme': '320ms', '--d-splash': '400ms', '--d-modal-out': '200ms',
+        '--d-halo': '4400ms', '--ease-standard': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      };
+      // duration 与 ease 两处 var() 都展开（简写任一位置含 var 都可能在部分基础库整条被丢）
+      for (const [k, v] of Object.entries(MOTION_VARS)) {
+        text = text.split(`var(${k})`).join(v);
+      }
     }
     outputs.set(relative(shellDir, f), text);
   }
@@ -177,12 +202,16 @@ export function build({ check = CHECK } = {}) {
   if (check) {
     const problems = [];
     if (total > SIZE_LIMIT) problems.push(`包体 ${(total / 1024).toFixed(1)}KB 超过 2MB 上限`);
+    // 动画 var 残留校验（旧仓 A3 教训）：任何 animation 简写里残留 var() → 整条声明会被 WXSS 丢弃
+    for (const [rel, content] of outputs) {
+      if (/\.wxss$/.test(rel) && /animation:[^;}]*var\(/.test(content)) problems.push(`${rel} 的 animation 里残留 var()（会被 WXSS 整条丢弃）`);
+    }
     if (!existsSync(OUT)) problems.push('产物目录不存在，请先执行 node tools/build-mp.js');
     else {
       for (const [rel, content] of outputs) {
         const p = join(OUT, rel);
         if (!existsSync(p)) problems.push(`缺产物：${rel}`);
-        else if (readFileSync(p, 'utf8') !== content) problems.push(`产物与源不一致：${rel}`);
+        else if (!readFileSync(p).equals(Buffer.from(content))) problems.push(`产物与源不一致：${rel}`);
       }
     }
     for (const p of problems) console.error('✗ ' + p);
@@ -198,6 +227,13 @@ export function build({ check = CHECK } = {}) {
     writeFileSync(p, content);
   }
   writeFileSync(join(OUT, 'package.json'), '{ "type": "commonjs" }\n');
+  // project.config.json 以 src/shells/mp-weixin/project.config.json 为单一真源拷入
+  //   （compileType 固定 miniprogram）。开发者在微信开发者工具里切「多端应用」模式时，
+  //   工具会写入 projectArchitecture: multiPlatform 与 app.miniapp.json/miniapp//i18n/
+  //   等多端文件 —— 那是面向 mini-ohos/mini-android 的编译路径，会改变图标/动画/样式的
+  //   解析行为。本项目小程序以原生 WXML 为准，多端形态由 src/shells/uniapp 独立承担，
+  //   每次重建（rmSync OUT）即自动清掉这些工具生成物并回到普通模式。
+  outputs.set('project.config.json', readFileSync(join(ROOT, 'src/shells/mp-weixin/project.config.json'), 'utf8'));
   console.log(`✓ 已生成 dist/mp-weixin：${outputs.size} 个文件，共 ${(total / 1024).toFixed(1)}KB`);
   return { ok: true, total, count: outputs.size };
 }

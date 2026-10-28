@@ -1081,19 +1081,19 @@ a.nt-setfoot-line:active {
 
 @keyframes nt-tf-in {
   from {
-    opacity: 0;
+    transform: translateX(100%);
   }
   to {
-    opacity: 1;
+    transform: none;
   }
 }
 
 @keyframes nt-tf-out {
   from {
-    opacity: 1;
+    transform: none;
   }
   to {
-    opacity: 0;
+    transform: translateX(100%);
   }
 }
 
@@ -1159,15 +1159,7 @@ a.nt-setfoot-line:active {
 
 /* 单层滑动（不叠双层时用） */
 @keyframes nt-tf-in-back { from { transform: translateX(-33%); } to { transform: none; } }
-@keyframes nt-slide-in {
-  from {
-    transform: translateX(33%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+
 }
 
 @keyframes nt-slide-in-back {

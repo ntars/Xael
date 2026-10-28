@@ -69,7 +69,7 @@ function show(name, boot) {
   VIEWS.forEach((k) => {
     const n = layerOf(k);
     if (!n) return;
-    n.classList.remove('back', 'front', 'nt-px-fwd', 'nt-px-back', 'nt-cascade');
+    n.classList.remove('back', 'front', 'nt-px-fwd', 'nt-px-back', 'nt-tf-in', 'nt-tf-out', 'nt-cascade');
   });
 
   const nextEl = layerOf(to);
@@ -84,21 +84,27 @@ function show(name, boot) {
     nextEl.classList.add('front', 'nt-cascade');
     transTimer = setTimeout(() => nextEl.classList.remove('nt-cascade'), MOTION.dPage + 200);
   } else {
-    if (prevEl && prevEl !== nextEl) {
-      prevEl.hidden = false;
-      prevEl.classList.add('back');
-      prevEl.classList.add(forward ? 'nt-px-fwd' : 'nt-px-back');
-    }
+    // 三层视差（对齐旧仓 stage 语义）：
+    //   前进：新页在 front 从右滑入（nt-tf-in），旧页在 back 视差退到 -33%（nt-px-fwd）
+    //   返回：旧页在 front 向右滑出（nt-tf-out），目标页在 back 从 -33% 回位（nt-px-back）
+    if (prevEl && prevEl !== nextEl) prevEl.hidden = false;
     nextEl.hidden = false;
-    nextEl.classList.add('front');
+    if (forward) {
+      if (prevEl && prevEl !== nextEl) prevEl.classList.add('back', 'nt-px-fwd');
+      nextEl.classList.add('front', 'nt-tf-in');
+    } else {
+      if (prevEl && prevEl !== nextEl) prevEl.classList.add('front', 'nt-tf-out');
+      nextEl.classList.add('back', 'nt-px-back');
+    }
     if (dim) dim.classList.add(forward ? 'nt-dim-in' : 'nt-dim-out');
     transTimer = setTimeout(() => {
       VIEWS.forEach((k) => {
         const n = layerOf(k);
         if (!n) return;
-        n.classList.remove('back', 'front', 'nt-px-fwd', 'nt-px-back');
+        n.classList.remove('back', 'front', 'nt-px-fwd', 'nt-px-back', 'nt-tf-in', 'nt-tf-out');
         if (k !== to) n.hidden = true;
       });
+      nextEl.classList.add('front');
       if (dim) dim.classList.remove('nt-dim-in', 'nt-dim-out');
     }, MOTION.dPage);
   }

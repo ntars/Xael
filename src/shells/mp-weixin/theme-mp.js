@@ -10,7 +10,7 @@ function applyTheme(mode) {
     } catch (e) { dark = false; }
   }
   try {
-    wx.setBackgroundColor({ backgroundColor: dark ? '#1a1a1a' : '#ffffff', backgroundColorTop: dark ? '#1a1a1a' : '#ffffff', backgroundColorBottom: dark ? '#1a1a1a' : '#ffffff' });
+    wx.setBackgroundColor({ backgroundColor: dark ? '#000000' : '#ffffff', backgroundColorTop: dark ? '#000000' : '#ffffff', backgroundColorBottom: dark ? '#000000' : '#ffffff' });
   } catch (e) { /* 低版本不支持则忽略 */ }
   return dark ? 'dark' : 'light';
 }

@@ -92,13 +92,23 @@ export const GUA64_NAMES = {
 /** 上下卦象名组合 → 键归一（'天泽'→兑乾） */
 const XIANG2KEY = { 天: '乾', 泽: '兑', 火: '离', 雷: '震', 风: '巽', 水: '坎', 山: '艮', 地: '坤' };
 
-/** 按上下卦名查卦名 */
+/**
+ * 按上下卦名查卦名。
+ * 八纯卦（上下同卦）补「为」字：乾为天、兑为泽、离为火、震为雷、巽为风、坎为水、艮为山、坤为地
+ * ——这是《周易》通行卦名写法，梅花/六爻的输出都按这个口径。
+ */
+const PURE = {
+  乾: '乾为天', 兑: '兑为泽', 离: '离为火', 震: '震为雷',
+  巽: '巽为风', 坎: '坎为水', 艮: '艮为山', 坤: '坤为地',
+};
 export function guaName(upper, lower) {
-  const key = upper + lower;
-  if (GUA64_NAMES[key]) return GUA64_NAMES[key];
   const uk = XIANG2KEY[upper] || upper;
   const lk = XIANG2KEY[lower] || lower;
-  return GUA64_NAMES[uk + lk] || uk + lk;
+  // ★ 八纯卦必须先判：表内 '坤坤'/'乾乾' 存的是「坤」「乾」，直接查表会漏掉「为」字
+  if (uk === lk && PURE[uk]) return PURE[uk];
+  const key = uk + lk;
+  if (GUA64_NAMES[key]) return GUA64_NAMES[key];
+  return uk + lk;
 }
 
 /** 六十四卦全序（通行本序，用卦名）——供文献库目录 */

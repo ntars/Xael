@@ -133,7 +133,7 @@ None.
 ```bash
 git clone https://github.com/ntars/Xael.git
 cd Xael
-npm test          # 133 assertions
+npm test          # 145 assertions
 npm run build     # web build (repo root) + Mini Program build (dist/mp-weixin)
 npm run build:uni # validate uni-app shell (imports/style constraints; artifacts come from HBuilderX)
 npm run check     # eight pre-release checks

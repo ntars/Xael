@@ -33,14 +33,24 @@ export function dayGanZhi(y, m, d) {
  * 年干支序（立春口径）：立春交节日前属上一年。
  * @param {Number} y 公历年 m 月 d 日
  */
-export function yearGanZhiIndexByLichun(y, m, d) {
+export function yearGanZhiIndexByLichun(y, m, d, hour) {
   const lc = jieqiTable(y)['立春'];
-  const effectiveYear = (m < lc.m || (m === lc.m && d < lc.d)) ? y - 1 : y;
+  // 立春交节「当日」还要看时刻：交节时刻之前出生仍属上一年（hour 可缺省=按整天已过交节）
+  let effectiveYear;
+  if (m < lc.m) effectiveYear = y - 1;
+  else if (m > lc.m) effectiveYear = y;
+  else if (d < lc.d) effectiveYear = y - 1;
+  else if (d > lc.d) effectiveYear = y;
+  else {
+    // 立春当日：按「真实秒」判（旧库秒级精确；分钟/秒缺省按 0，
+    // 如立春 12:00:58，12 时出生仍未换年）
+    effectiveYear = (hour != null && !jiePassed(lc, lc.d, hour, 0)) ? y - 1 : y;
+  }
   return ((effectiveYear - 4) % 60 + 60) % 60; // 公元 4 年 = 甲子年
 }
 
-export function yearGanZhiByLichun(y, m, d) {
-  return GZ[yearGanZhiIndexByLichun(y, m, d)];
+export function yearGanZhiByLichun(y, m, d, hour) {
+  return GZ[yearGanZhiIndexByLichun(y, m, d, hour)];
 }
 
 /** 十二节（换月用）与公历月的对应：1月小寒、2月立春…12月大雪 */
@@ -49,21 +59,37 @@ const MONTH_JIE = {
   7: '小暑', 8: '立秋', 9: '白露', 10: '寒露', 11: '立冬', 12: '大雪',
 };
 
-/** 月支序（0=子…11=亥）：节前属上一月支；1 月小寒前属上年子月 */
-export function monthZhiIndex(y, m, d) {
-  const jie = jieqiTable(y)[MONTH_JIE[m]];
-  if (m === 1) return d < jie.d ? 0 : 1;
-  return d < jie.d ? (m - 1) % 12 : m % 12;
+/** 分钟级交节判定：给了 hour 就连分钟一起比；hour 缺省时按整天，只比日期。
+ *  （旧库精确到秒，我们到分钟已是当前历法精度上限） */
+function jiePassed(jie, d, hour, minute) {
+  if (d !== jie.d) return d > jie.d;
+  if (hour == null) return true; // 未给时刻 → 视为当日已过交节
+  // 交节当日按「真实秒」判：旧库用精确到秒的交节时刻（getMonthInGanZhiExact），
+  // 分钟只到分不行——1904-06-06 芒种 12:00:58，出生 12 时（分缺省 0）仍未交节（旧库己巳月）
+  const t = hour * 3600 + (minute || 0) * 60;
+  const j = jie.hh * 3600 + jie.mm * 60 + (jie.sec || 0);
+  return t >= j;
 }
 
-/** 月柱：月支按节气，月干五虎遁（年干立春口径） */
-export function monthGanZhi(y, m, d) {
-  const zhiIdx = monthZhiIndex(y, m, d);
+/** 月支序（0=子…11=亥）：节前属上一月支；1 月小寒前属上年子月。
+ *  hour/minute：交节「当日」的交节时刻前仍属上一月支（可缺省=按整天已过交节）。 */
+export function monthZhiIndex(y, m, d, hour, minute) {
+  const jie = jieqiTable(y)[MONTH_JIE[m]];
+  const before = !jiePassed(jie, d, hour, minute);
+  if (m === 1) return before ? 0 : 1;
+  return before ? (m - 1) % 12 : m % 12;
+}
+
+/** 月柱：月支按节气（含交节时刻），月干五虎遁（年干立春口径） */
+export function monthGanZhi(y, m, d, hour, minute) {
+  const zhiIdx = monthZhiIndex(y, m, d, hour, minute);
   // 月干由「该节气月所在农历年」的年干定：
   // 丑月（1月小寒后~2月立春前）属上一农历年；其余节气月属本年
   const jie = jieqiTable(y)[MONTH_JIE[m]];
+  // 交节时刻前仍属上一节气月 → 月干随上一农历年（立春/小寒前的丑月、子月尾都算上年）
+  const before = !jiePassed(jie, d, hour, minute);
   let yForGan = y;
-  if (m === 1) yForGan = y - 1; // 1 月整个月（子月尾+丑月）都属上一农历年
+  if (m === 1 || (m === 2 && before)) yForGan = y - 1; // 1 月整月 + 立春交节前的 2 月都属上一农历年
   const lc = jieqiTable(yForGan)['立春'];
   const yGanIdx = yearGanZhiIndexByLichun(yForGan, lc.m, lc.d + 1) % 10; // 立春后一天取年干
   const offFromYin = ((zhiIdx - 2) % 12 + 12) % 12; // 距寅的偏移

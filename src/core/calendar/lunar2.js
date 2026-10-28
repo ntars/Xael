@@ -12,7 +12,11 @@
  */
 
 import { newMoonJDE, jdeToBeijing, sunLon } from './astronomy.js';
+import { calcShuo } from './shuoqi.js';
 import { dayNo, fromDayNo, solarToJdn } from './solar.js';
+
+/** 寿星精密朔表覆盖上限（JDE）：1985 年以前朔以查表为准（级数在该年代误差可达半天） */
+const SHUO_TABLE_END_JDE = 2436935;
 
 export const LUNAR_MONTH_NAMES = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
 export const LUNAR_DAY_NAMES = [
@@ -49,6 +53,13 @@ function zhongqiIndexAt(jde) {
  * 某朔的北京时间日序（初一那天）。
  */
 function newMoonDayNo(k) {
+  // 先用线性估计判断年代：1985 年（JDE 2436935）以前走寿星精密朔表，
+  // 否则走高精度级数。两套口径与参照实现（calcShuo 分段）一致。
+  const jdEst = 2451550.09766 + 29.530588861 * k - 2451545;
+  if (jdEst + 2451545 < SHUO_TABLE_END_JDE) {
+    // calcShuo 返回 J2000 相对日数；本模块 dayNo 采用 Unix 纪元（1970-01-01=0），差 10957 天
+    return calcShuo(jdEst, k) + 10957;
+  }
   const jde = newMoonJDE(k);
   const b = jdeToBeijing(jde, 2000 + k / 12.3685);
   return b.dayNo;
@@ -108,6 +119,7 @@ function buildMonthsFrom(k0, y) {
   const months = []; // {m, isLeap, startDayNo, days, k}
   let idx = k; // 当前朔序
   let curMonth = 11; // 从 y-1 年十一月开始
+  let seenZheng = false; // 是否已越过 y 年正月
   let leapDone = false;
   let firstDayNo = null;
 
@@ -203,17 +215,25 @@ function buildMonthsFrom(k0, y) {
     }
     const isLeap = !!leapByStart[start]; // 两遍法结果（见 computeLeapFlags）
     const mNo = curMonth;
-    if (curMonth === 12) {
-      // 腊月之后进入次年正月
-      if (y - 1 + 1 === y) { /* noop */ }
+    // 月号推进：闰月不占号（挂在前一月之后），其余月号 11→12→1→2…循环。
+    // 归属判定：不用 seq 下标（闰月会把「第 2 项=正月」的假设打破——y-1 有闰月时
+    // 正月实际落在 seq3），改用月号本身：curMonth===1 且非闰月 → 该月是某年正月。
+    // 从 y-1 冬至月起：11(属 y-1) → 12(属 y-1) → 1(属 y) 正月 → … → 11(属 y) → …
+    let belongsTo;
+    if (mNo === 1 && !isLeap && !seenZheng) {
+      // 第一个正月：属 y
+      seenZheng = true;
+      belongsTo = y;
+    } else {
+      belongsTo = seenZheng ? y : y - 1;
     }
-    // 用绝对月序 seq 判定归属：seq=0 → y-1 十一月；seq=1 → y-1 腊月；seq≥2 → y 年正月起
-    const seq = months.length;
-    const belongsTo = seq >= 2 ? y : y - 1;
-    months.push({ m: mNo, isLeap, startDayNo: start, days, zq, k: idx, belongsTo, seq });
+    months.push({ m: mNo, isLeap, startDayNo: start, days, zq, k: idx, belongsTo, seq: months.length });
     idx++;
-    curMonth++;
-    if (curMonth > 13) curMonth = 1; // 13 个月后归位正月（有闰月时会走 14 个月，下面用 seq 控制）
+    // 闰月不递增月号（闰 X 月挂在 X 月后）；非闰月 11→12→1→…循环
+    if (!isLeap) {
+      curMonth++;
+      if (curMonth > 12) curMonth = 1;
+    }
     // 终止：到 y+1 年十一月朔之后
     if (months.length > 16) break; // 安全阀
     // 判断 y+1 年正月之后可停（拿到 y 年完整 12/13 个月 + 次年正月朔）

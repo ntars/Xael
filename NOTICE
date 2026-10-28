@@ -50,14 +50,21 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
       与 ΔT 的 Espenak-Meeus 多项式。
     - 是否修改：算法思想参照原书，全部代码为本项目全新实现，未复制任何源码。
 
-算法思想参考（仅参考思路与规则，未复制任何代码或数据）：
+算法思想参考（思路与规则参照；随附数据表逐项声明）：
 
   · lunar-javascript 1.6.x（版权方：6tail，许可证 MIT）
     - 项目地址：https://github.com/6tail/lunar-javascript
     - 参考内容：农历/干支/节气接口的组织方式、四柱换日（子初/子正）与立春换年
       的口径设计。5.0.0 的历法层（src/core/calendar/）为本项目独立实现，
       使用儒略日 + Meeus 级数 + 朔日定月 + 无中气置闰，不含其代码。
-    - 是否修改：未复制代码，仅作口径参照。
+    - 数据表声明（MIT 许可收录）：
+      src/core/calendar/data/shuoqi-tables.js —— 寿星精密朔气表
+      （SHUO_KB/QI_KB/SB/QB，条目源自寿星万年历公开数据，用于 1985 年前
+      朔与节气的整日判定）；src/core/calendar/data/yiji-tables.js ——
+      通书宜忌/神煞表（YI_JI/DAY_YI_JI/SHEN_SHA/DAY_SHEN_SHA，条目源自
+      《玉匣记》系公版古籍通书）。两表随该库发行包分发，本项目原样收录
+      数据内容；查表代码（shuoqi.js / huangli/yiji.js）为本项目全新实现。
+    - 是否修改：代码未复制，仅作口径参照；数据表按 MIT 许可收录并声明。
 
   · iztro 2.6.2（版权方：Sylar Long，许可证 MIT）
     - 项目地址：https://github.com/SylarLong/iztro

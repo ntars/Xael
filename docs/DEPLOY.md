@@ -73,7 +73,7 @@ node tools/build-uni.js
 ## 四、本地开发
 
 ```bash
-npm test          # 133 项断言，Node 直跑，无测试框架
+npm test          # 142 项断言，Node 直跑，无测试框架
 npm run build     # 网页 + 小程序
 npm run check     # 八项发布自检
 python3 -m http.server 8080   # 起本地静态服务预览网页版

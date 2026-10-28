@@ -66,6 +66,23 @@ function renderable(view) {
   };
 }
 
+
+/** 动态安全区（旧仓 UIModule/safe-area.js 同一算法，代码重写）：
+ *  WXSS 不支持 env(safe-area-inset-*)，自定义导航栏必须由 JS 算出行内值注入。
+ *  top = max(59, 胶囊顶)（「关于」须在胶囊下方，不可同行）；
+ *  bottom = max(34, 屏高 - 安全区底)（iPhone 手势条 / Android 虚拟按键）。 */
+function calcSafeArea() {
+  try {
+    const info = (wx.getWindowInfo && wx.getWindowInfo()) || {};
+    const rect = (wx.getMenuButtonBoundingClientRect && wx.getMenuButtonBoundingClientRect()) || null;
+    const safe = info.safeArea || null;
+    return {
+      navTop: Math.max(59, rect ? rect.top : (info.statusBarHeight || 0)),
+      safeBottom: Math.max(34, safe && info.screenHeight ? info.screenHeight - safe.bottom : 34),
+    };
+  } catch (e) { return { navTop: 59, safeBottom: 34 }; }
+}
+
 Page({
   data: {
     // 开屏
@@ -82,6 +99,7 @@ Page({
 
     // 主题 / 文案
     dark: false,
+    logoSrc: '/static/icons/logo.png',
     txt: {},
     aboutRows: [],
     usRows: [],
@@ -104,6 +122,11 @@ Page({
     // 弹窗 / 轻提示
     modal: { show: false, out: false, title: '', desc: '', ok: '确认', cancel: '取消', single: false },
     toastText: '',
+
+    // 安全区（onLoad 里按真机覆写；默认=设计值）
+    navTop: 59,
+    safeBottom: 34,
+    themeFade: false,
   },
 
   /** 非响应式内部状态（不进 setData，避免无意义的视图层通信） */
@@ -119,7 +142,21 @@ Page({
     installGuard();
     A = about();
     this.fillText();
-    this.setData({ dark: getTheme() === 'dark' });
+    const bootTheme = applyTheme(getTheme());   // 'system' 时按系统深浅色解析
+    this.setData({
+      dark: bootTheme === 'dark',
+      logoSrc: bootTheme === 'dark' ? '/static/icons/logo-white.png' : '/static/icons/logo.png',
+      ...calcSafeArea(),
+    });
+
+    // 系统深浅色变化跟随（无手动偏好时才切，与 PWA watchSystemTheme 同口径）
+    if (wx.onThemeChange) {
+      wx.onThemeChange(() => {
+        if (getTheme() !== 'system') return; // 用户手动选过主题则不跟系统
+        const actual = applyTheme('system');
+        this.setData({ dark: actual === 'dark', logoSrc: actual === 'dark' ? '/static/icons/logo-white.png' : '/static/icons/logo.png' });
+      });
+    }
 
     // 刷新恢复：冷启动直接回到上次的结果页
     if (!this.restore()) this.show('home', true);
@@ -184,6 +221,10 @@ Page({
     const layer = { home: '', result: '', about: '', us: '', detail: '' };
     hidden[name] = false;
 
+    // 防御（旧仓教训）：切页路径必须显式关掉错落入场门控，否则上一次 boot 残留的 cascadeOn
+    //   会让「整层滑入」叠加「内容各自上升」= 同一个动作动两遍（用户看到的「重复动画」）。
+    this.setData({ cascadeOn: false });
+
     if (boot || from === name) {
       layer[name] = 'front';
       this.setData({
@@ -191,16 +232,27 @@ Page({
       });
       this._timer.trans = setTimeout(() => this.setData({ cascadeOn: false }), MOTION.dPage + 200);
     } else {
-      // 旧层留在 back 层做退场，新层压在 front 层进场，压暗层同步
-      layer[from] = from === name ? 'front' : 'back nt-px-' + (forward ? 'fwd' : 'back');
-      layer[name] = 'front';
+      // 三层视差（对齐旧仓 stage 语义）：
+      //   前进：新页在 front 从右滑入（nt-tf-in），旧页在 back 视差退到 -33%（nt-px-fwd）
+      //   返回：旧页在 front 向右滑出（nt-tf-out），目标页在 back 从 -33% 回位（nt-px-back）
+      if (forward) {
+        layer[from] = 'back nt-px-fwd';
+        layer[name] = 'front nt-tf-in';
+      } else {
+        layer[from] = 'front nt-tf-out';
+        layer[name] = 'back nt-px-back';
+      }
       this.setData({ hidden, layer, dimClass: forward ? 'nt-dim-in' : 'nt-dim-out' });
+      // 收尾拆两帧（旧仓教训）：先清顶层动画类，下一帧再清底层 —— 同帧合并会闪一次纯底色
       this._timer.trans = setTimeout(() => {
-        const clean = { home: '', result: '', about: '', us: '', detail: '' };
-        clean[name] = 'front';
-        const hid = { home: true, result: true, about: true, us: true, detail: true };
-        hid[name] = false;
-        this.setData({ hidden: hid, layer: clean, dimClass: '' });
+        this.setData({ dimClass: '' });
+        setTimeout(() => {
+          const clean = { home: '', result: '', about: '', us: '', detail: '' };
+          clean[name] = 'front';
+          const hid = { home: true, result: true, about: true, us: true, detail: true };
+          hid[name] = false;
+          this.setData({ hidden: hid, layer: clean });
+        }, 20);
       }, MOTION.dPage);
     }
 
@@ -247,7 +299,10 @@ Page({
           if (r.value === 'light' || r.value === 'dark') next = r.value;
           setTheme(next);
           const actual = applyTheme(next);
-          this.setData({ dark: actual === 'dark', logoSrc: actual === 'dark' ? '/static/icons/logo-white.png' : '/static/icons/logo.png' });
+          // 320ms 过渡门控：挂 nt-theme-fade 让颜色走 320ms / 按压走 120ms，播完摘
+          //（不挂=硬切；常挂=冷启动先白后黑闪，旧仓 v3.0.6 教训：只在切换瞬间挂）
+          this.setData({ dark: actual === 'dark', logoSrc: actual === 'dark' ? '/static/icons/logo-white.png' : '/static/icons/logo.png', themeFade: true });
+          setTimeout(() => { if (this.data.themeFade) this.setData({ themeFade: false }); }, MOTION.dTheme);
           this.setInput('');
           // 回执按「实际切到什么」说，免出现说切浅色却还是深色
           this.toast(themeSwitched[actual] || r.message || '主题已切换');
@@ -325,8 +380,6 @@ Page({
       detailItems: notes.map((it, i) => ({ idx: i, h: it.h || '', kind: it.kind || 'group', text: it.text || '' })),
       detailScrollTop: 0,
     });
-    // 复位滚动位置（同一页面复用 scroll-view，不重置会停在上一次的中间）
-    this.setData({ detailScrollTop: 0 });
     this.show('detail');
   },
 

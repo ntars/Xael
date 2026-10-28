@@ -425,9 +425,14 @@ export default {
         this.setData({ hidden, layer, dimClass: '', cascadeOn: true });
         this._timer.trans = setTimeout(() => this.setData({ cascadeOn: false }), MOTION.dPage + 200);
       } else {
-        // 旧层留 back 层退场，新层压 front 层进场，压暗层同步
-        layer[from] = 'back nt-px-' + (forward ? 'fwd' : 'back');
-        layer[name] = 'front';
+        // 三层视差（对齐旧仓 stage 语义）：前进=新页右滑入+旧页视差退；返回=旧页右滑出+目标页回位
+        if (forward) {
+          layer[from] = 'back nt-px-fwd';
+          layer[name] = 'front nt-tf-in';
+        } else {
+          layer[from] = 'front nt-tf-out';
+          layer[name] = 'back nt-px-back';
+        }
         this.setData({ hidden, layer, dimClass: forward ? 'nt-dim-in' : 'nt-dim-out' });
         this._timer.trans = setTimeout(() => {
           const clean = { home: '', result: '', about: '', us: '', detail: '' };
@@ -819,6 +824,10 @@ export default {
 @keyframes nt-px-fwd { from { transform: translateX(0); } to { transform: translateX(-33%); } }
 @keyframes nt-px-back { from { transform: translateX(-33%); } to { transform: translateX(0); } }
 
+.nt-tf-in { animation: nt-tf-in var(--d-page) var(--ease-standard) both; }
+.nt-tf-out { animation: nt-tf-out var(--d-page) var(--ease-standard) both; }
+@keyframes nt-tf-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes nt-tf-out { from { transform: none; } to { transform: translateX(100%); } }
 .nt-px-fwd { animation: nt-px-fwd var(--d-page) var(--ease-standard) both; }
 .nt-px-back { animation: nt-px-back var(--d-page) var(--ease-standard) both; }
 

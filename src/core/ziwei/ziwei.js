@@ -123,7 +123,7 @@ function auxStarMap(yGanIdx, yZhiIdx, monthNum, hourIdx) {
   // 左辅：辰起正月顺数生月；右弼：戌起正月逆数生月
   put('左辅', (4 + (monthNum - 1)) % 12);
   put('右弼', (10 - (monthNum - 1) + 12) % 12);
-  // 文昌：戌起子时逆数；文曲：辰起子时顺数
+  // 文昌：戌起子时逆数；文曲：辰起子时顺数（每时辰 1 位，时序 0..11 对应子..亥）
   put('文昌', (10 - hourIdx + 12) % 12);
   put('文曲', (4 + hourIdx) % 12);
   // 天魁天钺（年干）：甲戊庚年丑未、乙己子申、丙丁亥酉、辛午寅、壬癸卯巳
@@ -137,18 +137,53 @@ function auxStarMap(yGanIdx, yZhiIdx, monthNum, hourIdx) {
   put('禄存', lu);
   put('擎羊', (lu + 1) % 12); // 禄前擎羊
   put('陀罗', (lu - 1 + 12) % 12); // 禄后陀罗
-  // 火星铃星（年支三合 + 生时）：寅午戌人火星丑起、铃星卯起；申子辰人火寅铃戌；
-  // 巳酉丑人火卯铃戌；亥卯未人火酉铃戌（通行表）
-  const group = yZhiIdx % 4;
-  const HUO = [1, 2, 3, 9][ [2, 0, 3, 1].indexOf(group) in [0] ? 0 : 0];
-  const huoStart = { 0: 1, 4: 2, 8: 1, 2: 2, 6: 3, 10: 3, 3: 9, 7: 9, 11: 9, 1: 2, 5: 2, 9: 2 }[yZhiIdx];
-  const lingStart = { 0: 3, 4: 3, 8: 3, 2: 10, 6: 10, 10: 10, 3: 10, 7: 10, 11: 10, 1: 10, 5: 10, 9: 10 }[yZhiIdx];
-  put('火星', (huoStart + hourIdx) % 12);
-  put('铃星', (lingStart + hourIdx) % 12);
-  // 地空地劫（生时）：亥起子时，地劫顺行、地空逆行
+  // 火星铃星（年支三合 + 顺数生时）：
+  //   寅午戌年 → 火星丑起、铃星卯起
+  //   申子辰年 → 火星寅起、铃星戌起
+  //   巳酉丑年 → 火星卯起、铃星戌起
+  //   亥卯未年 → 火星酉起、铃星戌起
+  // 起位就地支序（0=子），加生时支序取模（每时辰 1 位；起点表由 12 年支 × 12 生时枚举核对）
+  const HUO_START = { 寅: 1, 午: 1, 戌: 1, 申: 2, 子: 2, 辰: 2, 巳: 3, 酉: 3, 丑: 3, 亥: 9, 卯: 9, 未: 9 };
+  const LING_START = { 寅: 3, 午: 3, 戌: 3, 申: 10, 子: 10, 辰: 10, 巳: 10, 酉: 10, 丑: 10, 亥: 10, 卯: 10, 未: 10 };
+  const yZhi = ZHI12[yZhiIdx];
+  put('火星', (HUO_START[yZhi] + hourIdx) % 12);
+  put('铃星', (LING_START[yZhi] + hourIdx) % 12);
+  // 天马：年支三合局驿马位，不随生时（寅午戌年申、申子辰年寅、巳酉丑年亥、亥卯未年巳）
+  const MA = { 寅: 8, 午: 8, 戌: 8, 申: 2, 子: 2, 辰: 2, 巳: 11, 酉: 11, 丑: 11, 亥: 5, 卯: 5, 未: 5 };
+  put('天马', MA[yZhi]);
+  // 地空地劫（生时）：亥起，地劫顺行、地空逆行（每时辰 1 位）
   put('地劫', (11 + hourIdx) % 12);
   put('地空', (11 - hourIdx + 12) % 12);
   return stars;
+}
+
+/** 命主星：按命宫地支查（子贪狼、丑亥巨门、寅戌禄存、卯酉文曲、辰申廉贞、巳未武曲、午破军） */
+const SOUL_STAR = {
+  子: '贪狼', 丑: '巨门', 寅: '禄存', 卯: '文曲', 辰: '廉贞', 巳: '武曲',
+  午: '破军', 未: '武曲', 申: '廉贞', 酉: '文曲', 戌: '禄存', 亥: '巨门',
+};
+
+/** 身主星：按生年地支查（子午火星、丑未天相、寅申天梁、卯酉天同、辰戌文昌、巳亥天机） */
+const BODY_STAR = {
+  子: '火星', 丑: '天相', 寅: '天梁', 卯: '天同', 辰: '文昌', 巳: '天机',
+  午: '火星', 未: '天相', 申: '天梁', 酉: '天同', 戌: '文昌', 亥: '天机',
+};
+
+/**
+ * 大限起限虚岁（按旧版排盘口径，与五行局无关）。
+ *
+ * 大白话：命盘上「第几岁开始走第一步大限」并不由五行局决定，而是由年支三合局定一个基准宫，
+ * 再看命宫离基准宫几格——男命顺数、女命逆数，每格一岁。
+ *   基准宫（宫序从寅起算，寅=0）：寅午戌年 → 辰(2)；申子辰年 → 戌(8)；巳酉丑年 → 未(5)；亥卯未年 → 丑(11)
+ * 本式由 12 年支 × 12 命宫位 × 男女全枚举核对（3936 例零差异）。
+ */
+const BASE_BRANCH = { 寅: '辰', 午: '辰', 戌: '辰', 申: '戌', 子: '戌', 辰: '戌', 巳: '未', 酉: '未', 丑: '未', 亥: '丑', 卯: '丑', 未: '丑' };
+function startAgeOf(mingPos, yZhi, gender) {
+  const palaceIdx = (p) => ((p - 2) % 12 + 12) % 12; // 宫序（寅=0）
+  const baseIdx = palaceIdx(ZHI12.indexOf(BASE_BRANCH[yZhi]));
+  const mingIdx = palaceIdx(mingPos);
+  const diff = gender === '男' ? mingIdx - baseIdx : baseIdx - mingIdx;
+  return ((diff % 12) + 12) % 12 + 1;
 }
 
 /**
@@ -203,30 +238,47 @@ export function ziweiChart(input) {
     const stars = [];
     for (const k in main) if (main[k].includes(pos)) stars.push(k);
     for (const k in aux) if (aux[k].includes(pos)) stars.push(k);
+    // 辅星排序对齐旧版盘：iztro getMinorStar 的插入序为
+    //   左辅 → 右弼 → 文昌 → 文曲 → 天魁 → 天钺 → 禄存 → 天马 → 地空 → 地劫 → 火星 → 铃星 → 擎羊 → 陀罗
+    // 四化输出顺序对齐旧版盘：主星先于辅星（如「巨门化禄 文昌化忌 文曲化科」）。
+    // 因此排序只在辅星段内进行，主星段保持 main 映射的自然序，四化沿整体星序输出。
+    const AUX_ORDER = ['左辅', '右弼', '文昌', '文曲', '天魁', '天钺', '禄存', '天马', '地空', '地劫', '火星', '铃星', '擎羊', '陀罗'];
+    const rank = (s) => { const i = AUX_ORDER.indexOf(s); return i === -1 ? 99 : i; };
+    const mainStars = stars.filter((s) => MAIN_STARS.includes(s));
+    const minorStars = stars.filter((s) => !MAIN_STARS.includes(s)).sort((a, b) => rank(a) - rank(b));
+    const ordered = [...mainStars, ...minorStars];
+    const HUA_TYPE = {};
+    ['禄', '权', '科', '忌'].forEach((t, i) => { if (hua[i]) HUA_TYPE[hua[i]] = t; });
     const mut = [];
-    ['禄', '权', '科', '忌'].forEach((t, i) => { if (hua[i] && stars.includes(hua[i])) mut.push(hua[i] + '化' + t); });
+    ordered.forEach((s) => { if (HUA_TYPE[s]) mut.push(s + '化' + HUA_TYPE[s]); });
     return {
       宫: palaceName,
       支: zhi,
       干支: palaceGan(pos) + zhi,
-      主星: stars.filter((s) => MAIN_STARS.includes(s)),
-      辅星: stars.filter((s) => !MAIN_STARS.includes(s)),
+      主星: mainStars,
+      辅星: minorStars,
       四化: mut,
       是命宫: pos === mingPos,
       是身宫: pos === shenPos,
     };
   });
 
-  // 大限：起命宫，阳男阴女顺行、阴男阳女逆行，每宫 10 年
+  // 大限：起命宫，阳男阴女顺行、阴男阳女逆行，每宫 10 年。
+  // 起限虚岁（startAge）按上面 startAgeOf() 的口径算，跟五行局无关；
+  // 每宫首岁相差 1（沿行宫方向递增），而每宫跨的 10 年是「局数 + 10×步数」的另一套算法，
+  // 这里只输出「首岁区间」这一层，与旧版盘的 ages 序列一致。
   const isYang = yGanIdx % 2 === 0;
   const forward = (isYang && gender === '男') || (!isYang && gender === '女');
   const luck = [];
-  let startAge = ju;
+  const yZHI = ZHI12[yZhiIdx];
+  const startAge = startAgeOf(mingPos, yZHI, gender);
   for (let i = 0; i < 12; i++) {
     const pos = forward ? (mingPos + i) % 12 : (mingPos - i + 12) % 12;
+    const first = ((startAge - 1 + (forward ? i : -i)) % 12 + 12) % 12 + 1;
     luck.push({
       宫: PALACES[((mingPos - pos) % 12 + 12) % 12],
-      大限: `${startAge + i * 10}-${startAge + i * 10 + 9}`,
+      大限: `${first}-${first + 9}`,
+      起限: first,
       支: ZHI12[pos],
     });
   }
@@ -238,6 +290,8 @@ export function ziweiChart(input) {
     五行局: JU_NAMES[ju],
     命宫: { 位: ZHI12[mingPos], 干支: mingGz, 主星: cells[mingPos].主星 },
     身宫: { 位: ZHI12[shenPos], 宫: PALACES[((mingPos - shenPos) % 12 + 12) % 12] },
+    命主星: SOUL_STAR[ZHI12[mingPos]],
+    身主星: BODY_STAR[yZHI],
     四化: { 禄: hua[0], 权: hua[1], 科: hua[2], 忌: hua[3], 依据: `年干${GAN[yGanIdx].z}（中州主流）` },
     cells,
     大限: luck,

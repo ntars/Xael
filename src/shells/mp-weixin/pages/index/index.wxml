@@ -2,7 +2,7 @@
      结构与 PWA 的 index.html 一一对应：同一个 .nt-stage 舞台、同一套 .nt-layer 视图层、
      同样的 .nt-mask 弹窗与 .nt-toast 轻提示。类名与 theme.css 完全同名，方便两端对照维护。
      小程序差异：没有 <div>/<p>/<span>，一律用 view/text/image；点击用 bindtap。 -->
-<view class="nt-page-safe {{dark ? 'nt-dark' : ''}}">
+<view class="nt-page-safe {{dark ? 'nt-dark' : ''}} {{themeFade ? 'nt-theme-fade' : ''}}">
 
   <!-- ============ 开屏：停 1200ms 后 400ms 缩放退场 ============ -->
   <view class="nt-splash {{splashOut ? 'nt-splash-out' : ''}}" wx:if="{{splash}}">
@@ -17,9 +17,9 @@
   <view class="nt-stage">
 
     <!-- ---------- 首页 ---------- -->
-    <view class="nt-layer {{layer.home}}" data-view="home" wx:if="{{!hidden.home}}">
+    <view class="nt-layer {{layer.home}}" style="padding-bottom:{{safeBottom}}px" data-view="home" wx:if="{{!hidden.home}}">
       <view class="home">
-        <view class="nt-nav">
+        <view class="nt-nav" style="margin-top:{{navTop}}px">
           <view class="nt-nav-about" bindtap="goAbout" hover-class="nt-hover">{{txt.about}}</view>
         </view>
         <view class="nt-hero {{cascadeOn ? 'nt-cascade' : ''}}">
@@ -32,7 +32,7 @@
               <view class="nt-ph-item">{{txt.searchPlaceholder}}</view>
             </view>
             <view class="nt-pill-search {{busy ? 'nt-busy' : ''}}" bindtap="onSend" hover-class="nt-hover">
-              <view class="nt-icon nt-i-search"></view>
+              <image class="nt-icon nt-i-search" src="/static/icons/icon-search.svg" mode="aspectFit" />
             </view>
           </view>
           <text class="nt-hero-note">{{txt.homeDisclaimer}}</text>
@@ -45,16 +45,16 @@
     </view>
 
     <!-- ---------- 结果页 ---------- -->
-    <view class="nt-layer {{layer.result}}" data-view="result" wx:if="{{!hidden.result}}">
+    <view class="nt-layer {{layer.result}}" style="padding-bottom:{{safeBottom}}px" data-view="result" wx:if="{{!hidden.result}}">
       <view class="res">
-        <view class="nt-nav">
+        <view class="nt-nav" style="margin-top:{{navTop}}px">
           <view class="nt-nav-back" bindtap="goHome" hover-class="nt-hover">
-            <view class="nt-icon nt-i-back"></view>
+            <image class="nt-icon nt-i-back" src="/static/icons/icon-back.svg" mode="aspectFit" />
           </view>
           <text class="nt-nav-title">{{txt.navTitle}}</text>
         </view>
         <view class="nt-page-h {{cascadeOn ? 'nt-cascade' : ''}}">{{txt.resultPageTitle}}</view>
-        <scroll-view class="nt-pgbody" scroll-y scroll-with-animation>
+        <scroll-view class="nt-pgbody" scroll-y enhanced show-scrollbar="{{false}}">
           <view class="nt-dl-card">
             <text class="nt-dl-h1">{{txt.questionLabel}}</text>
             <text class="nt-dl-text nt-dl-text-light">{{question}}</text>
@@ -107,15 +107,15 @@
     </view>
 
     <!-- ---------- 关于 ---------- -->
-    <view class="nt-layer {{layer.about}}" data-view="about" wx:if="{{!hidden.about}}">
+    <view class="nt-layer {{layer.about}}" style="padding-bottom:{{safeBottom}}px" data-view="about" wx:if="{{!hidden.about}}">
       <view class="ab">
-        <view class="nt-nav">
+        <view class="nt-nav" style="margin-top:{{navTop}}px">
           <view class="nt-nav-back" bindtap="goHome" hover-class="nt-hover">
-            <view class="nt-icon nt-i-back"></view>
+            <image class="nt-icon nt-i-back" src="/static/icons/icon-back.svg" mode="aspectFit" />
           </view>
           <text class="nt-nav-title">{{txt.about}}</text>
         </view>
-        <scroll-view class="nt-pgbody nt-pt" scroll-y>
+        <scroll-view class="nt-pgbody nt-pt" scroll-y enhanced show-scrollbar="{{false}}">
           <view class="nt-brand {{cascadeOn ? 'nt-cascade' : ''}}">
             <image class="nt-brand-logo" src="{{logoSrc}}" mode="aspectFit" />
             <text class="nt-brand-name">{{txt.name}}</text>
@@ -127,7 +127,7 @@
                 <text class="nt-setl-title">{{item.title}}</text>
                 <text class="nt-setl-desc">{{item.desc}}</text>
               </view>
-              <view class="nt-icon {{item.danger ? 'nt-i-chev-danger' : 'nt-i-chev'}}"></view>
+              <image class="nt-icon {{item.danger ? 'nt-i-chev-danger' : 'nt-i-chev'}}" src="{{item.danger ? '/static/icons/icon-forward-danger.svg' : '/static/icons/icon-forward.svg'}}" mode="aspectFit" />
             </view>
           </view>
         </scroll-view>
@@ -138,22 +138,22 @@
     </view>
 
     <!-- ---------- 关于我们 ---------- -->
-    <view class="nt-layer {{layer.us}}" data-view="us" wx:if="{{!hidden.us}}">
+    <view class="nt-layer {{layer.us}}" style="padding-bottom:{{safeBottom}}px" data-view="us" wx:if="{{!hidden.us}}">
       <view class="ab">
-        <view class="nt-nav">
+        <view class="nt-nav" style="margin-top:{{navTop}}px">
           <view class="nt-nav-back" bindtap="goAbout" hover-class="nt-hover">
-            <view class="nt-icon nt-i-back"></view>
+            <image class="nt-icon nt-i-back" src="/static/icons/icon-back.svg" mode="aspectFit" />
           </view>
           <text class="nt-nav-title">{{txt.usPageTitle}}</text>
         </view>
-        <scroll-view class="nt-pgbody nt-pt" scroll-y>
+        <scroll-view class="nt-pgbody nt-pt" scroll-y enhanced show-scrollbar="{{false}}">
           <view class="nt-setlist {{cascadeOn ? 'nt-cascade' : ''}}">
             <view class="nt-setrow" wx:for="{{usRows}}" wx:key="id" data-id="{{item.id}}" bindtap="onRow" hover-class="nt-hover">
               <view class="nt-setl">
                 <text class="nt-setl-title">{{item.title}}</text>
                 <text class="nt-setl-desc">{{item.desc}}</text>
               </view>
-              <view class="nt-icon nt-i-chev"></view>
+              <image class="nt-icon nt-i-chev" src="/static/icons/icon-forward.svg" mode="aspectFit" />
             </view>
           </view>
         </scroll-view>
@@ -164,16 +164,16 @@
     </view>
 
     <!-- ---------- 详情（协议条款 / 开源声明 / 功能介绍 / 参考文献 / 星玖工作室） ---------- -->
-    <view class="nt-layer {{layer.detail}}" data-view="detail" wx:if="{{!hidden.detail}}">
+    <view class="nt-layer {{layer.detail}}" style="padding-bottom:{{safeBottom}}px" data-view="detail" wx:if="{{!hidden.detail}}">
       <view class="dl">
-        <view class="nt-nav">
+        <view class="nt-nav" style="margin-top:{{navTop}}px">
           <view class="nt-nav-back" bindtap="goDetailBack" hover-class="nt-hover">
-            <view class="nt-icon nt-i-back"></view>
+            <image class="nt-icon nt-i-back" src="/static/icons/icon-back.svg" mode="aspectFit" />
           </view>
           <text class="nt-nav-title">{{txt.navTitle}}</text>
         </view>
         <view class="nt-page-h {{cascadeOn ? 'nt-cascade' : ''}}">{{detailTitle}}</view>
-        <scroll-view class="nt-pgbody" scroll-y scroll-with-animation scroll-top="{{detailScrollTop}}">
+        <scroll-view class="nt-pgbody" scroll-y enhanced show-scrollbar="{{false}}" scroll-with-animation scroll-top="{{detailScrollTop}}">
           <view class="nt-dl-card {{cascadeOn ? 'nt-cascade' : ''}}">
             <view class="nt-dl-item" wx:for="{{detailItems}}" wx:key="idx" wx:for-item="it">
               <text class="{{it.kind === 'book' ? 'nt-dl-h2' : 'nt-dl-h1'}}" wx:if="{{it.h}}">{{it.h}}</text>
@@ -196,7 +196,7 @@
   <view class="nt-mask {{modal.out ? 'nt-mask-out' : ''}}" wx:if="{{modal.show}}" catchtap="onMaskTap">
     <view class="nt-modal" catchtap="noop">
       <text class="nt-modal-title">{{modal.title}}</text>
-      <scroll-view class="nt-modal-desc" scroll-y>
+      <scroll-view class="nt-modal-desc" scroll-y enhanced show-scrollbar="{{false}}">
         <text class="nt-modal-desc-text">{{modal.desc}}</text>
       </scroll-view>
       <view class="nt-modal-btns">
