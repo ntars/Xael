@@ -2431,6 +2431,22 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   eq(String(NS['伏位']['等第']).includes('右所屬無定'), true, '八宅·伏位原文左辅次凶、右所属无定（与通行小吉两说并存）');
 }
 
+// ---- 《玉匣記》喜神情态与建除用事（2026-10-31 接入） ----
+{
+  const { xiShenMoodOf } = await import('../src/core/almanac/directions.js');
+  const { JIANCHU_USE_VERSE } = await import('../src/core/almanac/twelve-officers.js');
+  eq(xiShenMoodOf('甲'), '端坐', '喜神情态·甲己端坐');
+  eq(xiShenMoodOf('乙'), '唾', '喜神情态·乙庚唾');
+  eq(xiShenMoodOf('丙'), '怒色皱眉', '喜神情态·丙辛怒色皱眉');
+  eq(xiShenMoodOf('壬'), '醉', '喜神情态·丁壬吃得醺醺醉');
+  eq(xiShenMoodOf('癸'), '喜笑', '喜神情态·戊癸喜笑');
+  const txt2 = async (q) => (await analyze(q)).results[0].text;
+  const hl2 = await txt2('查黄历 2024年2月10日');
+  eq(/喜神情态|情态端坐/.test(hl2), true, '黄历输出含喜神情态');
+  eq(hl2.includes(JIANCHU_USE_VERSE), true, '黄历输出照录建除用事原文');
+  eq(/玉匣記·喜神喜怒歌/.test(hl2), true, '黄历输出标明喜神喜怒歌出处');
+}
+
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
   console.log(`通过 ${passed} 项断言，失败 ${failed} 项`);

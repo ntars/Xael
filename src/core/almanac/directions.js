@@ -56,6 +56,18 @@ const CAISHEN = ['东北', '东北', '西南', '西南', '正北', '正北', '�
  *  ★ 旧表（正北/西南/西北/东南/东北…）系近世另一流派，与底本不合，已按原文改正。 */
 const FUSHEN = ['东南', '东南', '正东', '正东', '正北', '正南', '西南', '西南', '西北', '正西'];
 
+/** 喜神情态（日干序 → 情态）。
+ *  依据《玉匣記·喜神喜怒歌》原文：「甲己端坐乙庚唾，丙辛怒色皺雙眉；丁壬吃得醺醺醉，戊癸原來喜笑誰。」
+ *  本书自注「如嫁娶，喜神生怒，另擇福納亦可」——即情态为「怒」的日子，嫁娶宜另择。此为通书系统之说，
+ *  与官修《协纪》无涉，两不相替。 */
+const XISHEN_MOOD = ['端坐', '唾', '怒色皱眉', '醉', '喜笑', '端坐', '唾', '怒色皱眉', '醉', '喜笑'];
+
+/** 某日喜神的情态（供嫁娶择日参看）；日干序 → 情态字符串 */
+export function xiShenMoodOf(gan) {
+  const i = typeof gan === 'number' ? gan : ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].indexOf(String(gan));
+  return i >= 0 && i < 10 ? XISHEN_MOOD[i] : '';
+}
+
 /**
  * 阳贵（昼贵）方位：日干 → 方位。
  * 依据《钦定协纪辨方书》卷首引库外《蠡海集》阳贵顺取（干合推贵）：
@@ -141,7 +153,7 @@ export function positionOf(y, m, d) {
   const gan = STEMS[gzIdx % 10].z;
   const zhi = BRANCHES[gzIdx % 12].z;
   return {
-    方位: { 喜神: xiShenOf(STEMS[gzIdx % 10].z), 财神: CAISHEN[gzIdx % 10], 福神: FUSHEN[gzIdx % 10], 阳贵: YANGGUI[gzIdx % 10], 阴贵: YINGUI[gzIdx % 10] },
+    方位: { 喜神: xiShenOf(STEMS[gzIdx % 10].z), 喜神情态: xiShenMoodOf(gzIdx % 10), 财神: CAISHEN[gzIdx % 10], 福神: FUSHEN[gzIdx % 10], 阳贵: YANGGUI[gzIdx % 10], 阴贵: YINGUI[gzIdx % 10] },
     彭祖百忌: {
       干: PENGZU_GAN[gan],
       支: PENGZU_ZHI[zhi],

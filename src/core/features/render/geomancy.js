@@ -9,6 +9,7 @@
 import { flyingStarsChart } from '../../geomancy/flying-stars.js';
 import { eightMansionsChart } from '../../geomancy/eight-mansions.js';
 import { almanacDaily } from '../../almanac/daily.js';
+import { JIANCHU_USE_VERSE } from '../../almanac/twelve-officers.js';
 import { solarToLunisolar } from '../../calendar/lunisolar.js';
 import {
   daySexagenary, yearSexagenary, monthSexagenary, hourSexagenary, zodiacSign,
@@ -128,6 +129,7 @@ export function almanacText(ent) {
     + '宿之五行、禽象可溯《钦定协纪辨方书·卷一·二十八宿配日》引宿曜经与库外《考原》；'
     + '吉凶二字依《玉匣記·二十八宿值日吉凶歌》逐宿对表（角亢房尾箕斗室壁娄胃毕参井张轸为吉，余十二宿为凶），两书并见；'
     + '《协纪》按语另言「宜忌无取义、应一并删去」，两说并存，此处只作对照。');
+  L.push('建除用事（原文）：' + JIANCHU_USE_VERSE + '——《玉匣記·黃黑道用事吉日》。该歌字数不齐、「除」位未出（底本如此），故只照录不强解。');
   L.push('宜：' + (r.宜.length ? r.宜.join('、') : '无') + '。');
   L.push('忌：' + (r.忌.length ? r.忌.join('、') : '无') + '。');
   if ((r.特别忌 || []).length) {
@@ -142,7 +144,9 @@ export function almanacText(ent) {
     L.push('彭祖异文：' + r.彭祖百忌.异文.join('；') + '（《钦定协纪辨方书·百忌日》，卷三十五附录原文只有四字短式，通行本另加后果句并改此三字）。');
   }
   L.push('胎神：' + r.胎神 + '；冲' + r.冲煞.冲 + '（属' + r.冲煞.冲生肖 + '）煞' + r.冲煞.煞方 + '。');
-  L.push('方位：喜神' + r.方位.喜神 + '，财神' + r.方位.财神 + '，福神' + r.方位.福神 + '，阳贵' + r.方位.阳贵 + '，阴贵' + r.方位.阴贵 + '。');
+  L.push('方位：喜神' + r.方位.喜神 + (r.方位.喜神情态 ? '（情态' + r.方位.喜神情态 + '）' : '') + '，财神' + r.方位.财神 + '，福神' + r.方位.福神 + '，阳贵' + r.方位.阳贵 + '，阴贵' + r.方位.阴贵 + '。'
+    + '喜神、财神、福神方位依《玉匣記·喜神方位歌》《玉匣記·財神方位歌》《玉匣記·福神方位歌》逐干对表；'
+    + '喜神情态依《玉匣記·喜神喜怒歌》（情态为「怒色皱眉」者，原书自注「如嫁娶，喜神生怒，另擇福納亦可」）。');
   if (r.节日.length) L.push('节日：' + r.节日.join('、') + '。');
   if (r.法定假期 && r.法定假期.name) L.push('假期：' + r.法定假期.name + (r.法定假期.type === 'holiday' ? '（休）' : r.法定假期.type === 'work' ? '（班）' : '') + '。');
   L.push('口径：' + dot(tidy(r.通例参考)) );
