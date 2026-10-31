@@ -2463,6 +2463,19 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   eq(/玉匣記·子息多寡歌/.test(t3) && /玉匣記·分房興敗歌/.test(t3), true, '八宅输出标明两歌出处');
 }
 
+// ---- 每日吉时（《玉匣記·諸日起吉時歌》，2026-10-31 接入） ----
+{
+  const { auspiciousHoursOf } = await import('../src/core/almanac/auspicious-hours.js');
+  const a = auspiciousHoursOf('申');
+  eq(a['起青龙'], '子', '吉时·寅申日子时起青龙（原文自注）');
+  eq(a['吉时'].join(' '), '子 丑 辰 巳 未 戌', '吉时·申日六吉时（青龙明堂金匮天德玉堂司命所临）');
+  const b = auspiciousHoursOf(4);
+  eq(b['吉时'].join(' '), '辰 巳 申 酉 亥 寅', '吉时·辰日六吉时');
+  eq(b['十二时辰'].length, 12, '吉时·十二时辰全列');
+  const hl = (await analyze('查黄历 2024年2月10日')).results[0].text;
+  eq(/每日吉时/.test(hl) && /諸日起吉時歌/.test(hl), true, '黄历输出含吉时行与出处');
+}
+
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
   console.log(`通过 ${passed} 项断言，失败 ${failed} 项`);

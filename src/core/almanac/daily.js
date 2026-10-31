@@ -30,6 +30,7 @@ function weekdayText(y, m, d) {
   return '星期' + '日一二三四五六'[weekday(y, m, d)];
 }
 import { jianchuOf, jianchuStackOf, JIANCHU_MEANING, JIANCHU_LUCK, JIANCHU_ALIAS, jianchuAliasOf, jianchuAliasesOf, JIANCHU_SOURCE_YIJI } from './twelve-officers.js';
+import { auspiciousHoursOf } from './auspicious-hours.js';
 import { tianshenOf, TIANSHEN_MEANING } from './day-officers.js';
 import { xiu28Of } from './lunar-mansions.js';
 import { positionOf, xiShenMoodOf } from './directions.js';
@@ -105,6 +106,8 @@ export function almanacDaily(y, m, d, hour = null) {
       .map((x) => (x.类 === '月破'
         ? { ...x, 说明: `${x.说明}（本日通书表仍列宜 ${yi.length} 项，与原书「诸事不宜」不一致，两源并见不合并）` }
         : x)),
+    吉时: auspiciousHoursOf(gz[1]).吉时,
+    吉时说明: auspiciousHoursOf(gz[1]).说明,
     通例参考: '《钦定协纪辨方书》与《玉匣記》（通行本，2026-10-31 补入）两路并用——宜忌取《玉匣記》系通书逐日条目；天神黄黑道断语、建除义理、宿之五行与禽象引《协纪》原文；财神、福神方位依《玉匣記·財神方位歌》《玉匣記·福神方位歌》逐干对表；宿之吉凶依《玉匣記·二十八宿值日吉凶歌》、喜神情态依《玉匣記·喜神喜怒歌》，胎神表为通书通例、原书无载；彭祖百忌用通行本，底本异文另注',
   };
 }
