@@ -122,7 +122,7 @@ The kernel knows nothing about platforms. The Mini Program build transpiles ESM 
 | uni-app | 3.x (optional) | DCloud | Apache-2.0 | <https://uniapp.dcloud.net.cn/> | uni-app build only | no |
 | Vue 3 | 3.x (optional) | Evan You | MIT | <https://vuejs.org/> | uni-app framework only | no |
 
-Tests use hand-written assertions (`tests/calendar.test.js` 154, `tests/core.test.js` 1117, `tests/mp-shell.test.js` 33, `tests/ai-entry.test.js` 14, `tests/tolerance.test.js` 33, `tests/geomancy.test.js` 48 — 1415 in total), run by `tests/run.js`; no test framework is needed.
+Tests use hand-written assertions (`tests/calendar.test.js` 154, `tests/core.test.js` 1117, `tests/mp-shell.test.js` 33, `tests/ai-entry.test.js` 14, `tests/tolerance.test.js` 33, `tests/geomancy.test.js` 48 — 1425 in total), run by `tests/run.js`; no test framework is needed.
 
 ### Referenced projects (ideas only, no code copied)
 
@@ -143,7 +143,7 @@ None.
 ```bash
 git clone https://github.com/ntars/Xael.git
 cd Xael
-npm test          # 1415 assertions
+npm test          # 1425 assertions
 npm run build     # web build (repo root) + Mini Program build (dist/mp-weixin)
 npm run build:uni # validate uni-app shell (imports/style constraints; artifacts come from HBuilderX)
 npm run check     # eleven pre-release checks
@@ -171,7 +171,7 @@ As in the previous generation, Xael can be driven by local AI hosts (all computa
 | Expert pack | `experts/xael/5.0.0/` | Expert identity card `agents/xael-charting-expert.md` |
 
 **Contract**: all forms share `bin/xael-api.js` (`xael/analysis@1`), so CLI and MCP outputs are identical by construction.
-Smoke coverage: `tests/ai-entry.test.js` (included in the 1415 assertions).
+Smoke coverage: `tests/ai-entry.test.js` (included in the 1425 assertions).
 
 ## Quick start
 

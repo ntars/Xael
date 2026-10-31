@@ -10,6 +10,7 @@ import { flyingStarsChart } from '../../geomancy/flying-stars.js';
 import { eightMansionsChart } from '../../geomancy/eight-mansions.js';
 import { almanacDaily } from '../../almanac/daily.js';
 import { JIANCHU_USE_VERSE } from '../../almanac/twelve-officers.js';
+import { STAR_PORTRAIT } from '../../geomancy/eight-mansions.js';
 import { solarToLunisolar } from '../../calendar/lunisolar.js';
 import {
   daySexagenary, yearSexagenary, monthSexagenary, hourSexagenary, zodiacSign,
@@ -78,6 +79,10 @@ export function eightMansionsText(ent) {
   // 大游年九星的「大吉/中吉/小凶/大凶」等第是通行八宅说：库内《协纪》只给翻卦法（哪一卦变出哪一星），
   // 未列等第（「绝命」二字在底本 0 命中）。不标出处就会让人以为等第出自原书。
   L.push('等第依据：翻卦次序《钦定协纪辨方书·卷二·大游年变卦》原文；八句顺布次序《玉匣記·大遊年歌》原文（两法逐门对拍 56 格全符）；九星阴阳与等第依《玉匣記·九星所屬陰陽凶吉》——生气上吉、天医次吉、延年次吉、绝命大凶、五鬼大凶、六煞次凶、祸害次凶；伏位（辅弼）原文作「左輔次凶、右所屬無定，吉凶亦無定」，通行八宅作小吉，两说并存不强行统一。');
+  L.push('九星年限应验（《玉匣記·九星吉凶年限應驗歌》）：生气亥卯未、五鬼寅午戌、六煞申子辰、延年与绝命巳酉丑、天医与祸害辰戌丑未；左辅阴木合局论、右弼无生克（原文「休咎翻隨向星雲」）。');
+  L.push('子息与房分（《玉匣記·子息多寡歌》《玉匣記·分房興敗歌》）：'
+    + Object.entries(STAR_PORTRAIT).map(([k, v]) => `${k}${v.星}——子息${v.子息}、房分${v.房分}`).join('；')
+    + '。三表以星为单位，不折算成分数，只随方位并列。');
   if (c.三元命卦) {
     const s3 = c.三元命卦;
     L.push('三元九宫法对照（《协纪辨方书·卷三十四》引库外《三元经》）：' + s3.元 + '命卦「' + s3.卦 + '」（洛书 ' + s3.命卦数 + ' 数'

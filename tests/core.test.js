@@ -2447,6 +2447,22 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   eq(/玉匣記·喜神喜怒歌/.test(hl2), true, '黄历输出标明喜神喜怒歌出处');
 }
 
+// ---- 八宅九星年限/子息/房分（《玉匣記》三歌，2026-10-31 接入） ----
+{
+  const { STAR_PORTRAIT: SP } = await import('../src/core/geomancy/eight-mansions.js');
+  eq(Object.keys(SP).length, 8, '八宅·九星年限应验表八星齐全');
+  eq(SP['生气']['应期'], '亥卯未', '八宅·生气应期亥卯未（原文「氣生吉凶亥卯未」）');
+  eq(SP['五鬼']['应期'], '寅午戌', '八宅·五鬼应期寅午戌');
+  eq(SP['六煞']['应期'], '申子辰', '八宅·六煞应期申子辰（底本作「甲子辰」，按三合校「申」）');
+  eq(SP['绝命']['应期'], '巳酉丑', '八宅·绝命应期巳酉丑');
+  eq(SP['生气']['子息'], '五子', '八宅·生气五子（「貪生五子」）');
+  eq(SP['绝命']['子息'], '守孤孀', '八宅·绝命守孤孀（「破軍絕敗守孤孀」）');
+  eq(String(SP['伏位']['应期']).includes('右弼无生克'), true, '八宅·右弼无生克（「惟有右弼無生克」）');
+  const t3 = (await analyze('查命卦 1985年 男')).results[0].text;
+  eq(/九星年限应验/.test(t3) && /子息与房分/.test(t3), true, '八宅输出含年限应验与子息房分两行');
+  eq(/玉匣記·子息多寡歌/.test(t3) && /玉匣記·分房興敗歌/.test(t3), true, '八宅输出标明两歌出处');
+}
+
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
   console.log(`通过 ${passed} 项断言，失败 ${failed} 项`);
