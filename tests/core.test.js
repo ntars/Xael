@@ -2382,7 +2382,7 @@ eq(DUTY_NOTES.门.includes('吉门有气益吉'), true, '类象·八门通则照
 {
   const txt = async (q) => (await analyze(q)).results[0].text;
   const bazhai = await txt('查命卦 1985年 男');
-  eq(/等第依据/.test(bazhai) && /非原书直证/.test(bazhai), true, '八宅·九星等第须标通行说、不冒充原书');
+  eq(/等第依据/.test(bazhai) && /玉匣記·九星所屬陰陽凶吉/.test(bazhai) && /两说并存/.test(bazhai), true, '八宅·九星等第须标原文出处并注明伏位两说');
   // 2026-10 补入《遁甲演义》后，三诈五假已有逐条定义——此处守护「必须点明出处」而非「必须标待考」
   const qm = await txt('解奇门格局 2024年1月1日 5点');
   eq(/三诈五假出处/.test(qm) && /《遁甲演义·三诈五假》/.test(qm), true, '奇门·三诈五假须点明典籍出处');
@@ -2409,6 +2409,27 @@ eq(!!(zz(5, '重诈') || {}).义 && zz(5, '重诈').义.includes('拜官授爵')
 eq(!!(zz(11, '神假') || {}).义 && zz(11, '神假').义.includes('利埋葬'), true, '神假：伤门合丁己癸临九地，利埋葬（原文条件为九地）');
 eq(!!(zz(19, '天假') || {}).义 && zz(19, '天假').义.includes('进谒干求'), true, '天假：景门合三奇临九天，宜陈利便、进谒干求（原文）');
 eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((zz(1, '鬼假') || {}).义 || ''), true, '三诈五假义项带《遁甲演义·三诈五假》出处');
+
+// ---- 八宅：大游年歌与九星原文（《玉匣記》2026-10-31 补书后新增） ----
+{
+  const { DAYOU_NIAN_GE: GE, NINE_STAR_SOURCE: NS, YOU: YT, GONG } = await import('../src/core/geomancy/eight-mansions.js');
+  const GONG_OF = Object.fromEntries(Object.entries(GONG).map(([k, v]) => [v.卦, Number(k)]));
+  const RING = ['坎', '艮', '震', '巽', '离', '坤', '兑', '乾'];
+  const LETTER = { 六: '六煞', 天: '天医', 五: '五鬼', 禍: '祸害', 絕: '绝命', 延: '延年', 生: '生气' };
+  let diff = 0;
+  for (const [gua, seq] of Object.entries(GE)) {
+    const start = RING.indexOf(gua);
+    const got = {};
+    [...seq].forEach((ch, i) => { got[LETTER[ch]] = RING[(start + 1 + i) % 8]; });
+    for (const [star, pos] of Object.entries(got)) if (YT[gua][star] !== GONG_OF[pos]) diff += 1;
+  }
+  eq(diff, 0, '八宅·大游年歌八句逐门顺布，与翻卦法生成的 YOU 表 8×7 全符');
+  eq(Object.keys(GE).length, 8, '八宅·大游年歌八句齐全');
+  eq(Object.keys(NS).length, 8, '八宅·九星所属阴阳凶吉八星齐全');
+  eq(NS['生气']['等第'], '上吉', '八宅·原文生气作「上吉」');
+  eq(NS['六煞']['等第'], '次凶', '八宅·原文六煞作「次凶」');
+  eq(String(NS['伏位']['等第']).includes('右所屬無定'), true, '八宅·伏位原文左辅次凶、右所属无定（与通行小吉两说并存）');
+}
 
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
