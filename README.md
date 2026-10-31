@@ -118,7 +118,7 @@
 | uni-app | 3.x（可选） | DCloud | Apache-2.0 | <https://uniapp.dcloud.net.cn/> | uni-app 端构建（仅开发期） | 否 |
 | Vue 3 | 3.x（可选） | Evan You | MIT | <https://vuejs.org/> | uni-app 端框架（仅开发期） | 否 |
 
-测试为零依赖的自写断言（`tests/calendar.test.js` 154 项 + `tests/core.test.js` 1171 项 + `tests/mp-shell.test.js` 33 项 + `tests/ai-entry.test.js` 14 项 + `tests/tolerance.test.js` 33 项 + `tests/geomancy.test.js` 48 项，合计 1453 项），由 `tests/run.js` 统一执行，不需要测试框架。
+测试为零依赖的自写断言（`tests/calendar.test.js` 154 项 + `tests/core.test.js` 1176 项 + `tests/mp-shell.test.js` 33 项 + `tests/ai-entry.test.js` 14 项 + `tests/tolerance.test.js` 33 项 + `tests/geomancy.test.js` 48 项，合计 1458 项），由 `tests/run.js` 统一执行，不需要测试框架。
 
 ### 参考过的项目（仅思路，未复制代码）
 
@@ -139,7 +139,7 @@
 ```bash
 git clone https://github.com/ntars/Xael.git
 cd Xael
-npm test          # 1453 项断言
+npm test          # 1458 项断言
 npm run build     # 生成网页版（根目录）与小程序产物（dist/mp-weixin）
 npm run build:uni # 校验 uni-app 壳（导入/样式约束，产物由 HBuilderX 生成）
 npm run check     # 十二项发布自检

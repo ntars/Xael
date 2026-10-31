@@ -302,7 +302,15 @@ export function purpleStarChart(input) {
   // 首限虚岁 = 五行局数（水二2、木三3、金四4、土五5、火六6），由 startAgeOf(ju) 直接返回；
   // 沿行宫方向每宫再加 10 年（第 n 宫首岁 = 局数 + 10×(n−1)）。只出「首岁区间」这一层，
   // 第二层流年与大限四化另算。
-  const isYang = yGanIdx % 2 === 0;
+  // 大限四化断语（卷一问答论原文，逐条照录；恶曜名单亦原文所列，只并列不折算）
+const HUA_LIMIT = {
+  禄: { 断: '大限十年吉庆无疑', 恶曜: ['擎羊', '陀罗', '火星', '铃星'], 忌亦恶: true, 依据: '《紫微斗數全書》三卷本卷一·问化禄星所主若何' }, // 原文「羊陀火忌」：忌＝化忌星同照
+  权: { 断: '大限十年，必然遂志', 恶曜: ['擎羊', '陀罗', '破军', '天使', '地劫', '地空'], 依据: '《紫微斗數全書》三卷本卷一·问化权星所主若何' }, // 原文「羊陀耗使劫空」：耗＝破军、使＝天使（安星诀有天伤天使）
+  科: { 断: '权禄相逢宰臣之贵，虽四杀冲破亦为富贵', 恶曜: [], 依据: '《紫微斗數全書》三卷本卷一·问化科星所主若何' },
+  忌: { 断: '大限十年悔吝，二限太岁交临断然蹭蹬', 恶曜: [], 依据: '《紫微斗數全書》三卷本卷一·问化忌星所主若何' },
+};
+
+const isYang = yGanIdx % 2 === 0;
   const forward = (isYang && gender === '男') || (!isYang && gender === '女');
   const luck = [];
   const yZHI = ZHI12[yZhiIdx];
@@ -310,11 +318,31 @@ export function purpleStarChart(input) {
   for (let i = 0; i < 12; i++) {
     const pos = forward ? (mingPos + i) % 12 : (mingPos - i + 12) % 12;
     const first = startAge + i * 10;
+    // 大限四化（生年四化落此限宫）：卷一「问化禄/化权/化科/化忌星所主」四段原书断语——
+    //   禄「大限十年吉庆无疑，恶曜来临并羊陀火忌冲照，亦不为害」；
+    //   权「大限十年，必然遂志。如逢羊陀耗使劫空，听谗贻累，官灾贬谪」；
+    //   科「守身命权禄相逢宰臣之贵……虽四杀冲破，亦为富贵」（问答未专言大限，只取守身命义并列）；
+    //   忌「小限逢之一年不足，大限十年悔吝。二限太岁交临，断然蹭蹬」。
+    // 只判生年四化是否落在本限宫；冲照恶曜等叠加条件原文给了名单（羊陀火忌/羊陀耗使劫空），
+    // 但「恶曜来临」的占断权重原书未给，不折算，只在该星同宫或会照时并列原文。
+    const cell = cells[pos];
+    const huaHere = cell.四化.map((t) => { const m = t.match(/^(.+)化(.+)$/); return m ? { 星: m[1], 化: m[2] } : null; }).filter(Boolean);
+    const 会星 = cell.主星.concat(cell.辅星, cell.会照);
+    const daxianHua = huaHere.map((h) => {
+      const D = HUA_LIMIT[h.化];
+      let 恶曜同照 = D.恶曜.filter((x) => 会星.includes(x));
+    if (D.忌亦恶 && cell.四化.some((t) => t.endsWith('化忌'))) 恶曜同照 = 恶曜同照.concat('化忌');
+      return {
+        星: h.星, 化: h.化, 断: D.断 + (恶曜同照.length ? '；本限同照原书所列恶曜：' + 恶曜同照.join('、') : ''),
+        依据: D.依据,
+      };
+    });
     luck.push({
       宫: PALACES[((mingPos - pos) % 12 + 12) % 12],
       大限: `${first}-${first + 9}`,
       起限: first,
       支: ZHI12[pos],
+      四化断: daxianHua,
     });
   }
 

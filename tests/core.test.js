@@ -2526,6 +2526,18 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   }
 }
 
+
+// ── 紫微·大限四化（卷一问答论直证） ──
+{
+  const c = await purpleStarChart({ y: 1983, m: 7, d: 12, h: 10, gender: '男' });
+  const flat = c.大限.flatMap((lk) => (lk.四化断 || []).map((h) => ({ ...h, 宫: lk.宫 })));
+  eq(flat.length, 4, '紫微大限四化：癸年四化各有一限入宫（' + flat.length + '）');
+  eq(flat.some((x) => x.星 === '破军' && x.化 === '禄' && x.断.includes('大限十年吉庆无疑')), true, '紫微大限四化：破军化禄断语照录');
+  eq(flat.some((x) => x.化 === '忌' && x.断.includes('大限十年悔吝')), true, '紫微大限四化：化忌断语照录');
+  eq(flat.every((x) => x.依据.includes('问化') && x.依据.includes('卷一')), true, '紫微大限四化：四条均带卷一问答出处');
+  eq(flat.filter((x) => x.断.includes('恶曜')).every((x) => x.断.includes('本限同照原书所列恶曜')), true, '紫微大限四化：恶曜只并列名单');
+}
+
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
   console.log(`通过 ${passed} 项断言，失败 ${failed} 项`);
