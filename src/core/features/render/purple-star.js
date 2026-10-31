@@ -34,7 +34,15 @@ export function purpleStarText(ent) {
   const g = ent.gender === 'female' ? '女' : ent.gender === 'male' ? '男' : null;
   if (!g) return { prompt: '紫微斗数需出生性别（定阴阳顺逆/大限），请补「男」或「女」。' };
 
-  const c = purpleStarChart({ y, m, d, h, gender: g });
+  // 流年：问句中除出生年外另给年份（如「排紫微 1983年7月12日 10点 男 2033年」）则安流曜。
+  const years = (String(arguments.length > 1 ? arguments[1] : '') .match(/(19|20)\d{2}/g) || []).map(Number);
+  const flowYear = years.find((x) => x !== y);
+  let flowGan = null;
+  if (flowYear) {
+    const fm = String(arguments.length > 1 ? arguments[1] : '').match(new RegExp(flowYear + '\\s*年?.{0,2}?([甲乙丙丁戊己庚辛壬癸])'));
+    flowGan = fm ? fm[1] : null;
+  }
+  const c = purpleStarChart({ y, m, d, h, gender: g, flowYear: flowGan ? flowYear + flowGan : null });
   const P = {};
   c.cells.forEach((cell) => { P[cell.宫] = cell; });
   const ming = c.命宫;
@@ -68,6 +76,13 @@ export function purpleStarText(ent) {
       L.push('大限' + lk.大限 + '（' + lk.宫 + '）：' + h.星 + '化' + h.化 + '入限——' + h.断 + '。——' + h.依据 + '。');
     });
   });
+  // 流曜（问句给了流年才出）：流禄/流羊/流陀（三卷本安流禄流羊流陀诀）+ 羊陀迭并判。
+  if (c.流曜 && flowYear) {
+    const f = c.流曜;
+    L.push('流曜' + flowYear + (flowGan ? '（' + flowGan + '）' : '') + '：流禄在' + f.流禄 + '、流羊在' + f.流羊 + '、流陀在' + f.流陀 + '。——' + f.依据 + '。');
+    (f.羊陀迭并 || []).forEach((x) => L.push('流曜：' + x.判 + '。——' + x.依据 + '。'));
+    L.push('流曜口径：流昌、流曲、流魁、流钺、流马等通行有诀而三卷本底本无安诀，不接。');
+  }
   L.push('生年四化：' + ['禄', '权', '科', '忌'].map((k) => c.四化[k] + '化' + k).join('、')
     + '（' + c.四化.依据 + '）。');
   L.push('安星口径：' + dot(tidy(c.口径)) );

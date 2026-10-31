@@ -2538,6 +2538,19 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   eq(flat.filter((x) => x.断.includes('恶曜')).every((x) => x.断.includes('本限同照原书所列恶曜')), true, '紫微大限四化：恶曜只并列名单');
 }
 
+
+// ── 紫微·流曜（安流禄流羊流陀诀直证） ──
+{
+  const c = await purpleStarChart({ y: 1983, m: 7, d: 12, h: 10, gender: '男', flowYear: '2033癸丑' });
+  eq(!!c.流曜, true, '紫微流曜：给流年即出流曜层');
+  eq(c.流曜.流禄 === '子' && c.流曜.流羊 === '丑' && c.流曜.流陀 === '亥', true, '紫微流曜：癸年流禄子/流羊丑/流陀亥');
+  eq(c.流曜.羊陀迭并.length, 2, '紫微流曜：1983 生人羊陀在丑亥，2033 癸年迭并双中');
+  eq(c.流曜.不接声明.includes('流昌'), true, '紫微流曜：不接声明（底本无流昌等诀）');
+  eq(c.流曜.依据.includes('安流禄流羊流陀诀'), true, '紫微流曜：出处带篇名');
+  const c2 = await purpleStarChart({ y: 1983, m: 7, d: 12, h: 10, gender: '男' });
+  eq(c2.流曜, null, '紫微流曜：不给流年不出（null）');
+}
+
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
   console.log(`通过 ${passed} 项断言，失败 ${failed} 项`);

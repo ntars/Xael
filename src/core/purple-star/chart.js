@@ -28,6 +28,7 @@ import { STEMS, BRANCHES, SEXAGENARY, nayinOf, wuHuDun } from '../common/constan
 import { ZHI } from '../common/constants.js';
 import { PALACES_12, MAIN_STARS_14 } from './data/order.js';
 import { BRIGHTNESS, LEVEL_NORM, BRIGHT_SOURCE } from './data/brightness.js';
+import { flowStarsOf, yangTuoDieBing } from './data/flow-stars.js';
 import {
   lunarYearGzIndex, hourBranchIndex, solarToLunarSafe,
 } from './tables.js';
@@ -349,6 +350,22 @@ const isYang = yGanIdx % 2 === 0;
   // 命宫判读（只取断语里有明确条件、可机判的一条）：
   // 《紫微斗数全书》紫微居命宫条「若与府、左右、日月、昌曲三合极吉……不入庙、无左右为孤君」，
   // 故「紫微坐命而左辅右弼不在本宫亦不会照」＝孤君，其余不硬推。
+  // 流曜（可选）：问「某流年」时，按流年天干安流禄/流羊/流陀（三卷本卷二安流禄流羊流陀诀；
+  // 流昌流曲流魁钺流马等底本无诀，不接）。并按卷三「羊陀迭并」例判生年羊陀与流羊陀同/冲。
+  let 流曜 = null;
+  if (input.flowGan || input.flowYear) {
+    const gan = input.flowGan || (typeof input.flowYear === 'string' ? input.flowYear.replace(/\d/g, '').charAt(0) : '');
+    流曜 = flowStarsOf(gan);
+    if (流曜) {
+      const natalYangTuo = {
+        羊: (cells.find((c) => c.辅星.includes('擎羊')) || {}).支 || null,
+        陀: (cells.find((c) => c.辅星.includes('陀罗')) || {}).支 || null,
+      };
+      流曜.羊陀迭并 = yangTuoDieBing(natalYangTuo, 流曜);
+      流曜.不接声明 = '流昌、流曲、流魁、流钺、流马、流鸾、流喜等通行有诀，三卷本底本无安诀，不接。';
+    }
+  }
+
   const mingCell = cells[mingPos];
   const 命宫判 = [];
   if (mingCell.主星.includes('紫微')) {
@@ -367,6 +384,7 @@ const isYang = yGanIdx % 2 === 0;
     input,
     lunar: lunar ? `${lunar.y}年${lunar.isLeap ? '闰' : ''}${lunar.m}月${lunar.d}日` : '',
     阴阳: isYang ? '阳' : '阴',
+    流曜,
     五行局: JU_NAMES[ju],
     命宫: { 位: ZHI12[mingPos], 干支: mingGz, 主星: cells[mingPos].主星 },
     身宫: { 位: ZHI12[shenPos], 宫: PALACES[((mingPos - shenPos) % 12 + 12) % 12] },
