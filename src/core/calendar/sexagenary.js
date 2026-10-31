@@ -15,6 +15,7 @@ import { solarToJdn, jdnToSolar, pad2 } from './julian.js';
 import { solarTermsTable } from './solar-terms.js';
 import { wuShuDun, STEMS, BRANCHES } from '../common/constants.js';
 
+import { JIE_OF_MONTH } from './solar-terms.js';
 /** JDN mod 60 = 11 为甲子日。校准锚：2000-01-01=戊午、1949-10-01=甲子、1984-02-02=丙寅。 */
 export const JDN_MOD_JIAZI = 11;
 
@@ -55,11 +56,8 @@ export function yearSexagenary(y, m, d, hour) {
   return GZ[yearSexagenaryIndex(y, m, d, hour)];
 }
 
-/** 十二节（换月用）与公历月的对应：1月小寒、2月立春…12月大雪 */
-const MONTH_JIE = {
-  1: '小寒', 2: '立春', 3: '惊蛰', 4: '清明', 5: '立夏', 6: '芒种',
-  7: '小暑', 8: '立秋', 9: '白露', 10: '寒露', 11: '立冬', 12: '大雪',
-};
+/** 十二节与公历月的对应：统一取自 solar-terms.js，不在此另抄一份 */
+const MONTH_JIE = JIE_OF_MONTH;
 
 /** 分钟级交节判定：给了 hour 就连分钟一起比；hour 缺省时按整天，只比日期。
  *  （旧库精确到秒，我们到分钟已是当前历法精度上限） */

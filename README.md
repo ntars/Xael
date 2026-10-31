@@ -174,16 +174,16 @@ Xael 另提供三种本机 AI 宿主接入形态（全部本地演算，无网�
 
 ```javascript
 // 1. 农历换算（天文朔日，不查表）
-import { solarToLunar } from './src/core/calendar/lunisolar.js';
-solarToLunar(2004, 3, 21);   // { m: 2, d: 1, isLeap: true, monthName: '闰二月' }
+import { solarToLunisolar } from './src/core/calendar/lunisolar.js';
+solarToLunisolar(2004, 3, 21);   // { m: 2, d: 1, isLeap: true, monthName: '闰二月', dayName: '初一', text: '闰二月初一' }
 
 // 2. 四柱
-import { chart } from './src/core/four-pillars/chart.js';
-chart({ y: 2024, m: 2, d: 10, h: 12 }).pillars;   // 甲辰 丙寅 甲辰 庚午
+import { fourPillarsChart } from './src/core/four-pillars/chart.js';
+fourPillarsChart({ y: 2024, m: 2, d: 10, h: 12 }).pillars;   // 甲辰 丙寅 甲辰 庚午
 
 // 3. 黄历
-import { daily } from './src/core/almanac/daily.js';
-daily(2024, 2, 10).宜;
+import { almanacDaily } from './src/core/almanac/daily.js';
+almanacDaily(2024, 2, 10).宜;
 
 // 4. 一句话走搜索链路（与端上完全一致的入口）
 import { analyze } from './src/core/features/analyzer.js';
@@ -192,72 +192,20 @@ await analyze('排奇门 2024年12月21日 12点');
 
 ## API 说明
 
-| 模块 | 入口 | 导出 |
+| 模块 | 源码 | 主要导出 |
 |---|---|---|
-| calendar/solar | `src/core/calendar/julian.js` | `solarToJdn` / `jdnToSolar` / `dayNo` / `fromDayNo` / `weekday` |
-| calendar/astronomy | `src/core/calendar/astronomy.js` | 太阳视黄经、合朔 JDE、ΔT |
-| calendar/jieqi2 | `src/core/calendar/solar-terms.js` | `jieqiTable(y)` / `jieqiAround` |
-| calendar/lunar2 | `src/core/calendar/lunisolar.js` | `solarToLunar` / `lunarToSolar` |
-| calendar/ganzhi | `src/core/calendar/sexagenary.js` | `dayGanZhi` / `monthGanZhi` / `yearGanZhiByLichun` / `hourGanZhi` / `effectiveDay` |
-| huangli/daily | `src/core/almanac/daily.js` | `daily` / `monthView` / `jieqiAround` |
-| bazi | `src/core/bazi/{bazi,pattern,shensha,dayun}.js` | `chart` / `patternOf` / `shenshaOf` / `dayunOf` |
-| ziwei | `src/core/ziwei/{ziwei,sihua}.js` | `ziweiChart` / `sihuaOf` |
-| qimen | `src/core/qimen/{qimen,qimen-ri,ke,baojian,nianyue,feipan,ge}.js` | 七种奇门排法与格局检出 |
-| liuren | `src/core/liuren/{liuren,fayong,tianjiang,bifa}.js` | `liurenChart` / `bifaOf` |
-| liuyao | `src/core/liuyao/{liuyao,gonggua,najia,wangshuai}.js` | `liuyaoChart` / `wangshuaiOf` |
-| meihua / fengshui | `src/core/plum-blossom/chart.js`、`src/core/fengshui/{bazhai,feixing}.js` | `meihuaChart` / `bazhaiChart` / `feixingChart` |
-| features | `src/core/features/{registry,analyzer}.js` | `FEATURES` / `matchFeature` / `runFeature` / `analyze` |
-
-全部函数为纯函数：输入日期时间或生辰，输出结构化对象，不做 IO、不发网络请求。
-
-## 配置说明
-
-内核无配置文件，所有口径在 [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md) 中以文档形式声明。端壳配置：
-
-- `src/shells/mp-weixin/project.config.json`：小程序 appid `wx7d40cfd5e4849d0d`（与线上一致）；
-- `src/shells/uniapp/manifest.json`：uni-app 应用名与 `mp-weixin.appid`（同上）；
-- `src/shells/pwa/manifest.webmanifest`：PWA 名称、主题色、图标。
-
-## 目录结构
-
-```
-Xael/
-├── index.html              # 网页版入口（npm run build:web 生成，勿手改）
-├── static/ core/ shared/   # 网页版资源与内核副本（同上）
-├── src/
-│   ├── core/               # 内核（不感知任何端）
-│   │   ├── calendar/       #   julian / astronomy / solar-terms / new-moon / lunisolar /
-│   │   │                   #   sexagenary / festivals / data（VSOP87 与朔表）
-│   │   ├── almanac/        #   daily / twelve-officers / day-officers / lunar-mansions /
-│   │   │                   #   directions / clashes / activities
-│   │   ├── four-pillars/   #   chart / luck-cycles / patterns / symbolic-stars
-│   │   ├── purple-star/    #   chart / tables / transformations
-│   │   ├── mystic-gates/   #   hour-chart / day-chart / quarter-chart / mirror-chart /
-│   │   │                   #   year-month-chart / flying-chart / patterns
-│   │   ├── six-ren/        #   chart / tables / three-transmissions / heavenly-generals /
-│   │   │                   #   bifa / detail
-│   │   ├── six-lines/      #   cast / tables / strength
-│   │   ├── plum-blossom/   #   chart / interpretations
-│   │   ├── geomancy/       #   eight-mansions / flying-stars
-│   │   ├── common/         #   constants（字表单一真源）/ hexagrams（64 卦）
-│   │   └── features/       #   registry（22 项功能）/ analyzer / normalizer / render
-│   ├── shared/             # 共享层：storage / conversation / result-format / settings /
-│   │                       #          refs / theme / inflight / guard / export-image
-│   └── shells/             # 三端外壳
-│       ├── pwa/            #   index.html + static/{app.js,theme.css,sw.js} + manifest
-│       ├── mp-weixin/      #   app.js/app.json/pages/index/*
-│       └── uniapp/         #   App.vue/main.js/manifest.json/pages.json/pages/index
-├── tests/                  # calendar(93) / core(207) / mp-shell(33) / ai-entry(14) /
-│                           # tolerance(33) / geomancy(35) / run.js
-├── bin/                    # xael.js（CLI）/ xael-api.js（契约层，MCP 复用）
-├── mcp/                    # server.js（stdio MCP 三工具）
-├── skills/                 # xael/SKILL.md（AI 技能卡）
-├── experts/                # xael/5.0.0/（专家包）
-├── refs-texts/             # 18 部公版古籍原书全文（仅供仓库内查证，不入发布包）
-├── tools/                  # build-web.js / build-mp.js / build-uni.js / preflight.js
-├── docs/                   # CALIBER-NOTES.md / DEPLOY.md
-└── dist/mp-weixin/         # 小程序产物（生成，不入库）
-```
+| calendar/julian | `src/core/calendar/julian.js` | `solarToJdn` / `jdnToSolar` / `dayNo` / `fromDayNo` / `weekday` |
+| calendar/solar-terms | `src/core/calendar/solar-terms.js` | `solarTermsTable` / `prevSolarTerm` / `nextSolarTerm` / `prevSolarTermAt` / `nextSolarTermAt` |
+| calendar/lunisolar | `src/core/calendar/lunisolar.js` | `solarToLunisolar` / `lunisolarToSolar` / `lunarYearStructure` / `lunarDayText` |
+| calendar/sexagenary | `src/core/calendar/sexagenary.js` | `daySexagenary` / `monthSexagenary` / `yearSexagenary` / `hourSexagenary` / `effectiveDay` / `zodiacSign` |
+| almanac/daily | `src/core/almanac/daily.js` | `almanacDaily` / `monthView` / `jieqiAround` |
+| four-pillars | `src/core/four-pillars/{chart,patterns,symbolic-stars,luck-cycles,luck-judgement,year-lord,minor-cycles,yong-shen,month-command}.js` | `fourPillarsChart` / `chartPatternsOf` / `symbolicStarsOf` / `luckCyclesOf` / `luckJudgementOf` / `yearLordOf` / `minorCyclesOf` / `threeSchoolsOf` / `monthCommandOf` |
+| purple-star | `src/core/purple-star/{chart,transformations,readings}.js` | `purpleStarChart` / `transformationsOf` / `purpleStarReadingsOf` |
+| mystic-gates | `src/core/mystic-gates/{hour-chart,day-chart,quarter-chart,year-month-chart,flying-chart,mirror-chart,patterns}.js` | `mysticGatesHourChart` / `mysticGatesDayChart` / `mysticGatesQuarterChart` / `mysticGatesYearChart` / `mysticGatesMonthChart` / `mysticGatesFlyingChart` / `mysticGatesMirrorChart` / `mysticGatesPatternsOf` |
+| six-ren | `src/core/six-ren/{chart,bifa,detail,extra-lessons,nian-ming}.js` | `sixRenChart` / `sixRenBifaOf` / `yingqiOf` / `extraLessonsOf` / `nianMingVerdicts` |
+| six-lines | `src/core/six-lines/{cast,strength,timing,void,golden-chapters}.js` | `sixLinesCast` / `sixLinesStrengthOf` / `sixLinesTimingOf` / `voidVerdict` / `goldenVerdictsOf` |
+| plum-blossom / geomancy | `src/core/plum-blossom/chart.js`、`src/core/geomancy/{eight-mansions,flying-stars}.js` | `plumBlossomChart` / `eightMansionsChart` / `flyingStarsChart` |
+| features | `src/core/features/{registry,analyzer}.js` | `FEATURES` / `matchAll` / `catalog` / `analyze` |
 
 ## 性能
 

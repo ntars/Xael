@@ -49,6 +49,22 @@ function collect(dir, acc = []) {
  *   export default                      →  module.exports.default = ...
  *   export { a, b }                     →  末尾补 module.exports.a = a
  */
+/** 把顶层（无缩进）的 require 行按原顺序提到最前，模拟 ESM import 提升 */
+export function hoistRequires(code) {
+  const lines = code.split('\n');
+  const req = [];
+  const rest = [];
+  for (const line of lines) {
+    if (/^(const|let|var)\s+[^=]+=\s*require\([^)]*\)(\.default)?;?$/.test(line) || /^require\([^)]*\);?$/.test(line)) {
+      req.push(line);
+    } else {
+      rest.push(line);
+    }
+  }
+  if (!req.length) return code;
+  return req.join('\n') + '\n' + rest.join('\n');
+}
+
 export function transform(src, filePath) {
   const exported = [];
   let code = src;
@@ -120,6 +136,13 @@ export function transform(src, filePath) {
 
   // 6) 末尾追加导出
   if (exported.length) code += '\n\n' + exported.join('\n') + '\n';
+
+  // 6.5) 把顶层 require 行统一提到文件最前。
+  //   ESM 的 import 可以写在文件任意位置（规范要求引擎提升），但转写出来的 require 不会提升：
+  //   若某个常量在 import 之前就使用它，ESM 测试照样全过，小程序却 ReferenceError
+  //   ——曾真实踩过（six-ren/tables.js 的 const ZHI_Z = ZHI 写在 import 之前）。
+  //   这里按原相对顺序抽出所有顶层 require，统一放到最前，语义与 ESM 一致。
+  code = hoistRequires(code);
 
   // 7) 相对路径补 .js（小程序 require 需要确切文件）
   code = code.replace(/require\('(\.{1,2}\/[^']+)'\)/g, (_m, p) => (p.endsWith('.js') ? `require('${p}')` : `require('${p}.js')`));

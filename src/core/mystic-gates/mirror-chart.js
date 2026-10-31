@@ -16,6 +16,7 @@ import { SEXAGENARY, BRANCHES } from '../common/constants.js';
 import { daySexagenaryIndex, daySexagenary } from '../calendar/sexagenary.js';
 import { solarTermsTable, JIE_ONLY } from '../calendar/solar-terms.js';
 
+import { YANG_TERMS } from './terms.js';
 /** 日支定局表（原文「子午日用二局」不分遁式） */
 const ZHI_JU = { 子: 2, 丑: 6, 寅: 1, 卯: 8, 辰: 4, 巳: 9, 午: 2, 未: 6, 申: 1, 酉: 8, 戌: 4, 亥: 9 };
 /** 三奇六仪布仪序（戊己庚辛壬癸丁丙乙） */
@@ -29,8 +30,8 @@ const STAR9 = ['天蓬', '天芮', '天冲', '天辅', '天禽', '天心', '天�
 /** 八门环序（休→生→伤→杜→景→死→惊→开） */
 const GATE_RING = ['休', '生', '伤', '杜', '景', '死', '惊', '开'];
 
-/** 节气名 → 阳遁判断（冬至~芒种半周阳遁） */
-const YANG_JIE = ['冬至', '小寒', '大寒', '立春', '雨水', '惊蛰', '春分', '清明', '谷雨', '立夏', '小满', '芒种'];
+/** 节气名 → 阳遁判断（冬至~芒种半周阳遁）；表在 terms.js，不在此另抄 */
+const YANG_JIE = YANG_TERMS;
 
 /** 本地日序（与 calendar/solar.dayNo 同口径，避免循环依赖） */
 function jdnOf(y, m, d) {

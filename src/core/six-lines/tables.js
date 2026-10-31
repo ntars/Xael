@@ -15,22 +15,19 @@
  * 盘面怎么排（爻线、飞伏、旺衰、断语）都不在这里，分别在 six-lines/*.js / six-lines/strength.js。
  */
 
+import { ZHI_WX_MAP, GAN_WX_MAP, SHENG, KE } from '../common/constants.js';
+
+import { ZHI } from '../common/constants.js';
 /** 八经卦（纳音五行按宫算，见 PALACE_WX） */
 export const GUA8 = ['乾', '兑', '离', '震', '巽', '坎', '艮', '坤'];
 
 /** 地支字表与五行 */
-export const ZHI_Z = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-export const ZHI_WX = {
-  子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火',
-  午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水',
-};
-export const GAN_WX = {
-  甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水',
-};
-
-/** 五行生克（我 生/克 者，生/克 我者） */
-export const WX_SHENG = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
-export const WX_KE = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
+export const ZHI_Z = ZHI;
+/** 五行生克与干支五行（我 生/克 者，生/克 我者）——统一自 common/constants.js，不在此另抄一份 */
+export const ZHI_WX = ZHI_WX_MAP;
+export const GAN_WX = GAN_WX_MAP;
+export const WX_SHENG = SHENG;
+export const WX_KE = KE;
 /** 五行墓库：木墓未、火墓戌、土墓辰、金墓丑、水墓辰（《增删卜易·生旺墓绝章》） */
 export const WX_TOMB = { 木: '未', 火: '戌', 土: '辰', 金: '丑', 水: '辰' };
 /** 生我者 */

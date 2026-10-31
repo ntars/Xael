@@ -49,6 +49,22 @@ export const BRANCHES = [
  * 索引，导致 dayGz[0] 拿到 '甲' 而不是 '甲子'。统一为数组后取法唯一，两字干支可用
  * sexagenaryText(i) 或 SEXAGENARY[i].join('') 得到。
  */
+/**
+ * 五行名序与「字→五行」「字→五行序号」派生表。
+ *
+ * 大白话：全项目有 8 个模块各自抄了一份「地支→五行」小表，且出现两种写法
+ *   （一处写 {子:'水'}，另一处写 [4,2,0,…] 数字下标），改一处漏一处。
+ *   这里按上面的 STEMS / BRANCHES 派生出来，作为唯一来源；
+ *   需要字符串的用 *_WX_MAP，需要数字下标的用 *_WX_INDEX（0=木…4=水）。
+ */
+export const GAN = STEMS.map((x) => x.z);
+export const ZHI = BRANCHES.map((x) => x.z);
+export const WX = ['木', '火', '土', '金', '水'];
+export const GAN_WX_MAP = Object.fromEntries(STEMS.map((s) => [s.z, s.wx]));
+export const ZHI_WX_MAP = Object.fromEntries(BRANCHES.map((b) => [b.z, b.wx]));
+export const GAN_WX_INDEX = STEMS.map((s) => WX.indexOf(s.wx));
+export const ZHI_WX_INDEX = BRANCHES.map((b) => WX.indexOf(b.wx));
+
 export const SEXAGENARY = Array.from({ length: 60 }, (_, i) => [STEMS[i % 10].z, BRANCHES[i % 12].z]);
 
 /** 地支藏干表（本气 + 中气 + 余气，传统口诀） */
@@ -73,6 +89,10 @@ export const CANGGAN = {
 export const SHENG = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
 /** 五行相克：A 克 B */
 export const KE = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
+
+/** 克我者（官鬼）与生我者（印）的反查表：由 SHENG / KE 派生，供十神、六亲等模块共用 */
+export const KE_ME = Object.fromEntries(WX.map((k) => [k, WX.find((x) => KE[x] === k)]));
+export const SHENG_ME = Object.fromEntries(WX.map((k) => [k, WX.find((x) => SHENG[x] === k)]));
 
 /** 六十甲子纳音表（传统口诀，两柱一组共 30 音） */
 export const NAYIN = [

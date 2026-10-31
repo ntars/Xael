@@ -14,8 +14,10 @@
  *  3. 只给取象与原文断语，不折吉凶轻重——原书赋文有褒有贬，但未给分值。
  */
 
+
+import { ZHI } from '../common/constants.js';
 /** 十二支序（0=子）→ 支名，供调用方按支序取格 */
-export const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+export const BRANCH_ORDER = ZHI;
 
 /**
  * 十二将 × 十二支取象表：TABLE[将][支] = [取象名, 赋中断语]

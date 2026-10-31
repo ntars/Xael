@@ -1,3 +1,4 @@
+import { GAN_WX_MAP as GAN_WX, ZHI_WX_MAP as ZHI_WX } from '../common/constants.js';
 /**
  * src/core/mystic-gates/day-profiles.js —— 遁甲择日的三项日级属性（自研，零依赖）
  *
@@ -51,8 +52,6 @@ export function deXingOf(term) {
 
 const SHENG = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
 const KE = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
-const GAN_WX = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
-const ZHI_WX = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
 
 /**
  * 宝、和、义、制、伏（依日柱干支相配）。

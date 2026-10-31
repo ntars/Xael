@@ -19,9 +19,10 @@ import { daySexagenaryIndex } from '../calendar/sexagenary.js';
 import { solarTermsTable } from '../calendar/solar-terms.js';
 import { BRANCHES } from '../common/constants.js';
 
+import { JIE_OF_MONTH } from '../calendar/solar-terms.js';
 /** 整日粒度节气月支：交节「当日」整天算新月（天神口径，与参照实现一致；
  *  注意与八字月柱的 jieTime 精确时刻口径不同，两套并存） */
-const MONTH_JIE = { 1: '小寒', 2: '立春', 3: '惊蛰', 4: '清明', 5: '立夏', 6: '芒种', 7: '小暑', 8: '立秋', 9: '白露', 10: '寒露', 11: '立冬', 12: '大雪' };
+const MONTH_JIE = JIE_OF_MONTH;
 function monthZhiWholeDay(y, m, d) {
   const jie = solarTermsTable(y)[MONTH_JIE[m]];
   return d < jie.d ? (m - 1) % 12 : m % 12;

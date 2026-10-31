@@ -27,6 +27,7 @@
 
 import { GAN_WX, WX_KE, WX_SHENG } from './tables.js';
 
+import { ZHI } from '../common/constants.js';
 /** 六亲顺序：生克链循环（父 → 兄 → 子 → 财 → 鬼 → 父） */
 export const QIN_CYCLE = ['父母', '兄弟', '子孙', '妻财', '官鬼'];
 
@@ -384,7 +385,7 @@ export const TIAN_XI = { 春: '戌', 夏: '丑', 秋: '辰', 冬: '未' };
 
 /** 月支 → 季节 */
 export function seasonOf(月支) {
-  const i = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'].indexOf(月支);
+  const i = ZHI.indexOf(月支);
   if (i < 0) return '';
   if ([0, 1].indexOf(i) >= 0) return '冬'; // 子丑属冬（丑为冬末）
   if ([2, 3, 4].indexOf(i) >= 0) return '春';

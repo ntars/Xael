@@ -36,6 +36,7 @@ import { GODS as GODS_BASE, godRolesOf } from './god-roles.js';
 import { dayProfilesOf } from './day-profiles.js';
 import { imageryOf } from './imagery.js';
 
+import { isYangTerm } from './terms.js';
 /** 九宫环序（顺时针）：坎1 艮8 震3 巽4 离9 坤2 兑7 乾6 */
 export const CLOCK = [1, 8, 3, 4, 9, 2, 7, 6];
 
@@ -195,7 +196,7 @@ export function mysticGatesHourChart(input) {
 
   // 定局
   const jq = jieqiOf(y, m, d, hh);
-  const yang = ['冬至', '小寒', '大寒', '立春', '雨水', '惊蛰', '春分', '清明', '谷雨', '立夏', '小满', '芒种'].includes(jq);
+  const yang = isYangTerm(jq);
   const yuan = dayuanOf(dayY, dayM, dayD);
   const ju = JUREQI[jq][yuan];
 

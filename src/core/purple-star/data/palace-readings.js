@@ -11,11 +11,13 @@
  * 原文为明代断语，语义带时代色彩（如「仆役」「刑克」），照录不改，避免以今义篡古。
  */
 
+
+import { PALACES_12, MAIN_STARS_14 } from './order.js';
 /** 十二宫书写序（与本表一致，供遍历用） */
-export const READING_PALACES = ['命宫', '兄弟', '夫妻', '子女', '财帛', '疾厄', '迁移', '仆役', '官禄', '田宅', '福德', '父母'];
+export const READING_PALACES = PALACES_12;
 
 /** 十四主星（本表收录范围） */
-export const READING_STARS = ['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军'];
+export const READING_STARS = MAIN_STARS_14;
 
 export const PALACE_READINGS = {
   命宫: {

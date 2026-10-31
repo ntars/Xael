@@ -16,10 +16,10 @@
  * 本模块只做「按原文语序」的定性判断，不打分、不算权重。
  */
 
-const SHENG = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
-const KE = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
-/** 冲我者（取该五行的克我者） */
-const KE_WO = Object.keys(KE).reduce((m, k) => { m[KE[k]] = k; return m; }, {});
+import { SHENG, KE, KE_ME, ZHI_WX_MAP as ZHI_WX } from '../common/constants.js';
+
+/** 「克我」反查：直接取公共常量的 KE_ME（原先是本地对 KE 反折一份） */
+const KE_WO = KE_ME;
 
 /** 某一爻的「动静 + 变爻吉凶」摘要 */
 function lineState(t) {
@@ -166,7 +166,6 @@ export function yongFaDongVerdict(用神爻) {
  */
 export function riChenVerdict(用神五行, 日支) {
   if (!用神五行 || !日支) return null;
-  const ZHI_WX = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
   const 日Wx = ZHI_WX[日支];
   if (!日Wx) return null;
   const 生合 = SHENG[日Wx] === 用神五行 || 日Wx === 用神五行

@@ -26,6 +26,7 @@ import { solarToLunisolar } from '../calendar/lunisolar.js';
 import { monthBranchIndex } from '../calendar/sexagenary.js';
 import { tiYongOf, guaOf, xiangOf, zhanDuanOf } from './interpretations.js';
 
+import { ZHI } from '../common/constants.js';
 /** 先天数 → 卦名 */
 
 /**
@@ -170,7 +171,7 @@ export function plumBlossomChart(input) {
 
   // 体气盛衰（《梅花易数·体用总诀》：「应体之卦气宜盛不宜衰……」按占时月建定季节）
   const mZhi = cy != null
-    ? ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'][monthBranchIndex(cy, cm, cd, ch)]
+    ? ZHI[monthBranchIndex(cy, cm, cd, ch)]
     : null;
   const season = mZhi ? seasonOfMonthBranch(mZhi) : null;
   const tiQi = !season ? '未判'

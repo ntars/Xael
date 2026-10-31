@@ -16,17 +16,19 @@
  */
 
 /** 支序：子0 丑1 寅2 卯3 辰4 巳5 午6 未7 申8 酉9 戌10 亥11 */
-export const ZHI_Z = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+export const ZHI_Z = ZHI;
 /** 干序：甲0 乙1 丙2 丁3 戊4 己5 庚6 辛7 壬8 癸9 */
-export const GAN_Z = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+export const GAN_Z = GAN;
 
 /* ============================== 五行 ============================== */
-/** 五行编码：0木 1火 2土 3金 4水（全项目统一，勿改） */
-export const WX_NAME = ['木', '火', '土', '金', '水'];
-/** 干 → 五行：甲乙木、丙丁火、戊己土、庚辛金、壬癸水 */
-export const GAN_WX = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4];
-/** 支 → 五行：子水、丑土、寅木、卯木、辰土、巳火、午火、未土、申金、酉金、戌土、亥水 */
-export const ZHI_WX = [4, 2, 0, 0, 2, 1, 1, 2, 3, 3, 2, 4];
+/**
+ * 五行编码：0木 1火 2土 3金 4水（全项目统一，勿改）。
+ * 干/支 → 编码由 common/constants.js 的 STEMS/BRANCHES 派生，
+ * 不再手抄数组——手抄的下场是六壬一套 `[4,2,0,…]`、他处一套 `{子:'水'}`，改一处漏一处。
+ */
+export const WX_NAME = WX;
+export const GAN_WX = GAN_WX_INDEX;
+export const ZHI_WX = ZHI_WX_INDEX;
 /** 克序：x 克 KE_BY[x]（木克土、土克水、水克火、火克金、金克木） */
 export const KE_BY = { 0: 2, 1: 3, 2: 4, 3: 0, 4: 1 };
 /** 生序：x 生 SHENG_BY[x]（木生火、火生土、土生金、金生水、水生木） */
@@ -105,6 +107,8 @@ export function yimaOf(z) { return YIMA[((z % 12) + 12) % 12]; }
 /* ============================== 月将定位 ============================== */
 import { prevSolarTerm } from '../calendar/solar-terms.js';
 
+import { WX, GAN_WX_INDEX, ZHI_WX_INDEX } from '../common/constants.js';
+import { ZHI, GAN } from '../common/constants.js';
 /**
  * 月将：找 ≤ 当日的最近中气，返回月将支序。
  * 实现：先取当月的上一个节气；若它不在中气表里，就逐月往前找，直到命中十二中气之一。

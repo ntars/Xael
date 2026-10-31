@@ -10,6 +10,8 @@
  *   3. 缺料就直说缺什么，不要瞎编一个 1 月 1 日算下去。
  */
 
+
+import { ZHI } from '../../common/constants.js';
 /** 六十甲子（干支下标 i%60 → 干支） */
 export const GANZHI60 = (() => {
   const STEMS = '甲乙丙丁戊己庚辛壬癸';
@@ -20,7 +22,7 @@ export const GANZHI60 = (() => {
 })();
 
 /** 十二地支（书写序：子起） */
-export const ZHI12 = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+export const ZHI12 = ZHI;
 
 /** 九宫展示序（洛书地理顺时针：坎一 艮八 震三 巽四 离九 坤二 兑七 乾六） */
 export const GONG8 = [1, 8, 3, 4, 9, 2, 7, 6];

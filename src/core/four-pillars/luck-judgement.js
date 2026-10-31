@@ -26,11 +26,8 @@ import { fourPillarsChart } from './chart.js';
 import { luckCyclesOf } from './luck-cycles.js';
 import { chartPatternsOf } from './patterns.js';
 
-const GAN_WX = {};
-STEMS.forEach((g) => { GAN_WX[g.z] = g.wx; });
-const ZHI_WX = {};
-BRANCHES.forEach((b) => { ZHI_WX[b.z] = b.wx; });
 
+import { GAN_WX_MAP as GAN_WX, ZHI_WX_MAP as ZHI_WX } from '../common/constants.js';
 const SHENG = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
 const KE = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
 const SHENG_WO = { 火: '木', 土: '火', 金: '土', 水: '金', 木: '水' };

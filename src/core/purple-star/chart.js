@@ -25,22 +25,24 @@
  */
 
 import { STEMS, BRANCHES, SEXAGENARY, nayinOf, wuHuDun } from '../common/constants.js';
+import { ZHI } from '../common/constants.js';
+import { PALACES_12, MAIN_STARS_14 } from './data/order.js';
 import {
   lunarYearGzIndex, hourBranchIndex, solarToLunarSafe,
 } from './tables.js';
 
 /** 十二宫名（自命宫起逆布） */
-export const PALACES = ['命宫', '兄弟', '夫妻', '子女', '财帛', '疾厄', '迁移', '仆役', '官禄', '田宅', '福德', '父母'];
+export const PALACES = PALACES_12;
 
 /** 地支序（宫位）：0=子 … 11=亥 */
-export const ZHI12 = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+export const ZHI12 = ZHI;
 
 /** 五行局：纳音五行 → 局数 */
 const JU_OF_WX = { 水: 2, 木: 3, 金: 4, 土: 5, 火: 6 };
 export const JU_NAMES = { 2: '水二局', 3: '木三局', 4: '金四局', 5: '土五局', 6: '火六局' };
 
 /** 十四主星（用于展示顺序） */
-export const MAIN_STARS = ['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军'];
+export const MAIN_STARS = MAIN_STARS_14;
 
 /**
  * 四化表（年干 → [化禄, 化权, 化科, 化忌]）。
