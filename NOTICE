@@ -26,7 +26,7 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
 
 运行时第三方依赖：无（零依赖）。
 
-  全部 5,764 行内核源码（50 个文件）+ 共享层与三端外壳均为纯 JavaScript，
+  全部 12,518 行内核源码（61 个文件）+ 共享层与三端外壳均为纯 JavaScript，
   仅依赖 ECMAScript 2015+ 语言标准与各端自身运行时，
   不引入任何 npm 包、任何字体、任何图标库、任何网络 API。
 
@@ -86,15 +86,20 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
     自行录入，非第三方数据集拷贝。
   · 术数流派口径（docs/CALIBER-NOTES.md）依据公开出版的传统文献与主流
     流派共识整理，口径选择已在文档中逐条注明。
+  · refs-texts/ 目录收录 18 部公版古籍原书全文（明清及以前传本；民国著作
+    须作者已过著作权保护期），电子底本来自殆知阁电子文本（GitHub
+    daizhigev20，易藏/术数），收录时仅统一换行、删行尾空格、压缩连续空行，
+    文字一字未动；校对状态为「未精校」，对外引用前请核对影印本。该目录
+    仅供仓库内查证，不进小程序 / 网页 / uni-app 发布包。
 
 ================================================================================
 三、本项目自有文件
 ================================================================================
 
-  · src/core/ 下全部内核模块（calendar / huangli / bazi / ziwei / qimen / liuren /
-    liuyao / meihua / fengshui / common / features，共 50 个文件 5,764 行）
+  · src/core/ 下全部内核模块（calendar / almanac / four-pillars / purple-star / mystic-gates /
+    six-ren / six-lines / plum-blossom / geomancy / common / features，共 61 个文件 12,518 行）
   · src/shared/ 共享层（storage / conversation / result-format / settings / refs /
-    theme / inflight / guard / export-image / export-metrics，共 10 个文件 1,134 行）
+    theme / inflight / guard / export-image / export-metrics，共 9 个文件 1,148 行）
   · src/shells/ 三端外壳（pwa / mp-weixin / uniapp）
   · tests/ 全部测试（calendar.test.js / core.test.js / mp-shell.test.js / run.js）
   · tools/ 构建与自检脚本（build-web.js / build-mp.js / build-uni.js / preflight.js）
@@ -112,5 +117,5 @@ AGPL-3.0 的核心义务（摘要，法律效力以 LICENSE 英文原文为准�
 
 ================================================================================
 
-本文件最后核对：2026-10-27（5.0.0 重构收口版）
+本文件最后核对：2026-10-28（5.0.0 收口 + AI 接入 + 文献入仓）
 核对范围：src/ 全部源文件的外部依赖扫描（确认零第三方内嵌）、tests/ 运行环境、节假日数据来源、算法思想参考项目声明。

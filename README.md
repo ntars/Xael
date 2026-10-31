@@ -12,13 +12,13 @@
 |---|---|
 | 产品 | 玄玖灵犀 Xael |
 | 版本 | 5.0.0 |
-| 状态 | 产品已上线（微信小程序与公众号同名，已上线运营）；内核 5.0.0 开发中，小程序提审发布见「路线图」 |
+| 状态 | 5.0.0 重构完成：算法按库内公版古籍逐条校正，命名体系全英文；约 536 万例回归对拍作为基线；网页版 / 小程序 / uni-app 三端外壳齐备 |
 | 仓库 | <https://github.com/ntars/Xael> |
 | 官网 | <https://x.ntars.cn/> |
-| 形态 | 浏览器 PWA（已实现）/ 微信小程序（已可打包）/ uni-app（已实现，待 HBuilderX 编译） |
+| 形态 | 浏览器 PWA（已实现）/ 微信小程序（已实现）/ uni-app（已实现，产物由 HBuilderX 生成） |
 | 许可 | AGPL-3.0（品牌与界面归星玖工作室 Ntarstudio） |
 | 运行时依赖 | 零（纯 JavaScript，不引入任何 npm 包） |
-| 规模 | 内核 50 个模块 5,764 行；共享层 10 个模块 1,134 行；三端外壳 59 个文件 |
+| 规模 | 内核 61 个模块 12,518 行（含自研天文数据表）；共享层 9 个模块 1,148 行；三端外壳 59 个文件 |
 
 ## 简介
 
@@ -41,8 +41,8 @@
 | 八字命理 | 排八字 | 生辰 | 四柱、十神、藏干、纳音、旬空、胎元、五行分布 |
 | 八字命理 | 解格局 | 生辰 | 月令、月令十神、透干、格局名、强弱评分与依据 |
 | 八字命理 | 查神煞 | 生辰 | 天乙贵人、文昌、桃花、驿马、华盖、将星、羊刃、禄神、空亡、孤辰寡宿、红鸾天喜、天德月德等（逐条注明取法） |
-| 八字命理 | 排运程 | 生辰 | 顺逆排法、起运岁数（三日折一年）、八步大运、十年流年 |
-| 紫微斗数 | 排紫微 | 生辰 | 十二宫、五行局、命身宫、十四主星、辅星、大限 |
+| 八字命理 | 排运程 | 生辰 | 顺逆排法、起运岁数（三日折一年）、八步大运、小运两法并列、十年流年与太岁（岁伤日干/日犯岁君/真太岁/征太岁/岁运并临） |
+| 紫微斗数 | 排紫微 | 生辰 | 十二宫、五行局、命身宫、十四主星、辅星、大限、星曜居宫断语（《紫微斗数全书》168 格原文） |
 | 紫微斗数 | 解四化 | 生辰 | 生年四化、四化落宫、十干四化全表 |
 | 奇门遁甲 | 排奇门 | 日期时间 | 时家转盘·拆补：遁局、旬首、值符值使、九宫天地盘、九星八门八神 |
 | 奇门遁甲 | 排日家 | 日期 | 180 日一元轮派：局数、值符值使、九宫盘面 |
@@ -51,9 +51,9 @@
 | 奇门遁甲 | 排年家月家 | 日期 | 年家局数与阴阳遁、月家正月 8 局递推 |
 | 奇门遁甲 | 排飞盘 | 日期时间 | 飞盘派九宫飞泊、中宫不寄宫、天禽单列 |
 | 奇门遁甲 | 解奇门格局 | 日期时间 | 青龙返首、飞鸟跌穴等十干克应格局检出、五不遇时 |
-| 六爻占卜 | 排六爻 | 日期时间 / 铜钱 | 本卦变卦、八宫世应、京房纳甲、六亲六神、旬空月破日冲 |
+| 六爻占卜 | 排六爻 | 日期时间 / 铜钱 | 本卦变卦、八宫世应、京房纳甲、六亲六神、旬空月破日冲；分门断法（求财·词讼·疾病·出行·求名·婚姻）逐句引《黄金策》 |
 | 六爻占卜 | 解六爻旺衰 | 日期时间 | 月建日建关系、旺相平休囚、月破旬空暗动标记 |
-| 梅花易数 | 排梅花 | 日期时间 | 本卦、互卦、变卦、体用生克 |
+| 梅花易数 | 排梅花 | 日期时间 | 本卦、互卦、变卦、体用生克，并出《周易》卦辞、大象与动爻爻辞（后天起卦用爻辞兼卦辞） |
 | 风水堪舆 | 查命卦 | 出生年+性别 | 命卦、大游年八星与八方吉凶 |
 | 风水堪舆 | 排飞星 | 日期时间 | 年/月/日/时四层紫白、三元九运 |
 | 大六壬 | 排六壬 | 日期时间 | 月将、天地盘、四课、九宗门发用、三传、天将 |
@@ -61,33 +61,39 @@
 
 ## 核心亮点
 
-### 1. 历法自底向上重算，不查表
+### 1. 历法自底向上重算，不查历表
 
-公历↔儒略日→太阳黄经（Meeus 低阶级数）→日月合朔→朔日定月→两冬至间无中气置闰。**证据**：2004/2023 闰二月、2020 闰四月、1984 闰十月命中；1985 无闰（正月初一＝2 月 20 日）——这条曾把「月中点取最近中气」的写法抓出原型错误，改为逐段检测。
+公历↔儒略日→太阳黄经（VSOP87 截断级数 + 章动/光行差/ΔT）→日月合朔（1985 年前走寿星精密朔表 SHUO_KB，之后走级数）→朔日定月→两冬至间无中气置闰。节气精确到秒：1901–2049 共 3,576 个节气与高精度参照对拍，平均偏差 0 秒、p99 = 1 秒、最大 60 秒、日期全部一致。**证据**：2004/2023 闰二月、2020 闰四月、1984 闰十月、1903 闰五月、1914 旧年代朔日全部命中；1985 无闰（正月初一＝2 月 20 日）。
 
 ### 2. 全部算法自研，零第三方内嵌
 
-5.0.0 重构前，内核曾内嵌第三方历法/紫微发行包；重构后**全部移除**，农历、干支、节气、紫微安星、奇门、六壬、六爻、梅花、飞星均为本项目独立实现（内核 50 文件 5,764 行）。参考过的项目在 [NOTICE](NOTICE) 中逐条声明——只参考思路与规则，不复制代码与数据。
+5.0.0 重构前，内核曾内嵌第三方历法/紫微发行包；重构后**全部移除**，农历、干支、节气、紫微安星、奇门、六壬、六爻、梅花、飞星均为本项目独立实现（内核 61 文件 12,518 行）。参考过的项目在 [NOTICE](NOTICE) 中逐条声明——只参考思路与规则，不复制代码与数据。
 
-### 3. 口径显式化，分歧点名
+### 3. 算法以古籍原文为准，536 万例回归对拍证明无回归
 
-紫微闰月归属（十五含在本月）、四化取中州主流、奇门取拆补定元、六壬昼夜贵人取卯至申、刻家取一时辰 50 刻——每一条都在 [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md) 里写明，并注明「另派如何」。改动口径＝改动单一表，不藏逻辑。
+**正确性以文献为准，不以任何既有实现为准**。凡库内 18 部公版古籍有明文者，一律按原文改判：身强弱改《滴天髓》得时/得地/得势三要素、扶抑方向改《子平真诠》「强者抑之」、格局派用神补顺逆用、天乙/文昌/羊刃/孤鸾/四废按《三命通会》改正、调候逐条对《穷通宝鉴》核改 13 条、巳藏干改「丙戊庚」、纳音改「沙中金」、外格专旺/从格改按《滴天髓·独象》《顺逆》原文判、奇门补「时干入墓」并分层「三奇合吉门/三奇得使」——逐条出处见 [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md)「文献校正」节；**22 项功能的证据强度总表见 [`docs/EVIDENCE-MAP.md`](docs/EVIDENCE-MAP.md)**（原书直证 / 结构自洽 / 库外通行三档，逐项标明哪些能站住、哪些只是有交代）；文献无载者（太极贵人/金舆/红艳煞）如实标注「待考」，不伪装有据。
 
-### 4. 大功能拆小模块，全项目模块化
+在此之上做 1901–2100 全日期 × 十二时辰的回归对拍，证明重构未引入回归：八字 876,588 例、大运 1,753,176 例、紫微 1,779,456 例、奇门全家 876,588 例、黄历与农历转换 73,049 天全字段、八宅 596 例，合计约 536 万例。逐项记录见 [`docs/COMPARISON-REPORT.md`](docs/COMPARISON-REPORT.md)。
 
-奇门按「家」拆：`qimen.js`（时家转盘）、`qimen-ri.js`（日家）、`ke.js`（刻家）、`baojian.js`（宝鉴日奇）、`nianyue.js`（年家月家）、`feipan.js`（飞盘）、`ge.js`（格局）。六壬拆成 `tables.js`/`fayong.js`/`tianjiang.js`/`bifa.js`/`liuren.js`。每个文件单一职责，可单独测试。
+### 4. 口径显式化，分歧点名
 
-### 5. 三端共用一套内核
+紫微闰月归属（十五含在本月）、四化取中州主流、奇门取拆补定元、六壬昼夜贵人取卯至申、刻家取一时辰十刻（一刻十二分钟）——每一条都在 [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md) 里写明，并注明「另派如何」。改动口径＝改动单一表，不藏逻辑。
+
+### 5. 大功能拆小模块，全项目模块化
+
+奇门按「家」拆在 `src/core/mystic-gates/` 下：`hour-chart.js`（时家转盘）、`day-chart.js`（日家）、`quarter-chart.js`（刻家）、`mirror-chart.js`（宝鉴日奇）、`year-month-chart.js`（年家月家）、`flying-chart.js`（飞盘）、`patterns.js`（格局）。六壬在 `src/core/six-ren/` 下：`tables.js`/`three-transmissions.js`/`heavenly-generals.js`/`bifa.js`/`chart.js`。每个文件单一职责，可单独测试。
+
+### 6. 三端共用一套内核
 
 内核不感知任何端。小程序把 ESM 逐文件转写为 CommonJS（`tools/build-mp.js`），PWA 直接把 ESM 放到站点根目录（`tools/build-web.js`），uni-app 复用同一批模块。产物一致性由 `npm run check` 逐文件比对。
 
-### 6. 可直接托管：网页版就在仓库根目录
+### 7. 可直接托管：网页版就在仓库根目录
 
 `npm run build:web` 产出 `index.html` / `static/` / `core/` / `shared/` 到仓库根目录，EdgeOne 等静态托管平台连接仓库即可自动部署，无需额外配置构建目录。
 
 ## 设计细节
 
-- **搜索唯一入口**：四种生辰写法（国历 / 农历 / 四柱）容错解析，中文数字与全角字符一律归一；缺时辰补 14 时；命理类缺生辰走四拒绝码就地提示，查询类（今日黄历、查农历）不受限制。
+- **搜索唯一入口**：四种生辰写法（国历 / 农历 / 四柱）容错解析。输入归一化层（`src/core/features/normalizer.js`）清零宽与 BOM、全角与花式数字、上标下标、英文月份，中文数字转阿拉伯（60 余条功能词占位保护不被数字化），分隔符统一，连续数字按 14/12/8 位日期时间、6 位 YYMMDD、倒序 D-M-Y、日期后 HHMM、孤立 MMDD 拆分（9–11 位视为身份证不拆）。九种写法 `1990年6月15日` / `1990-6-15` / `1990.6.15` / `1990/6/15` / `15/6/1990` / `19900615` / 含零宽 / 全角 / 中文数字 → 同一盘。口语宜忌（「今天适合搬家吗」）转查黄历。缺时辰补 14 时；命理类缺生辰走四拒绝码就地提示，查询类（今日黄历、查农历）不受限制。
 - **结果页三分支**：单算法 / 多命中并列 / 全套排盘分组（七类），「标签：值」两栏排版，长值自动折行。
 - **开屏与动效**：开屏 1.2s 停留 + 400ms 缩放交接；页面双层视差转场；按压 120ms；弹窗「先播后摘」；柔晕呼吸光环 4400ms 常驻。
 - **深浅主题**：320ms 交叉过渡，手动优先于系统，小程序端同步 `wx.setBackgroundColor`。
@@ -112,7 +118,7 @@
 | uni-app | 3.x（可选） | DCloud | Apache-2.0 | <https://uniapp.dcloud.net.cn/> | uni-app 端构建（仅开发期） | 否 |
 | Vue 3 | 3.x（可选） | Evan You | MIT | <https://vuejs.org/> | uni-app 端框架（仅开发期） | 否 |
 
-测试为零依赖的自写断言（`tests/calendar.test.js` 66 项 + `tests/core.test.js` 50 项 + `tests/mp-shell.test.js` 29 项，合计 145 项），由 `tests/run.js` 统一执行，不需要测试框架。
+测试为零依赖的自写断言（`tests/calendar.test.js` 154 项 + `tests/core.test.js` 1104 项 + `tests/mp-shell.test.js` 33 项 + `tests/ai-entry.test.js` 14 项 + `tests/tolerance.test.js` 33 项 + `tests/geomancy.test.js` 48 项，合计 1389 项），由 `tests/run.js` 统一执行，不需要测试框架。
 
 ### 参考过的项目（仅思路，未复制代码）
 
@@ -133,34 +139,50 @@
 ```bash
 git clone https://github.com/ntars/Xael.git
 cd Xael
-npm test          # 145 项断言
+npm test          # 1389 项断言
 npm run build     # 生成网页版（根目录）与小程序产物（dist/mp-weixin）
 npm run build:uni # 校验 uni-app 壳（导入/样式约束，产物由 HBuilderX 生成）
-npm run check     # 八项发布自检
+npm run check     # 十二项发布自检
+npm run check:cites # 文献引用审计（《书名·篇名》逐条回到 refs-texts/ 底本核）
 ```
 
 作为库使用：
 
 ```javascript
-import { chart } from './src/core/bazi/bazi.js';
+import { chart } from './src/core/four-pillars/chart.js';
 const c = chart({ y: 1990, m: 6, d: 15, h: 10 });
 console.log(c.pillars.年.干支, c.pillars.月.干支, c.pillars.日.干支, c.pillars.时.干支);
 // 庚午 壬午 辛亥 癸巳
 ```
 
+## AI 接入（命令行 / MCP / 技能 / 专家包）
+
+Xael 另提供三种本机 AI 宿主接入形态（全部本地演算，无网络、无后端）：
+
+| 形态 | 入口 | 用法 |
+|---|---|---|
+| 命令行 | `bin/xael.js` | `xael ask "白玖玖，女，2005年6月9日子时 八字"` / `xael ask "今日宜忌" --text` / `xael list` / `xael schema` / `xael version`（`npm link` 后可用短命令） |
+| MCP（stdio） | `mcp/server.js` | 三个工具：`xael_analyze` / `xael_list_features` / `xael_schema`；JSON-RPC 2.0 按行分帧，Claude Desktop / Cursor 等客户端以子进程接入 |
+| 技能 | `skills/xael/SKILL.md` | AI 技能卡：何时调用、输入怎么写、status 七值怎么处理 |
+| 专家包 | `experts/xael/5.0.0/` | 专家身份卡 `agents/xael-charting-expert.md`（原盘 + 白话 + 原文依据三件套工作法） |
+
+**契约**：所有形态共用同一层 `bin/xael-api.js`（`xael/analysis@1`），命令行与 MCP 输出必然一致。
+`status` 七值：`ok` / `need_birth` / `invalid_lunar` / `invalid_pillar` / `invalid_solar` / `refused` / `rejected`；
+多命中并列时 `sections` 给出每节 `{title, text}`。冒烟覆盖见 `tests/ai-entry.test.js`（14 项）。
+
 ## 快速开始
 
 ```javascript
 // 1. 农历换算（天文朔日，不查表）
-import { solarToLunar } from './src/core/calendar/lunar2.js';
+import { solarToLunar } from './src/core/calendar/lunisolar.js';
 solarToLunar(2004, 3, 21);   // { m: 2, d: 1, isLeap: true, monthName: '闰二月' }
 
 // 2. 四柱
-import { chart } from './src/core/bazi/bazi.js';
+import { chart } from './src/core/four-pillars/chart.js';
 chart({ y: 2024, m: 2, d: 10, h: 12 }).pillars;   // 甲辰 丙寅 甲辰 庚午
 
 // 3. 黄历
-import { daily } from './src/core/huangli/daily.js';
+import { daily } from './src/core/almanac/daily.js';
 daily(2024, 2, 10).宜;
 
 // 4. 一句话走搜索链路（与端上完全一致的入口）
@@ -172,18 +194,18 @@ await analyze('排奇门 2024年12月21日 12点');
 
 | 模块 | 入口 | 导出 |
 |---|---|---|
-| calendar/solar | `src/core/calendar/solar.js` | `solarToJdn` / `jdnToSolar` / `dayNo` / `fromDayNo` / `weekday` |
+| calendar/solar | `src/core/calendar/julian.js` | `solarToJdn` / `jdnToSolar` / `dayNo` / `fromDayNo` / `weekday` |
 | calendar/astronomy | `src/core/calendar/astronomy.js` | 太阳视黄经、合朔 JDE、ΔT |
-| calendar/jieqi2 | `src/core/calendar/jieqi2.js` | `jieqiTable(y)` / `jieqiAround` |
-| calendar/lunar2 | `src/core/calendar/lunar2.js` | `solarToLunar` / `lunarToSolar` |
-| calendar/ganzhi | `src/core/calendar/ganzhi.js` | `dayGanZhi` / `monthGanZhi` / `yearGanZhiByLichun` / `hourGanZhi` / `effectiveDay` |
-| huangli/daily | `src/core/huangli/daily.js` | `daily` / `monthView` / `jieqiAround` |
+| calendar/jieqi2 | `src/core/calendar/solar-terms.js` | `jieqiTable(y)` / `jieqiAround` |
+| calendar/lunar2 | `src/core/calendar/lunisolar.js` | `solarToLunar` / `lunarToSolar` |
+| calendar/ganzhi | `src/core/calendar/sexagenary.js` | `dayGanZhi` / `monthGanZhi` / `yearGanZhiByLichun` / `hourGanZhi` / `effectiveDay` |
+| huangli/daily | `src/core/almanac/daily.js` | `daily` / `monthView` / `jieqiAround` |
 | bazi | `src/core/bazi/{bazi,pattern,shensha,dayun}.js` | `chart` / `patternOf` / `shenshaOf` / `dayunOf` |
 | ziwei | `src/core/ziwei/{ziwei,sihua}.js` | `ziweiChart` / `sihuaOf` |
 | qimen | `src/core/qimen/{qimen,qimen-ri,ke,baojian,nianyue,feipan,ge}.js` | 七种奇门排法与格局检出 |
 | liuren | `src/core/liuren/{liuren,fayong,tianjiang,bifa}.js` | `liurenChart` / `bifaOf` |
 | liuyao | `src/core/liuyao/{liuyao,gonggua,najia,wangshuai}.js` | `liuyaoChart` / `wangshuaiOf` |
-| meihua / fengshui | `src/core/meihua/meihua.js`、`src/core/fengshui/{bazhai,feixing}.js` | `meihuaChart` / `bazhaiChart` / `feixingChart` |
+| meihua / fengshui | `src/core/plum-blossom/chart.js`、`src/core/fengshui/{bazhai,feixing}.js` | `meihuaChart` / `bazhaiChart` / `feixingChart` |
 | features | `src/core/features/{registry,analyzer}.js` | `FEATURES` / `matchFeature` / `runFeature` / `analyze` |
 
 全部函数为纯函数：输入日期时间或生辰，输出结构化对象，不做 IO、不发网络请求。
@@ -204,24 +226,35 @@ Xael/
 ├── static/ core/ shared/   # 网页版资源与内核副本（同上）
 ├── src/
 │   ├── core/               # 内核（不感知任何端）
-│   │   ├── calendar/       #   solar / astronomy / jieqi2 / lunar2 / ganzhi / festival
-│   │   ├── huangli/        #   daily / jianchu / tianshen / xiu28 / position / jishen / chongsha
-│   │   ├── bazi/           #   bazi / pattern / shensha / dayun
-│   │   ├── ziwei/          #   ziwei / ziwei-support / sihua
-│   │   ├── qimen/          #   qimen / qimen-ri / ke / baojian / nianyue / feipan / ge
-│   │   ├── liuren/         #   liuren / fayong / tianjiang / tables / bifa
-│   │   ├── liuyao/         #   liuyao / gonggua / najia / wangshuai
-│   │   ├── meihua/ fengshui/  #   meihua / bazhai / feixing
-│   │   ├── common/         #   constants（字表单一真源）/ iching（64 卦）
-│   │   └── features/       #   registry（22 项功能）/ analyzer（搜索链路）
+│   │   ├── calendar/       #   julian / astronomy / solar-terms / new-moon / lunisolar /
+│   │   │                   #   sexagenary / festivals / data（VSOP87 与朔表）
+│   │   ├── almanac/        #   daily / twelve-officers / day-officers / lunar-mansions /
+│   │   │                   #   directions / clashes / activities
+│   │   ├── four-pillars/   #   chart / luck-cycles / patterns / symbolic-stars
+│   │   ├── purple-star/    #   chart / tables / transformations
+│   │   ├── mystic-gates/   #   hour-chart / day-chart / quarter-chart / mirror-chart /
+│   │   │                   #   year-month-chart / flying-chart / patterns
+│   │   ├── six-ren/        #   chart / tables / three-transmissions / heavenly-generals /
+│   │   │                   #   bifa / detail
+│   │   ├── six-lines/      #   cast / tables / strength
+│   │   ├── plum-blossom/   #   chart / interpretations
+│   │   ├── geomancy/       #   eight-mansions / flying-stars
+│   │   ├── common/         #   constants（字表单一真源）/ hexagrams（64 卦）
+│   │   └── features/       #   registry（22 项功能）/ analyzer / normalizer / render
 │   ├── shared/             # 共享层：storage / conversation / result-format / settings /
 │   │                       #          refs / theme / inflight / guard / export-image
 │   └── shells/             # 三端外壳
 │       ├── pwa/            #   index.html + static/{app.js,theme.css,sw.js} + manifest
 │       ├── mp-weixin/      #   app.js/app.json/pages/index/*
 │       └── uniapp/         #   App.vue/main.js/manifest.json/pages.json/pages/index
-├── tests/                  # calendar.test.js（66）/ core.test.js（35）/ run.js
-├── tools/                  # build-web.js / build-mp.js / preflight.js
+├── tests/                  # calendar(93) / core(207) / mp-shell(33) / ai-entry(14) /
+│                           # tolerance(33) / geomancy(35) / run.js
+├── bin/                    # xael.js（CLI）/ xael-api.js（契约层，MCP 复用）
+├── mcp/                    # server.js（stdio MCP 三工具）
+├── skills/                 # xael/SKILL.md（AI 技能卡）
+├── experts/                # xael/5.0.0/（专家包）
+├── refs-texts/             # 18 部公版古籍原书全文（仅供仓库内查证，不入发布包）
+├── tools/                  # build-web.js / build-mp.js / build-uni.js / preflight.js
 ├── docs/                   # CALIBER-NOTES.md / DEPLOY.md
 └── dist/mp-weixin/         # 小程序产物（生成，不入库）
 ```
@@ -251,7 +284,8 @@ ECMAScript 2015+；Node ≥ 18 与现代浏览器直跑；微信小程序经 `to
 1. 补齐毕法条目与更多奇门格局（需逐条给判定条件与文献出处）；
 2. 六爻纳甲补充神煞层与六亲旺衰的月日加权细则；
 3. 官网 <https://x.ntars.cn/> 内容完善与文档站；
-4. 小程序分包与首屏体积进一步优化。
+4. 交节边界 3 例（见对拍报告）随天文级数精化收敛；
+5. 小程序分包与首屏体积进一步优化。
 
 ## 贡献
 
