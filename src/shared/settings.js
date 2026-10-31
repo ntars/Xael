@@ -288,6 +288,7 @@ const BOOKS = [
   { id: 'liuren-daquan', bookTitle: '《六壬大全》', 作者: '明·佚名（四库本）' },
   { id: 'bifa', bookTitle: '《毕法赋》一百法', 作者: '清·凌福之（四库《六壬大全》卷九/卷十一）' },
   { id: 'xingli-kaoyuan', bookTitle: '《御定星历考原》（三元月九星、二十八宿禽象、建除黄黑道）', 作者: '清·李光地等奉敕撰' },
+  { id: 'yuxia-ji', bookTitle: '《玉匣記》（财神福神方位、三元日白与时白、二十八宿值日吉凶）', 作者: '題晋·許遜（通行本）' },
   { id: 'xieji-bianfang', bookTitle: '《钦定协纪辨方书》（择日义例、宜忌吉凶神）', 作者: '清·允禄等奉敕撰' },
   { id: 'jianchu', bookTitle: '建除十二神·黄黑道口诀', 作者: '传统口诀（作者不详传本）' },
   { id: 'pengzu', bookTitle: '彭祖百忌', 作者: '传为彭祖（作者不详传本）' },
