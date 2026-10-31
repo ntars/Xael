@@ -71,7 +71,7 @@
 
 ### 3. 算法以古籍原文为准，536 万例回归对拍证明无回归
 
-**正确性以文献为准，不以任何既有实现为准**。凡库内 18 部公版古籍有明文者，一律按原文改判：身强弱改《滴天髓》得时/得地/得势三要素、扶抑方向改《子平真诠》「强者抑之」、格局派用神补顺逆用、天乙/文昌/羊刃/孤鸾/四废按《三命通会》改正、调候逐条对《穷通宝鉴》核改 13 条、巳藏干改「丙戊庚」、纳音改「沙中金」、外格专旺/从格改按《滴天髓·独象》《顺逆》原文判、奇门补「时干入墓」并分层「三奇合吉门/三奇得使」——逐条出处见 [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md)「文献校正」节；**22 项功能的证据强度总表见 [`docs/EVIDENCE-MAP.md`](docs/EVIDENCE-MAP.md)**（原书直证 / 结构自洽 / 库外通行三档，逐项标明哪些能站住、哪些只是有交代）；文献无载者（太极贵人/金舆/红艳煞）如实标注「待考」，不伪装有据。
+**正确性以文献为准，不以任何既有实现为准**。凡库内 20 部公版古籍有明文者，一律按原文改判：身强弱改《滴天髓》得时/得地/得势三要素、扶抑方向改《子平真诠》「强者抑之」、格局派用神补顺逆用、天乙/文昌/羊刃/孤鸾/四废按《三命通会》改正、调候逐条对《穷通宝鉴》核改 13 条、巳藏干改「丙戊庚」、纳音改「沙中金」、外格专旺/从格改按《滴天髓·独象》《顺逆》原文判、奇门补「时干入墓」并分层「三奇合吉门/三奇得使」——逐条出处见 [`docs/CALIBER-NOTES.md`](docs/CALIBER-NOTES.md)「文献校正」节；**22 项功能的证据强度总表见 [`docs/EVIDENCE-MAP.md`](docs/EVIDENCE-MAP.md)**（原书直证 / 结构自洽 / 库外通行三档，逐项标明哪些能站住、哪些只是有交代）；文献无载者（太极贵人/金舆/红艳煞）如实标注「待考」，不伪装有据。
 
 在此之上做 1901–2100 全日期 × 十二时辰的回归对拍，证明重构未引入回归：八字 876,588 例、大运 1,753,176 例、紫微 1,779,456 例、奇门全家 876,588 例、黄历与农历转换 73,049 天全字段、八宅 596 例，合计约 536 万例。逐项记录见 [`docs/COMPARISON-REPORT.md`](docs/COMPARISON-REPORT.md)。
 
@@ -118,7 +118,7 @@
 | uni-app | 3.x（可选） | DCloud | Apache-2.0 | <https://uniapp.dcloud.net.cn/> | uni-app 端构建（仅开发期） | 否 |
 | Vue 3 | 3.x（可选） | Evan You | MIT | <https://vuejs.org/> | uni-app 端框架（仅开发期） | 否 |
 
-测试为零依赖的自写断言（`tests/calendar.test.js` 154 项 + `tests/core.test.js` 1104 项 + `tests/mp-shell.test.js` 33 项 + `tests/ai-entry.test.js` 14 项 + `tests/tolerance.test.js` 33 项 + `tests/geomancy.test.js` 48 项，合计 1389 项），由 `tests/run.js` 统一执行，不需要测试框架。
+测试为零依赖的自写断言（`tests/calendar.test.js` 154 项 + `tests/core.test.js` 1117 项 + `tests/mp-shell.test.js` 33 项 + `tests/ai-entry.test.js` 14 项 + `tests/tolerance.test.js` 33 项 + `tests/geomancy.test.js` 48 项，合计 1399 项），由 `tests/run.js` 统一执行，不需要测试框架。
 
 ### 参考过的项目（仅思路，未复制代码）
 
@@ -139,7 +139,7 @@
 ```bash
 git clone https://github.com/ntars/Xael.git
 cd Xael
-npm test          # 1389 项断言
+npm test          # 1399 项断言
 npm run build     # 生成网页版（根目录）与小程序产物（dist/mp-weixin）
 npm run build:uni # 校验 uni-app 壳（导入/样式约束，产物由 HBuilderX 生成）
 npm run check     # 十二项发布自检

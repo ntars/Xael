@@ -153,7 +153,7 @@ async function run() {
   // 参考文献（长文）
   p.goAbout();
   p.onRow({ currentTarget: { dataset: { id: 'refs' } } });
-  ok('参考文献条目数', p.data.detailItems.length === 36, String(p.data.detailItems.length));
+  ok('参考文献条目数', p.data.detailItems.length === 39, String(p.data.detailItems.length));
 
   // 清除数据
   p.onRow({ currentTarget: { dataset: { id: 'clear' } } });

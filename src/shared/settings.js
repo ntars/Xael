@@ -265,6 +265,7 @@ const BOOKS = [
   { id: 'transformations', bookTitle: '紫微四化表（中州派口径）', 作者: '中州派传本 · 陆斌兆（现代）' },
   // 三式推演
   { id: 'qimen-tongzong', bookTitle: '《奇门遁甲统宗》（时家/年家/月家诸篇）', 作者: '明·佚名（传本）' },
+  { id: 'dunjia-yanyi', bookTitle: '《遁甲演义》（三诈五假、九遁格）', 作者: '明·程道生（四库本）' },
   { id: 'qimen-jing', bookTitle: '《烟波钓叟歌》', 作者: '传本（作者不详）' },
   { id: 'qimen-geju', bookTitle: '《奇门遁甲的预测依据与信息象意》', 作者: '易德轩 / 玄霖易学（现代整理）' },
   { id: 'zengshan', bookTitle: '《增删卜易》', 作者: '清·野鹤老人' },
@@ -286,6 +287,8 @@ const BOOKS = [
   { id: 'xinyin-fu', bookTitle: '《心印赋》', 作者: '传本' },
   { id: 'liuren-daquan', bookTitle: '《六壬大全》', 作者: '明·佚名（四库本）' },
   { id: 'bifa', bookTitle: '《毕法赋》一百法', 作者: '清·凌福之（四库《六壬大全》卷九/卷十一）' },
+  { id: 'xingli-kaoyuan', bookTitle: '《御定星历考原》（三元月九星、二十八宿禽象、建除黄黑道）', 作者: '清·李光地等奉敕撰' },
+  { id: 'xieji-bianfang', bookTitle: '《钦定协纪辨方书》（择日义例、宜忌吉凶神）', 作者: '清·允禄等奉敕撰' },
   { id: 'jianchu', bookTitle: '建除十二神·黄黑道口诀', 作者: '传统口诀（作者不详传本）' },
   { id: 'pengzu', bookTitle: '彭祖百忌', 作者: '传为彭祖（作者不详传本）' },
   { id: 'taishen', bookTitle: '胎神逐日方位', 作者: '传统口诀（作者不详传本）' },
