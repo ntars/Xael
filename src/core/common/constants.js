@@ -4,10 +4,16 @@
  * 大白话：这里放所有术数模块共用的「字表」和「关系表」。
  * 单一真源原则：天干、地支、五行、十二长生等所有字表只在这里定义一次，
  * 其他模块一律从这里 import，避免多处各写一份造成口径漂移。
+ *
+ * 文献出处（逐表）：
+ *   · 天干地支配五行阴阳：《渊海子平·干支体象》《三命通会·论五行生尅》；
+ *   · 地支藏干（人元司事）：《三命通会·论人元司事》（巳＝丙十八日→戊七日→庚五日，故序为丙戊庚）；
+ *   · 六十甲子与纳音：《三命通会·六十甲子纳音》（第 15 位为「沙中金」）；
+ *   · 十二长生：《三命通会·论五行旺相休囚死并寄生十二宫》。
  */
 
 /** 十天干：字 / 五行 / 阴阳（0=阳, 1=阴） */
-export const GAN = [
+export const STEMS = [
   { z: '甲', wx: '木', yy: 0 },
   { z: '乙', wx: '木', yy: 1 },
   { z: '丙', wx: '火', yy: 0 },
@@ -21,7 +27,7 @@ export const GAN = [
 ];
 
 /** 十二地支：字 / 五行（本气）/ 阴阳 / 生肖 */
-export const ZHI = [
+export const BRANCHES = [
   { z: '子', wx: '水', yy: 0, sx: '鼠' },
   { z: '丑', wx: '土', yy: 1, sx: '牛' },
   { z: '寅', wx: '木', yy: 0, sx: '虎' },
@@ -38,12 +44,12 @@ export const ZHI = [
 
 /**
  * 六十甲子（按序生成：干序 = i % 10，支序 = i % 12）。
- * 注意：每项是「[干, 支]」二元数组而不是字符串——内核里大量用 JIAZI[i][0] 取干、
- * JIAZI[i][1] 取支（liuren / liuyao / qimen 都是这个取法），也曾有模块把它当字符串
+ * 注意：每项是「[干, 支]」二元数组而不是字符串——内核里大量用 SEXAGENARY[i][0] 取干、
+ * SEXAGENARY[i][1] 取支（liuren / liuyao / qimen 都是这个取法），也曾有模块把它当字符串
  * 索引，导致 dayGz[0] 拿到 '甲' 而不是 '甲子'。统一为数组后取法唯一，两字干支可用
- * gzText(i) 或 JIAZI[i].join('') 得到。
+ * sexagenaryText(i) 或 SEXAGENARY[i].join('') 得到。
  */
-export const JIAZI = Array.from({ length: 60 }, (_, i) => [GAN[i % 10].z, ZHI[i % 12].z]);
+export const SEXAGENARY = Array.from({ length: 60 }, (_, i) => [STEMS[i % 10].z, BRANCHES[i % 12].z]);
 
 /** 地支藏干表（本气 + 中气 + 余气，传统口诀） */
 export const CANGGAN = {
@@ -52,7 +58,9 @@ export const CANGGAN = {
   寅: ['甲', '丙', '戊'],
   卯: ['乙'],
   辰: ['戊', '乙', '癸'],
-  巳: ['丙', '庚', '戊'],
+  // 巳：本气丙（司事十八日）、中气戊（七日）、余气庚（五日）
+  // 依《三命通会·论人元司事》「巳中有戊土七日、庚金长生五日、丙火一十八日」
+  巳: ['丙', '戊', '庚'],
   午: ['丁', '己'],
   未: ['己', '丁', '乙'],
   申: ['庚', '壬', '戊'],
@@ -71,7 +79,7 @@ export const NAYIN = [
   '海中金', '炉中火', '大林木', '路旁土', '剑锋金',
   '山头火', '涧下水', '城头土', '白蜡金', '杨柳木',
   '泉中水', '屋上土', '霹雳火', '松柏木', '长流水',
-  '砂石金', '山下火', '平地木', '壁上土', '金箔金',
+  '沙中金', '山下火', '平地木', '壁上土', '金箔金',
   '覆灯火', '天河水', '大驿土', '钗钏金', '桑柘木',
   '大溪水', '沙中土', '天上火', '石榴木', '大海水',
 ];
@@ -91,7 +99,7 @@ export function xunkongOf(jiaziIndex) {
   // 甲午旬(30-39)空辰巳、甲辰旬(40-49)空寅卯、甲寅旬(50-59)空子丑
   const xun = Math.floor(jiaziIndex / 10); // 0..5
   const kong = [10, 8, 6, 4, 2, 0][xun]; // 空亡起支序
-  return [ZHI[kong % 12].z, ZHI[(kong + 1) % 12].z];
+  return [BRANCHES[kong % 12].z, BRANCHES[(kong + 1) % 12].z];
 }
 
 /** 十二长生名（八字用，阴阳干分列口径） */
@@ -99,7 +107,16 @@ export const CS12_NAMES = ['长生', '沐浴', '冠带', '临官', '帝旺', '�
 
 /**
  * 八字十二长生表：日干 → 从某支起的十二状态序列（首项=长生所在支）。
- * 阳干顺行、阴干逆行（传统子平口径）。
+ *
+ * 依据《三命通会·论天干隂阳生死》：
+ *   「赋曰：阳生阴死，阳死阴生，循环逆顺，变化见矣。」——故阳干顺行、阴干逆行。
+ *   同篇逐干给出实例，可逐条对表：
+ *   「甲木……长生于亥」（本表甲首项亥 ✓）；
+ *   「乙木……禄到卯……乙木生于午地……故乙木死于亥」（本表乙首项午、亥位为第七「死」✓）；
+ *   同篇又明「乙禄在午」为「六阳消尽一阴复生」之地，与「阳生阴死」一理。
+ *   《三命通会·论五行旺相休囚死并寄生十二宫》另给十二宫名序
+ *   「长生、沐浴、冠带、临官、帝旺、衰、病、死、墓、绝、胎、养，循环无端，周而复始」
+ *   与别名「一曰受气又曰绝曰胞……五曰沐浴又曰败……十二曰墓又曰库」，本表名序与之相同。
  */
 export const CS12_GAN = {
   甲: ['亥', '子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌'],
@@ -126,8 +143,8 @@ export function cs12Of(gan, zhi) {
 
 /** 十神：以日干为我，求某干与我的关系名。阳阳/阴阴=偏，异性=正 */
 export function shiShen(dayGan, otherGan) {
-  const dg = GAN.find((g) => g.z === dayGan);
-  const og = GAN.find((g) => g.z === otherGan);
+  const dg = STEMS.find((g) => g.z === dayGan);
+  const og = STEMS.find((g) => g.z === otherGan);
   const rel = (og.wx === dg.wx) ? '比肩' : (SHENG[dg.wx] === og.wx ? '食神' : (SHENG[og.wx] === dg.wx ? '正印' : (KE[og.wx] === dg.wx ? '七杀' : '正官')));
   // 上面的粗判需要精确化：按五行+阴阳出十神
   const dWx = dg.wx, oWx = og.wx;
@@ -142,7 +159,7 @@ export function shiShen(dayGan, otherGan) {
 
 /** 胎元：月柱干进一位、支进三位 */
 export function taiyuanOf(monthGanIdx, monthZhiIdx) {
-  return GAN[(monthGanIdx + 1) % 10].z + ZHI[(monthZhiIdx + 3) % 12].z;
+  return STEMS[(monthGanIdx + 1) % 10].z + BRANCHES[(monthZhiIdx + 3) % 12].z;
 }
 
 /** 五鼠遁：由日干求时干。时支序 t（0..11），日干序 g（0..9） */

@@ -31,6 +31,7 @@ const GENERATED = ['index.html', 'offline.html', '404.html', 'manifest.webmanife
 /** 递归收集目录下所有文件（相对路径，posix 分隔） */
 function walk(dir, base = dir, acc = []) {
   for (const name of readdirSync(dir)) {
+    if (name === '.DS_Store' || name.startsWith('._')) continue; // macOS 元数据垃圾，不入产物
     const p = join(dir, name);
     if (statSync(p).isDirectory()) walk(p, base, acc);
     else acc.push(relative(base, p).split('\\').join('/'));

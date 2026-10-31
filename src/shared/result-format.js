@@ -48,8 +48,8 @@ export function isBlockBoundary(line) {
 
 /**
  * 是否两栏行：标签 2–5 个汉字，值 1–40 字、不含句号与换行。
- * 旧版有两处口径差异（原实现按「标签≤5 且值≤40」后仍直接排版）：
- *   · 值里带「，」但不超过 40 字 → 旧版同样走两栏，这里保持一致，允许多分句；
+ * 两栏口径的细节约定：
+ *   · 值里带「，」但不超过 40 字 → 仍走两栏，允许多分句；
  *   · 值里带「。」 → 一定是整句叙述，走整行段落。
  */
 export function isKvPair(label, value) {
@@ -133,7 +133,7 @@ export function formatText(text) {
 
 /**
  * 是否全套排盘：结果里有 ≥2 项且来自两门以上
- * （旧版的「全套排盘」入口已经取消，这里只用于把「一句话命中多门」按大类归组。）
+ * （「全套排盘」整盘入口已取消，这里只用于把「一句话命中多门」按大类归组。）
  */
 export function groupBySection(items) {
   const order = ['万年历黄历', '八字命理', '紫微斗数', '六爻占卜', '奇门遁甲', '梅花易数', '风水堪舆'];
@@ -165,9 +165,9 @@ export function buildResultView(results) {
     const f = formatText(r.text);
     return {
       key: r.key,
-      名: r.名,
-      短名: r.短名,
-      title: f.title || r.短名 || r.名 || '',
+      name: r.name,
+      shortName: r.shortName,
+      title: f.title || r.shortName || r.name || '',
       lead: f.lead,
       blocks: f.blocks,
       tailNote: f.tailNote,

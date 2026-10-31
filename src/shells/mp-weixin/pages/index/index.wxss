@@ -3,9 +3,9 @@
    由 tools/build-mp.js 从 src/shells/pwa/static/theme.css 派生同一套数值，这里按 WXSS 习惯压平。 */
 
 /* 一、设计变量（浅色为基线） */
-page { --nt-bg: #ffffff; --nt-paper: #f5f5f5; --nt-elevated: #ffffff; --nt-ink: #000000; --nt-text-2: #666666; --nt-text-50: rgba(0, 0, 0, 0.6); --nt-text-20: rgba(0, 0, 0, 0.56); --nt-foot: rgba(0, 0, 0, 0.55); --nt-placeholder: #6e6e73; --nt-danger: #bf3f12; --nt-halo-soft: rgba(0, 0, 0, 0.1); --nt-halo-glow: rgba(0, 0, 0, 0.2); --nt-mask: rgba(0, 0, 0, 0.32); --wx-jin: #6b6b6b; --wx-mu: #1a7f37; --wx-shui: #1f5fbf; --wx-huo: #c62828; --wx-tu: #7d6417; --nt-yi: #1a7f37; --nt-ji: #c62828; --b-chevron: 1.5px; --b-ring: 1.5px; --r-card: 25px; --r-panel: 24px; --r-pill: 999px; --r-md: 12px; --nav-h: 50px; --gutter: 24px; --gap: 16px; --logo-w: 64.27px; --logo-h: 72px; --logo-splash-w: 85.69px; --logo-splash-h: 96px; --ic-chevron-w: 8.8628px; --ic-chevron-h: 17.0606px; --ic-search-w: 19.7806px; --ic-search-h: 19.5628px; --pill-h: 48px; --pill-w: 272px; --row-h: 84px; --btn-h: 48px; --dual-gap: 48px; --modal-w: 354px; --modal-h: 184px; --modal-btn-h: 44px; --modal-btn-gap: 36px; --fs-h: 17px; --lh-h: 20px; --fs-xl: 22px; --lh-xl: 26px; --fs-splash: 28px; --lh-splash: 33px; --fs-body-15: 15px; --lh-15: 18px; --fs-body: 16px; --fs-note: 12px; --lh-note: 14px; --fs-sub: 13px; --fs-cap: 11px; --lh-long: 18px; --fw-bold: 700; --fw-mid: 600; --fw-reg: 400; --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); --d-press: 120ms; --d-drawer: 280ms; --d-page: 320ms; --d-theme: 320ms; --d-splash: 400ms; --d-modal-out: 200ms; --d-halo: 4400ms; --halo-gap: 1px; --w-tablet: 640px; --w-desktop: 720px; --safe-top: 59px; --safe-bottom: 34px; --band-top: calc(var(--safe-top) + var(--nav-h)); --band-bottom: calc(var(--safe-bottom) + 12px + 28px); height: 100%; margin: 0; padding: 0; background: var(--nt-bg); color: var(--nt-ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif; font-size: var(--fs-body); line-height: 1.7; display: flex; flex-direction: column; overflow: hidden }
+page { --nt-bg: #ffffff; --nt-paper: #f5f5f5; --nt-elevated: #ffffff; --nt-ink: #000000; --nt-text-2: #666666; --nt-text-50: rgba(0, 0, 0, 0.6); --nt-text-20: rgba(0, 0, 0, 0.56); --nt-foot: rgba(0, 0, 0, 0.55); --nt-placeholder: #6e6e73; --nt-danger: #bf3f12; --nt-halo-soft: rgba(0, 0, 0, 0.1); --nt-halo-glow: rgba(0, 0, 0, 0.2); --nt-mask: rgba(0, 0, 0, 0.32); --wx-jin: #6b6b6b; --wx-mu: #1a7f37; --wx-shui: #1f5fbf; --wx-huo: #c62828; --wx-tu: #7d6417; --nt-yi: #1a7f37; --nt-ji: #c62828; --b-chevron: 1.5px; --b-ring: 1.5px; --r-card: 25px; --r-panel: 24px; --r-pill: 999px; --r-md: 12px; --nav-h: 50px; --gutter: 24px; --gap: 16px; --logo-w: 64.27px; --logo-h: 72px; --logo-splash-w: 85.69px; --logo-splash-h: 96px; --ic-chevron-w: 8.8628px; --ic-chevron-h: 17.0606px; --ic-search-w: 19.7806px; --ic-search-h: 19.5628px; --pill-h: 48px; --pill-w: 272px; --row-h: 84px; --btn-h: 48px; --dual-gap: 48px; --modal-w: 354px; --modal-h: 184px; --modal-btn-h: 44px; --modal-btn-gap: 36px; --fs-h: 17px; --lh-h: 20px; --fs-xl: 22px; --lh-xl: 26px; --fs-splash: 28px; --lh-splash: 33px; --fs-body-15: 15px; --lh-15: 18px; --fs-body: 16px; --fs-note: 12px; --lh-note: 14px; --fs-sub: 13px; --fs-cap: 11px; --lh-long: 18px; --fw-bold: 700; --fw-mid: 600; --fw-reg: 400; --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); --d-press: 120ms; --d-drawer: 280ms; --d-page: 320ms; --d-theme: 320ms; --d-splash: 400ms; --d-modal-out: 200ms; --d-halo: 4400ms; --d-ph-rotate: 44000ms; --halo-gap: 1px; --w-tablet: 640px; --w-desktop: 720px; --safe-top: 59px; --safe-bottom: 34px; --band-top: calc(var(--safe-top) + var(--nav-h)); --band-bottom: calc(var(--safe-bottom) + 12px + 28px); height: 100%; margin: 0; padding: 0; background: var(--nt-bg); color: var(--nt-ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif; font-size: var(--fs-body); line-height: 1.7; display: flex; flex-direction: column; overflow: hidden }
 /* 二、深色（html 挂 .nt-dark） */
-.nt-dark { color-scheme: dark; --nt-bg: #000000; --nt-paper: #1a1a1a; --nt-elevated: #2c2c2e; --nt-ink: #ffffff; --nt-text-2: #a1a1a1; --nt-text-50: rgba(255, 255, 255, 0.68); --nt-text-20: rgba(255, 255, 255, 0.5); --nt-foot: rgba(255, 255, 255, 0.48); --nt-placeholder: rgba(255, 255, 255, 0.48); --nt-danger: #ff5733; --nt-halo-soft: rgba(0, 0, 0, 0.1); --nt-halo-glow: rgba(0, 0, 0, 0.24); --nt-mask: rgba(0, 0, 0, 0.48); --wx-jin: #d4c89a; --wx-mu: #4ade80; --wx-shui: #60a5fa; --wx-huo: #f87171; --wx-tu: #d6b25e; --nt-yi: #4ade80; --nt-ji: #f87171 }
+.nt-dark { color-scheme: dark; --nt-bg: #000000; --nt-paper: #1a1a1a; --nt-elevated: #2c2c2e; --nt-ink: #ffffff; --nt-text-2: #a1a1a1; --nt-text-50: rgba(255, 255, 255, 0.68); --nt-text-20: rgba(255, 255, 255, 0.5); --nt-foot: rgba(255, 255, 255, 0.48); --nt-placeholder: rgba(255, 255, 255, 0.48); --nt-danger: #ff5733; --nt-halo-soft: rgba(255, 255, 255, 0.1); --nt-halo-glow: rgba(255, 255, 255, 0.24); --nt-mask: rgba(0, 0, 0, 0.48); --wx-jin: #d4c89a; --wx-mu: #4ade80; --wx-shui: #60a5fa; --wx-huo: #f87171; --wx-tu: #d6b25e; --nt-yi: #4ade80; --nt-ji: #f87171 }
 /* 三、页面基线 */
 button { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; tap-highlight-color: transparent }
 input { margin: 0; font: inherit; color: inherit }
@@ -18,7 +18,7 @@ a { color: inherit }
 /* 四、导航与页头 */
 .nt-nav { position: relative; height: var(--nav-h); margin-top: var(--safe-top); flex-shrink: 0 }
 .nt-nav-title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: var(--fs-h); line-height: var(--lh-h); font-weight: var(--fw-mid); white-space: nowrap }
-.nt-nav-about { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; height: 44px; min-width: 44px; padding: 0 4px; font-size: var(--fs-h); line-height: var(--lh-h); font-weight: var(--fw-mid) }
+.nt-nav-about { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: flex-start; box-sizing: border-box; height: 44px; min-width: 44px; padding: 0 4px; font-size: var(--fs-h); line-height: var(--lh-h); font-weight: var(--fw-mid) }
 .nt-nav-back { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: flex-start; width: 44px; height: 44px }
 .nt-nav-back:active,
 .nt-nav-about:active { opacity: 0.6 }
@@ -36,18 +36,18 @@ a { color: inherit }
 .nt-i-chev-danger { width: var(--ic-chevron-w); height: var(--ic-chevron-h) }
 .nt-i-search { width: var(--ic-search-w); height: var(--ic-search-h) }
 .nt-dark .nt-icon { filter: invert(1) }
-.nt-dark .nt-i-chev-danger { filter: brightness(1.33) }  /* 深色红箭头只提亮：invert 会把 #BF3F12 反成青（旧仓 theme.wxss:1036 同款教训） */
+.nt-dark .nt-i-chev-danger { filter: brightness(1.33) }  /* 深色红箭头只提亮：invert 会把 #BF3F12 反成青，故用 brightness */
 /* 六、首屏（品牌 + 搜索胶囊） */
 .nt-hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 var(--gutter) calc(var(--band-top) - var(--band-bottom)) }
 .nt-hero-logo,
 .nt-brand-logo,
 .nt-splash-logo { background-color: var(--nt-bg) }
 .nt-hero-logo { width: var(--logo-w); height: var(--logo-h); flex-shrink: 0 }
-.nt-hero-title { margin-top: var(--sp-4); font-size: var(--fs-xl); line-height: var(--lh-xl); font-weight: var(--fw-bold); letter-spacing: 0.02em }
+.nt-hero-title { margin-top: var(--sp-4); font-size: var(--fs-xl); line-height: var(--lh-xl); font-weight: var(--fw-bold) }
 .nt-hero-note { margin-top: var(--sp-4); font-size: var(--fs-note); line-height: var(--lh-note); font-weight: var(--fw-reg); color: var(--nt-foot); text-align: center }
 .nt-pill { position: relative; box-sizing: border-box; display: flex; align-items: center; height: var(--pill-h); padding: 0 0 0 var(--gutter); background: var(--nt-paper); border-radius: var(--r-pill) }
 .nt-hero-pill { margin-top: var(--sp-4); width: var(--pill-w); max-width: 100% }
-.nt-halo { position: absolute; left: calc(0px - var(--halo-gap)); right: calc(0px - var(--halo-gap)); top: calc(0px - var(--halo-gap)); bottom: calc(0px - var(--halo-gap)); border-radius: var(--r-pill); pointer-events: none; animation: nt-pill-halo var(--d-halo) infinite }
+.nt-halo { position: absolute; left: calc(0px - var(--halo-gap)); right: calc(0px - var(--halo-gap)); top: calc(0px - var(--halo-gap)); bottom: calc(0px - var(--halo-gap)); border-radius: var(--r-pill); pointer-events: none; animation: nt-pill-halo var(--d-halo) var(--ease-standard) infinite }
 @keyframes nt-pill-halo { 0%,
   100% {
     box-shadow: 0 0 2px 0 var(--nt-halo-soft) }
@@ -59,6 +59,18 @@ a { color: inherit }
 .nt-ph { position: absolute; left: var(--gutter); right: var(--pill-h); top: 0; height: var(--pill-h); overflow: hidden; pointer-events: none; opacity: 1; transition: opacity var(--d-press) var(--ease-standard) }
 .nt-pill.nt-ph-off .nt-ph { opacity: 0 }
 .nt-ph-item { height: var(--pill-h); line-height: var(--pill-h); font-size: var(--fs-h); color: var(--nt-placeholder); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.nt-ph-track { display: flex; flex-direction: column; animation: nt-ph-step var(--d-ph-rotate) var(--ease-standard) infinite }
+@keyframes nt-ph-step {
+  0%, 11.364% { transform: translateY(0) }
+  12.5%, 23.864% { transform: translateY(-48px) }
+  25%, 36.364% { transform: translateY(-96px) }
+  37.5%, 48.864% { transform: translateY(-144px) }
+  50%, 61.364% { transform: translateY(-192px) }
+  62.5%, 73.864% { transform: translateY(-240px) }
+  75%, 86.364% { transform: translateY(-288px) }
+  87.5%, 98.864% { transform: translateY(-336px) }
+  100% { transform: translateY(-384px) }
+}
 .nt-pill-search { flex: 0 0 var(--pill-h); display: flex; align-items: center; justify-content: center; width: var(--pill-h); height: var(--pill-h); background: transparent; border: 0; transition: opacity var(--d-press) var(--ease-standard), transform var(--d-press) var(--ease-standard) }
 .nt-pill-search:active { opacity: 0.6; transform: scale(0.88) }
 /* 七、按钮 */
@@ -139,7 +151,7 @@ to { opacity: 0; transform: translateY(8px) }
 .nt-splash { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 200; background: var(--nt-bg); display: flex; flex-direction: column; align-items: center; justify-content: center }
 .nt-splash-brand { display: flex; flex-direction: column; align-items: center }
 .nt-splash-logo { width: var(--logo-splash-w); height: var(--logo-splash-h) }
-.nt-splash-name { margin-top: var(--sp-4); font-size: var(--fs-splash); line-height: var(--lh-splash); font-weight: var(--fw-bold); letter-spacing: 0.04em }
+.nt-splash-name { margin-top: var(--sp-4); font-size: var(--fs-splash); line-height: var(--lh-splash); font-weight: var(--fw-bold) }
 .nt-splash-sub { margin-top: var(--sp-2); font-size: var(--fs-note); line-height: var(--lh-note); font-weight: var(--fw-reg); color: var(--nt-foot); text-align: center }
 .nt-splash.nt-splash-out { animation: nt-splash-bg var(--d-splash) var(--ease-standard) both; pointer-events: none }
 .nt-splash.nt-splash-out .nt-splash-brand { animation: nt-splash-brand-out var(--d-splash) var(--ease-standard) both }
@@ -167,13 +179,13 @@ to { opacity: 1; transform: translateY(0) }
 .nt-layer.front { z-index: 3 }
 .nt-dim { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 2; background: #000000; opacity: 0; pointer-events: none }
 @keyframes nt-tf-in { from {
-    opacity: 0 }
-to { opacity: 1 }
+    transform: translateX(100%) }
+to { transform: translateX(0) }
 }
 
 @keyframes nt-tf-out { from {
-    opacity: 1 }
-to { opacity: 0 }
+    transform: translateX(0) }
+to { transform: translateX(100%) }
 }
 
 @keyframes nt-px-fwd { from {

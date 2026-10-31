@@ -110,6 +110,7 @@
   --d-splash: 400ms;
   --d-modal-out: 200ms;
   --d-halo: 4400ms;
+  --d-ph-rotate: 44s;
   --halo-gap: 1px;
 
   /* 断点宽度 */
@@ -138,8 +139,9 @@
   --nt-foot: rgba(255, 255, 255, 0.48);
   --nt-placeholder: rgba(255, 255, 255, 0.48);
   --nt-danger: #ff5733;
-  --nt-halo-soft: rgba(0, 0, 0, 0.1);
-  --nt-halo-glow: rgba(0, 0, 0, 0.24);
+  /* 深色底上墨色晕被"黑"吞掉 → 换淡白；纯黑对比度高，柔晕比浅色略强 */
+  --nt-halo-soft: rgba(255, 255, 255, 0.1);
+  --nt-halo-glow: rgba(255, 255, 255, 0.24);
   --nt-mask: rgba(0, 0, 0, 0.48);
   --wx-jin: #d4c89a;
   --wx-mu: #4ade80;
@@ -430,6 +432,24 @@ a {
   }
 }
 
+/* 滚动词条分档（与 settings.js 的 searchHints 条数绑定：8 条 → 8 档，每档 12.5%）
+ * 每档 = 停留 11.364%（5.0s）+ 上滑 1.136%（0.5s）= 12.5%（5.5s），一圈 44s。
+ * 位移写成 48px 的整数倍（48 = --pill-h）：keyframes 内用 calc(var(--pill-h)*n) 在部分浏览器
+ * 会被整条丢弃、动画静默失效，故写死字面值；末档 −384 正好等于「整列 432 − 窗口 48」，
+ * 末尾那份首条副本顶进窗口，回 0% 无缝衔接。
+ * ⚠️ 改条数要同步改：档位个数与百分比 + --d-ph-rotate（条数 × 5.5s）。 */
+@keyframes nt-ph-step {
+  0%,     11.364% { transform: translateY(0); }
+  12.5%,  23.864% { transform: translateY(-48px); }
+  25%,    36.364% { transform: translateY(-96px); }
+  37.5%,  48.864% { transform: translateY(-144px); }
+  50%,    61.364% { transform: translateY(-192px); }
+  62.5%,  73.864% { transform: translateY(-240px); }
+  75%,    86.364% { transform: translateY(-288px); }
+  87.5%,  98.864% { transform: translateY(-336px); }
+  100%            { transform: translateY(-384px); }
+}
+
 .nt-pill-input {
   flex: 1;
   min-width: 0;
@@ -462,6 +482,22 @@ a {
 
 .nt-pill.nt-ph-off .nt-ph {
   opacity: 0;
+}
+
+/* 词条整列：8 条 + 1 份首条副本 = 9 行，靠 keyframes 分档上滑
+ * （刻意不做匀速滚动——连续慢滚的词条永远读不完整；停留 5s 才够读完一条真实问句）。
+ * 档位与节奏见文件末尾 @keyframes nt-ph-step。 */
+.nt-ph-track {
+  display: flex;
+  flex-direction: column;
+  animation: nt-ph-step var(--d-ph-rotate) var(--ease-standard) infinite;
+}
+
+/* 系统开启「减弱动态效果」→ 不轮播（壳层此时只渲染一条文案，动画也一并关掉） */
+@media (prefers-reduced-motion: reduce) {
+  .nt-ph-track {
+    animation: none;
+  }
 }
 
 .nt-ph-item {
@@ -971,7 +1007,6 @@ a.nt-setfoot-line:active {
   font-size: var(--fs-splash);
   line-height: var(--lh-splash);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.04em;
 }
 
 .nt-splash-sub {
@@ -1159,8 +1194,6 @@ a.nt-setfoot-line:active {
 
 /* 单层滑动（不叠双层时用） */
 @keyframes nt-tf-in-back { from { transform: translateX(-33%); } to { transform: none; } }
-
-}
 
 @keyframes nt-slide-in-back {
   from {
@@ -1410,6 +1443,6 @@ a.nt-setfoot-line:active {
   }
 }
 
-/* PWA 端根节点已挂 .nt-page-safe（padB 34），层内不再重复避让（对齐旧版 PWA 口径；
+/* PWA 端根节点已挂 .nt-page-safe（padB 34），层内不再重复避让（避免双重底部避让；
    小程序/uni-app 无 page-safe 根，仍走 .nt-layer 自身的 padB） */
 .nt-layer-web { padding-bottom: 0; }

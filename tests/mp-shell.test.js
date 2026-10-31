@@ -7,11 +7,11 @@
  *   跑的是 dist/mp-weixin 的产物，所以能连带验出构建转写有没有把代码改坏。
  */
 
-import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
-const require = createRequire(import.meta.url);
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 let passed = 0;
 let failed = 0;
@@ -35,8 +35,33 @@ let def = null;
 global.Page = (o) => { def = o; };
 
 // 用 CJS 跑通：把壳里的相对 require 指向 dist
+//   说明：仓库 package.json 是 ESM（type:module），而 dist 产物是转译后的 CommonJS，
+//   且 dist 里刻意不放 package.json（微信「代码依赖分析」会把多余的 package.json
+//   判成无依赖文件、报「未通过」）。Node 按最近 package.json 判格式，会把 dist 的
+//   .js 当成 ESM、require 直接报错 —— 所以这里自写一个最小 CJS 加载器（vm 编译），
+//   只支持 dist 内的相对引用，语义与小程序运行时一致。
 const DIST = join(ROOT, 'dist', 'mp-weixin');
-require(join(DIST, 'pages', 'index', 'index.js'));
+const cjsCache = new Map();
+function loadCjs(absPath) {
+  const key = resolve(absPath);
+  if (cjsCache.has(key)) return cjsCache.get(key).exports;
+  const src = readFileSync(key, 'utf8');
+  const module = { exports: {} };
+  const localRequire = (spec) => {
+    if (!spec.startsWith('.')) throw new Error('mp 冒烟不允许外部依赖：' + spec);
+    let target = resolve(dirname(key), spec);
+    try { readFileSync(target); } catch { target += '.js'; }
+    return loadCjs(target);
+  };
+  const fn = vm.runInThisContext(
+    `(function (exports, require, module, __filename, __dirname) {\n${src}\n})`,
+    { filename: key },
+  );
+  fn(module.exports, localRequire, module, key, dirname(key));
+  cjsCache.set(key, module);
+  return module.exports;
+}
+loadCjs(join(DIST, 'pages', 'index', 'index.js'));
 
 // 造页面实例：setData 支持 'a.b' 路径，并记录调用
 function mkPage() {
@@ -77,6 +102,20 @@ async function run() {
   ok('结果块非空', !!(p.data.result && p.data.result.blocks.length > 0), String(p.data.result && p.data.result.blocks.length));
   ok('切到结果页', p.data.view === 'result', p.data.view);
   ok('提问回显', p.data.question.indexOf('排八字') === 0, p.data.question);
+
+  // 结果正文不能是兜底失败文案（防内核/出料结构漂移后 UI 静默降级）
+  const bodyText = JSON.stringify(p.data.result);
+  ok('结果无兜底失败文案', bodyText.indexOf('这次没能算完') < 0);
+
+  // 占卜类各走一次：六爻/刻家/毕法（这三项曾因内核重写与出料层脱节而全挂）
+  for (const q of ['排六爻 2024年2月10日 午时', '排刻家 2024年12月21日 12点', '解毕法 2024年12月21日 12点']) {
+    p.goHome();
+    p.setData({ query: q });
+    p.onSend();
+    await new Promise((r) => setTimeout(r, 300));
+    const t = JSON.stringify(p.data.result || {});
+    ok('小程序端出结果：' + q.split(' ')[0], t.length > 80 && t.indexOf('这次没能算完') < 0, t.slice(0, 60));
+  }
 
   // 多命中
   p.goHome();

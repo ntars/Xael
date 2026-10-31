@@ -11,7 +11,20 @@
 const PREFIX = 'xael_';
 const MAX_BYTES = 1024 * 1024;
 
-let driver = null;
+/**
+ * 默认驱动：浏览器/WebView 直接认 localStorage（不需要每个壳再注入一次）；
+ * 拿不到（Node 测试、隐私模式被禁）就回落到内存 Map。
+ * 小程序/uni-app 由各自壳显式 setStorageDriver(wx 适配器) 覆盖。
+ */
+function webDriver() {
+  try {
+    const ls = globalThis.localStorage;
+    if (ls && typeof ls.getItem === 'function' && typeof ls.setItem === 'function') return ls;
+  } catch (e) { /* 隐私模式访问 localStorage 会抛，按无驱动处理 */ }
+  return null;
+}
+
+let driver = webDriver();
 let fallback = null; // 内存驱动单例（默认驱动每次调用不能新建，否则写读分离）
 
 /** 注入平台驱动（Web = localStorage；小程序 = wx storage；测试 = 内存 Map） */

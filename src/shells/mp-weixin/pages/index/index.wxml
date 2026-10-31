@@ -29,7 +29,9 @@
             <view class="nt-halo"></view>
             <input class="nt-pill-input" placeholder-style="color: transparent" value="{{query}}" bindinput="onInput" bindfocus="onFocus" bindblur="onBlur" bindconfirm="onSend" confirm-type="search" cursor-spacing="24" />
             <view class="nt-ph">
-              <view class="nt-ph-item">{{txt.searchPlaceholder}}</view>
+              <view class="nt-ph-track">
+                <view class="nt-ph-item" wx:for="{{phItems}}" wx:key="*this">{{item}}</view>
+              </view>
             </view>
             <view class="nt-pill-search {{busy ? 'nt-busy' : ''}}" bindtap="onSend" hover-class="nt-hover">
               <image class="nt-icon nt-i-search" src="/static/icons/icon-search.svg" mode="aspectFit" />

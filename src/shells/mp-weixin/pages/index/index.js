@@ -67,7 +67,7 @@ function renderable(view) {
 }
 
 
-/** 动态安全区（旧仓 UIModule/safe-area.js 同一算法，代码重写）：
+/** 动态安全区（读系统信息取可用区域 inset，逐端换算）：
  *  WXSS 不支持 env(safe-area-inset-*)，自定义导航栏必须由 JS 算出行内值注入。
  *  top = max(59, 胶囊顶)（「关于」须在胶囊下方，不可同行）；
  *  bottom = max(34, 屏高 - 安全区底)（iPhone 手势条 / Android 虚拟按键）。 */
@@ -189,6 +189,8 @@ Page({
         resultPageTitle: A.resultPageTitle,
         questionLabel: A.questionLabel,
         searchPlaceholder: A.searchPlaceholder,
+        // 滚动词条：真实示例问句 + 首条副本（副本是无缝回卷的关键，见 wxss 的 keyframes）
+        phItems: (A.searchHints && A.searchHints.length ? A.searchHints.concat([A.searchHints[0]]) : [A.searchPlaceholder]),
         homeDisclaimer: A.homeDisclaimer,
         icp: A.icp,
         footerCopy: A.footerCopy,
@@ -220,8 +222,12 @@ Page({
     const hidden = { home: true, result: true, about: true, us: true, detail: true };
     const layer = { home: '', result: '', about: '', us: '', detail: '' };
     hidden[name] = false;
+    // 双层视差要求转场全程**两层都可见**（旧页做视差位移、新页滑入盖上来）。
+    //   若此刻就把旧页 hidden，用户看到的是「新页盖着空白底滑入」——动画就不一样了。
+    //   旧页在收尾帧（下方 setTimeout 里）再藏。
+    if (!boot && from !== name) hidden[from] = false;
 
-    // 防御（旧仓教训）：切页路径必须显式关掉错落入场门控，否则上一次 boot 残留的 cascadeOn
+    // 防御（已知坑）：切页路径必须显式关掉错落入场门控，否则上一次 boot 残留的 cascadeOn
     //   会让「整层滑入」叠加「内容各自上升」= 同一个动作动两遍（用户看到的「重复动画」）。
     this.setData({ cascadeOn: false });
 
@@ -232,7 +238,7 @@ Page({
       });
       this._timer.trans = setTimeout(() => this.setData({ cascadeOn: false }), MOTION.dPage + 200);
     } else {
-      // 三层视差（对齐旧仓 stage 语义）：
+      // 三层视差（stage 语义：back 层视差位移、front 层滑入、dim 层压暗）：
       //   前进：新页在 front 从右滑入（nt-tf-in），旧页在 back 视差退到 -33%（nt-px-fwd）
       //   返回：旧页在 front 向右滑出（nt-tf-out），目标页在 back 从 -33% 回位（nt-px-back）
       if (forward) {
@@ -243,7 +249,7 @@ Page({
         layer[name] = 'back nt-px-back';
       }
       this.setData({ hidden, layer, dimClass: forward ? 'nt-dim-in' : 'nt-dim-out' });
-      // 收尾拆两帧（旧仓教训）：先清顶层动画类，下一帧再清底层 —— 同帧合并会闪一次纯底色
+      // 收尾拆两帧（已知坑）：先清顶层动画类，下一帧再清底层 —— 同帧合并会闪一次纯底色
       this._timer.trans = setTimeout(() => {
         this.setData({ dimClass: '' });
         setTimeout(() => {
@@ -300,7 +306,7 @@ Page({
           setTheme(next);
           const actual = applyTheme(next);
           // 320ms 过渡门控：挂 nt-theme-fade 让颜色走 320ms / 按压走 120ms，播完摘
-          //（不挂=硬切；常挂=冷启动先白后黑闪，旧仓 v3.0.6 教训：只在切换瞬间挂）
+          //（不挂=硬切；常挂=冷启动先白后黑闪，只在切换瞬间挂）
           this.setData({ dark: actual === 'dark', logoSrc: actual === 'dark' ? '/static/icons/logo-white.png' : '/static/icons/logo.png', themeFade: true });
           setTimeout(() => { if (this.data.themeFade) this.setData({ themeFade: false }); }, MOTION.dTheme);
           this.setInput('');
@@ -335,7 +341,7 @@ Page({
     const bm = A.birthModal || {};
     let title = bm.title;
     let desc = message || bm.desc;
-    if (code === 'lunar') { title = bm.lunarTitle; desc = bm.lunarDesc; }
+    if (code === 'lunisolar-convert') { title = bm.lunarTitle; desc = bm.lunarDesc; }
     else if (code === 'pillar') { title = bm.pillarTitle; desc = bm.pillarDesc; }
     else if (code === 'nonmeta') { title = bm.nonmetaTitle; desc = bm.nonmetaDesc; }
     else if (code === 'kernel') { title = bm.kernelTitle; desc = bm.kernelDesc; }

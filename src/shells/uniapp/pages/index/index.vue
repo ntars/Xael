@@ -46,7 +46,9 @@
                 @confirm="onSend"
               />
               <view class="nt-ph">
-                <view class="nt-ph-item">{{ txt.searchPlaceholder }}</view>
+                <view class="nt-ph-track">
+                  <view class="nt-ph-item" v-for="(h, hi) in phItems" :key="hi">{{ h }}</view>
+                </view>
               </view>
               <view class="nt-pill-search" :class="{ 'nt-busy': busy }" hover-class="nt-hover" @tap="onSend">
                 <view class="nt-icon nt-i-search" />
@@ -389,6 +391,8 @@ export default {
           resultPageTitle: A.resultPageTitle,
           questionLabel: A.questionLabel,
           searchPlaceholder: A.searchPlaceholder,
+          // 滚动词条：真实示例问句 + 首条副本（副本用于无缝回卷，见样式里的 keyframes）
+          phItems: (A.searchHints && A.searchHints.length ? A.searchHints.concat([A.searchHints[0]]) : [A.searchPlaceholder]),
           homeDisclaimer: A.homeDisclaimer,
           icp: A.icp,
           footerCopy: A.footerCopy,
@@ -425,7 +429,7 @@ export default {
         this.setData({ hidden, layer, dimClass: '', cascadeOn: true });
         this._timer.trans = setTimeout(() => this.setData({ cascadeOn: false }), MOTION.dPage + 200);
       } else {
-        // 三层视差（对齐旧仓 stage 语义）：前进=新页右滑入+旧页视差退；返回=旧页右滑出+目标页回位
+        // 三层视差（stage 语义）：前进=新页右滑入+旧页视差退；返回=旧页右滑出+目标页回位
         if (forward) {
           layer[from] = 'back nt-px-fwd';
           layer[name] = 'front nt-tf-in';
@@ -518,7 +522,7 @@ export default {
       const bm = A.birthModal || {};
       let title = bm.title;
       let desc = message || bm.desc;
-      if (code === 'lunar') { title = bm.lunarTitle; desc = bm.lunarDesc; }
+      if (code === 'lunisolar-convert') { title = bm.lunarTitle; desc = bm.lunarDesc; }
       else if (code === 'pillar') { title = bm.pillarTitle; desc = bm.pillarDesc; }
       else if (code === 'nonmeta') { title = bm.nonmetaTitle; desc = bm.nonmetaDesc; }
       else if (code === 'kernel') { title = bm.kernelTitle; desc = bm.kernelDesc; }
@@ -897,7 +901,7 @@ export default {
   font-weight: 600;
 }
 
-/* 七、图标（背景图；尺寸即旧版几何值） ─────────────────────── */
+/* 七、图标（背景图；尺寸即设计稿几何值） ─────────────────────── */
 .nt-icon {
   display: inline-block;
   flex-shrink: 0;
@@ -1040,6 +1044,25 @@ export default {
 }
 
 .nt-ph-off .nt-ph { opacity: 0; }
+
+.nt-ph-track {
+  display: flex;
+  flex-direction: column;
+  animation: nt-ph-step 44s var(--ease-standard) infinite;
+}
+
+/* 8 条 → 8 档，每档 12.5%（停留 5s + 上滑 0.5s），一圈 44s；末档 −384px 由首条副本无缝接管 */
+@keyframes nt-ph-step {
+  0%, 11.364% { transform: translateY(0); }
+  12.5%, 23.864% { transform: translateY(-48px); }
+  25%, 36.364% { transform: translateY(-96px); }
+  37.5%, 48.864% { transform: translateY(-144px); }
+  50%, 61.364% { transform: translateY(-192px); }
+  62.5%, 73.864% { transform: translateY(-240px); }
+  75%, 86.364% { transform: translateY(-288px); }
+  87.5%, 98.864% { transform: translateY(-336px); }
+  100% { transform: translateY(-384px); }
+}
 
 .nt-ph-item {
   height: var(--pill-h);

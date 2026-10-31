@@ -6,7 +6,7 @@
  *     ① 用 uni.createCanvasContext('exportCanvas', this) 拿到画布上下文；
  *     ② 逐页 uni.canvasToTempFilePath 出临时文件，交给 uni.previewImage 长按保存。
  *
- * 注意：uni 的旧版 canvas 上下文（createCanvasContext）不支持 measureText，
+ * 注意：uni 的旧式 canvas 上下文（createCanvasContext）不支持 measureText，
  *   所以折行宽度改用一个「按字符宽度估算」的量尺代替实测——中英文都按
  *   字形宽近似（中文 1em、英文 0.55em），误差不会跨行错位，只会让行稍微短一点。
  */

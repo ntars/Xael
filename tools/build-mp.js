@@ -32,6 +32,7 @@ const SOURCES = ['src/core', 'src/shared'];
 /** 递归收集 .js 文件 */
 function collect(dir, acc = []) {
   for (const name of readdirSync(dir)) {
+    if (name === '.DS_Store' || name.startsWith('._')) continue; // macOS 元数据垃圾
     const p = join(dir, name);
     const st = statSync(p);
     if (st.isDirectory()) collect(p, acc);
@@ -154,6 +155,7 @@ export function build({ check = CHECK } = {}) {
   const shellFiles = [];
   const walk = (dir) => {
     for (const name of readdirSync(dir)) {
+      if (name === '.DS_Store' || name.startsWith('._')) continue; // macOS 元数据垃圾，不入产物
       const p = join(dir, name);
       if (statSync(p).isDirectory()) walk(p);
       else shellFiles.push(p);
@@ -187,7 +189,7 @@ export function build({ check = CHECK } = {}) {
       const MOTION_VARS = {
         '--d-press': '120ms', '--d-drawer': '280ms', '--d-page': '320ms',
         '--d-theme': '320ms', '--d-splash': '400ms', '--d-modal-out': '200ms',
-        '--d-halo': '4400ms', '--ease-standard': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        '--d-halo': '4400ms', '--d-ph-rotate': '44000ms', '--ease-standard': 'cubic-bezier(0.4, 0, 0.2, 1)',
       };
       // duration 与 ease 两处 var() 都展开（简写任一位置含 var 都可能在部分基础库整条被丢）
       for (const [k, v] of Object.entries(MOTION_VARS)) {
@@ -195,6 +197,16 @@ export function build({ check = CHECK } = {}) {
       }
     }
     outputs.set(relative(shellDir, f), text);
+  }
+
+  // 壳根目录的 js（app.js / export-mp.js / theme-mp.js）被拷到 dist 根。
+  //   export-mp.js 的 require 按「源码目录布局」写（'../src/shared/…'，源码树里指向
+  //   src/shared），拷到 dist 根后 ../src 会指到包外 → 小程序导出长图在真机上必炸。
+  //   统一改写为 './src/…'。
+  for (const [rel, content] of [...outputs]) {
+    if (rel === 'export-mp.js' && typeof content === 'string') {
+      outputs.set(rel, content.split("require('../src/").join("require('./src/"));
+    }
   }
 
   const total = [...outputs.values()].reduce((n, s) => n + Buffer.byteLength(s), 0);
@@ -226,7 +238,9 @@ export function build({ check = CHECK } = {}) {
     mkdirSync(dirname(p), { recursive: true });
     writeFileSync(p, content);
   }
-  writeFileSync(join(OUT, 'package.json'), '{ "type": "commonjs" }\n');
+  // 注意：dist 里**不放 package.json**。转译产物已全是 CommonJS（require() 显式书写），
+  //   微信默认按 CommonJS 处理；多余的 package.json 会被开发者工具「代码依赖分析」
+  //   判成无依赖文件（无使用或无依赖文件 → 未通过），旧仓 dist 也没有它。
   // project.config.json 以 src/shells/mp-weixin/project.config.json 为单一真源拷入
   //   （compileType 固定 miniprogram）。开发者在微信开发者工具里切「多端应用」模式时，
   //   工具会写入 projectArchitecture: multiPlatform 与 app.miniapp.json/miniapp//i18n/

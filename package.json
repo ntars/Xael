@@ -23,6 +23,13 @@
     "build:mp": "node tools/build-mp.js",
     "build": "node tools/build-web.js && node tools/build-mp.js",
     "build:uni": "node tools/build-uni.js",
-    "check": "node tools/preflight.js"
+    "check": "node tools/preflight.js",
+    "check:cites": "node tools/check-cites.mjs",
+    "audit:invariants": "node tools/audit-invariants.mjs",
+    "check:refs": "node tools/check-refs.mjs",
+    "check:readings": "node tools/check-readings.mjs"
+  },
+  "bin": {
+    "xael": "bin/xael.js"
   }
 }

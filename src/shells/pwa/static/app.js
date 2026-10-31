@@ -6,7 +6,7 @@
  *   所有排版规则取 ../shared/result-format.js；所有配色/字号/动效取 theme.css 的变量。
  *   三个形态（PWA / 小程序 / uni-app）共用同一套内核、同一套文案，壳里不抄第二份。
  *
- * 关键约定（与旧版交互保持一致）：
+ * 关键约定：
  *   · 搜索框是进结果的唯一入口，四种生辰写法（国历/农历/四柱/八字）都认；
  *   · 被闸门拦下时就地弹窗，不跳页，输入框保留原文方便改；
  *   · 结果页刷新不丢：会话写进 storage，冷启动恢复上一次结果；
@@ -84,7 +84,7 @@ function show(name, boot) {
     nextEl.classList.add('front', 'nt-cascade');
     transTimer = setTimeout(() => nextEl.classList.remove('nt-cascade'), MOTION.dPage + 200);
   } else {
-    // 三层视差（对齐旧仓 stage 语义）：
+    // 三层视差（stage 语义）：
     //   前进：新页在 front 从右滑入（nt-tf-in），旧页在 back 视差退到 -33%（nt-px-fwd）
     //   返回：旧页在 front 向右滑出（nt-tf-out），目标页在 back 从 -33% 回位（nt-px-back）
     if (prevEl && prevEl !== nextEl) prevEl.hidden = false;
@@ -299,7 +299,7 @@ function noticeOf(code, message) {
   const bm = A.birthModal;
   let title = bm.title;
   let desc = message || bm.desc;
-  if (code === 'lunar') { title = bm.lunarTitle; desc = bm.lunarDesc; }
+  if (code === 'lunisolar-convert') { title = bm.lunarTitle; desc = bm.lunarDesc; }
   else if (code === 'pillar') { title = bm.pillarTitle; desc = bm.pillarDesc; }
   else if (code === 'nonmeta') { title = bm.nonmetaTitle; desc = bm.nonmetaDesc; }
   else if (code === 'kernel') { title = bm.kernelTitle; desc = bm.kernelDesc; }
@@ -545,9 +545,22 @@ function fillText() {
   set('result-again', A.resultActions && A.resultActions.again);
 
   const ph = $('home-ph');
-  if (ph && A.searchPlaceholder) {
+  if (ph) {
     ph.innerHTML = '';
-    ph.appendChild(el('span', 'nt-ph-item', A.searchPlaceholder));
+    // 滚动词条：.nt-ph > .nt-ph-track > N 条 + 首条副本（副本是「无缝回卷」的关键：
+    // 整列高 (N+1)×48，滑到 −N×48 时窗口里那行与第一行逐像素相同，动画回 0% 看不出接缝）
+    const hints = (A.searchHints || []).slice();
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!hints.length || reduce) {
+      // 降级：只显示一句常驻文案，不轮播
+      ph.appendChild(el('span', 'nt-ph-item', A.searchPlaceholder));
+    } else {
+      const track = el('div', 'nt-ph-track');
+      hints.concat([hints[0]]).forEach((t) => {
+        track.appendChild(el('span', 'nt-ph-item', t));
+      });
+      ph.appendChild(track);
+    }
   }
 }
 

@@ -1,5 +1,7 @@
 /**
  * src/core/features/analyzer.js —— 搜索入口总调度（纯文本出料版）
+ * 本文件只做文本装配，不含算法规则表（规则的文献出处见对应内核模块文件头）。
+ * 各功能的规则依据见 registry 内 note 字段与其内核模块文件头；本层不引入任何新口径。
  *
  * 大白话：一句话进来，依次过五道关：
  *   1. 主题指令（切换深色/浅色/跟随系统）→ 直接给回执，不进推演；
@@ -16,6 +18,8 @@
 
 import { THEME_COMMANDS, themeSwitched, setTheme, effectiveTheme } from '../../shared/settings.js';
 import { matchAll, rendererOf, FAIL_NOTE } from './registry.js';
+import { normalizeInput } from './normalizer.js';
+import { parsePillars, solarFromPillars } from '../four-pillars/reverse.js';
 
 /** 非本领域问句词表：命中且无功能命中时给一句得体的拒绝 */
 const NON_META = [
@@ -74,12 +78,20 @@ export function parseTime(text) {
   const t = toHalfWidth(String(text || ''));
   let m = t.match(/(\d{1,2})\s*[:：]\s*(\d{2})/);
   if (m) return { hour: +m[1], minute: +m[2] };
+  // 十二时辰取区间中点：子时 0、丑时 2、寅时 4 … 午时 12 … 亥时 22
+  //（子时跨 23:00–01:00，取中点 0 时；不取起点 23 时，否则日柱同日界冲突）。
+  //   注意不能 +1：按「区间中点」取值，午时=12 而不是 13；子时=0 属当日子初。
   const ZT = { 子: 0, 丑: 2, 寅: 4, 卯: 6, 辰: 8, 巳: 10, 午: 12, 未: 14, 申: 16, 酉: 18, 戌: 20, 亥: 22 };
   // 十二时辰先判（「子时」里的「时」不能被下面的数字点判成小时）
   m = t.match(/([子丑寅卯辰巳午未申酉戌亥])时/);
-  if (m) return { hour: ZT[m[1]] + 1, minute: 0 };
+  if (m) return { hour: ZT[m[1]], minute: 0 };
   m = t.match(/(\d{1,2})\s*[点時时]/);
   if (m) return { hour: +m[1], minute: 0 };
+  // 归一化后的「10:」（原写法是「10点」）与「20:00」
+  m = t.match(/(\d{1,2})\s*:(?!\d)/);
+  if (m) return { hour: +m[1], minute: 0 };
+  m = t.match(/(\d{1,2})\s*:\s*(\d{2})/);
+  if (m) return { hour: +m[1], minute: +m[2] };
   return null;
 }
 
@@ -125,14 +137,34 @@ export function parseBirth(text) {
   const t = toHalfWidth(raw);
   const name = parseName(t);
   const gender = parseGender(t);
-  const time = parseTime(t);
+  // 容错：原文取不到时辰时，从归一化文本再取一次（「十点半」→10:30、「8pm」→20:00）
+  const normFull = normalizeInput(raw);
+  const time = parseTime(t) || parseTime(normFull);
   const h = time ? time.hour : 14;
   const minute = time ? time.minute : 0;
 
   // 一、四柱写法（四个干支相邻出现）
   const p = t.match(/([甲乙丙丁戊己庚辛壬癸])([子丑寅卯辰巳午未申酉戌亥])[\s,，、]*([甲乙丙丁戊己庚辛壬癸])([子丑寅卯辰巳午未申酉戌亥])[\s,，、]*([甲乙丙丁戊己庚辛壬癸])([子丑寅卯辰巳午未申酉戌亥])(?:[\s,，、]*([甲乙丙丁戊己庚辛壬癸])([子丑寅卯辰巳午未申酉戌亥]))?/);
   if (p) {
-    return { calendar: 'pillar', h, minute, gender, name, error: 'pillar' };
+    // 四柱反查：六十甲子循环，同一四柱可能对上多个日期——只对上唯一一个才直接用，
+    // 否则把候选列出来请用户补年份（不硬选，见 src/core/four-pillars/reverse.js）
+    const pl = parsePillars(p[0]);
+    if (!pl) return { calendar: 'pillar', h, minute, gender, name, error: 'pillar' };
+    // 「2005年 乙酉 壬午 甲子 甲子」——给了年份就用年份收窄候选
+    const yearPrefix = (t.match(/((?:19|20)\d{2})\s*年/) || [])[1];
+    const rev = solarFromPillars(pl, { limit: 6 });
+    const narrowed = yearPrefix ? rev.候補.filter((c) => c.y === +yearPrefix) : rev.候補;
+    if (narrowed.length === 1) {
+      const c = narrowed[0];
+      return {
+        calendar: 'pillar', y: c.y, m: c.m, d: c.d,
+        h: pl['时'] ? c.h : h, minute, gender, name, fromPillars: true,
+      };
+    }
+    return {
+      calendar: 'pillar', h, minute, gender, name, error: 'pillar',
+      pillars: pl, candidates: rev.候補, candidatesTotal: rev.总数,
+    };
   }
 
   // 二、农历写法
@@ -142,8 +174,8 @@ export function parseBirth(text) {
     const MNAMES = { 正: 1, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10, 冬: 11, 腊: 12 };
     const mm = MNAMES[lm[2]] || NaN;
     const dd = parseLunarDay(lm[3]);
-    if (!y || !mm || !dd) return { calendar: 'lunar', y, m: mm, d: dd, h, minute, gender, name, error: 'lunar' };
-    return { calendar: 'lunar', y, m: mm, d: dd, h, minute, gender, name };
+    if (!y || !mm || !dd) return { calendar: 'lunisolar-convert', y, m: mm, d: dd, h, minute, gender, name, error: 'lunisolar-convert' };
+    return { calendar: 'lunisolar-convert', y, m: mm, d: dd, h, minute, gender, name };
   }
 
   // 三、国历写法
@@ -156,6 +188,12 @@ export function parseBirth(text) {
       return { calendar: 'solar', y, m: mm, d: dd, h, minute, gender, name, error: 'solar' };
     }
     return { calendar: 'solar', y, m: mm, d: dd, h, minute, gender, name };
+  }
+
+  // 只有年月（如「2024年12月」）：年家/月家奇门这类只需年月的功能用它，日按 15 号（月中，避开交节边界）
+  const ymOnly = t.match(/((?:19|20)\d{2})\s*年\s*(1[0-2]|0?[1-9])\s*月(?![^\d]{0,3}[0-9初十廿三]{1,3}\s*[日号])/);
+  if (ymOnly) {
+    return { calendar: 'solar', y: +ymOnly[1], m: +ymOnly[2], d: 15, h, minute, gender, name, yearMonthOnly: true };
   }
 
   // 只有月日（如「6月9日子时」）：补今年
@@ -172,10 +210,43 @@ export function parseBirth(text) {
 
   // 只有年份：查命卦这类只按年推算
   const y4 = t.match(/((?:19|20)\d{2})/);
-  if (y4 && /命卦|八宅|飞星/.test(t)) {
+  if (y4 && /命卦|八宅|飞星|年家|黄历|宜忌|农历/.test(t)) {
     return { calendar: 'solar', y: +y4[1], m: 6, d: 15, h: 14, minute: 0, gender, name, yearOnly: true };
   }
+
+  // 五、兜底：走容错层（零宽字符、全角/花式数字、1990.6.15、19900615、15/6/1990、
+  //     10点30、八点半、8pm 这些写法统一归一后再解析一次）。原文能解析的不会走到这里。
+  const norm = normFull;
+  if (norm) {
+    const nd = norm.match(/(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})?)?/);
+    if (nd) {
+      const y = +nd[1];
+      const mm = +nd[2];
+      const dd = +nd[3];
+      const h = nd[4] != null ? +nd[4] : hFallback(t);
+      const minute = nd[5] != null ? +nd[5] : 0;
+      if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31 && y >= 1900 && y <= 2100) {
+        return { calendar: 'solar', y, m: mm, d: dd, h, minute, gender, name };
+      }
+      return { calendar: 'solar', y, m: mm, d: dd, h, minute, gender, name, error: 'solar' };
+    }
+    // 只有月日（归一后是 `6-9` 或 `06-09`）
+    const nmd = norm.match(/(?:^|\s)(\d{1,2})-(\d{1,2})(?:\s|$)/);
+    if (nmd) {
+      const mm = +nmd[1];
+      const dd = +nmd[2];
+      if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+        return { calendar: 'solar', y: new Date().getFullYear(), m: mm, d: dd, h: hFallback(t), minute: 0, gender, name };
+      }
+    }
+  }
   return null;
+}
+
+/** 兜底路径的时辰：原文解析不出时间时按 14 时（与主路径同口径） */
+function hFallback(text) {
+  const tm = parseTime(text);
+  return tm ? tm.hour : 14;
 }
 
 /* ------------------------------------------------------------------ *
@@ -202,7 +273,17 @@ export async function analyze(q) {
   }
 
   // 二、触发词
-  const hits = matchAll(text);
+  let hits = matchAll(text);
+
+  // 二·补：口语问法的软命中（「今天适合搬家吗」「明天能开业吗」这类没点名功能、
+  // 但本质是问当日宜忌的句子，归到黄历；只在没有任何硬命中时才兜，绝不覆盖用户点名的功能）
+  if (!hits.length) {
+    const ASK_YIJI = /(适合|宜不宜|适不适合|能不能|能|可以|可不可以|好不好)/;
+    const ACT = /(搬家|动土|嫁娶|结婚|开业|开市|出行|安床|入宅|祭祀|修造|出行|签约|上任)/;
+    if (ASK_YIJI.test(text) && ACT.test(text)) {
+      hits = matchAll('查黄历').map((x) => ({ feature: x.feature, hit: '宜忌询问' }));
+    }
+  }
 
   // 三、生辰
   const birth = parseBirth(text);
@@ -238,11 +319,11 @@ export async function analyze(q) {
     }
     if (!r) continue;
     if (r.text) {
-      results.push({ key: x.feature.key, 名: x.feature.名, 短名: x.feature.短名, text: r.text });
+      results.push({ key: x.feature.key, name: x.feature.name, shortName: x.feature.shortName, text: r.text });
     } else if (r.prompt) {
       results.push({
-        key: x.feature.key, 名: x.feature.名, 短名: x.feature.短名,
-        text: '【' + x.feature.短名 + '】' + r.prompt,
+        key: x.feature.key, name: x.feature.name, shortName: x.feature.shortName,
+        text: '【' + x.feature.shortName + '】' + r.prompt,
       });
     }
   }
@@ -252,13 +333,25 @@ export async function analyze(q) {
 
 /** 拒绝码 → 文案 */
 function msgOfCode(code, birth) {
-  if (code === 'lunar') {
+  if (code === 'lunisolar-convert') {
     return '这个农历日期读不出来'
       + (birth && birth.y ? '（' + birth.y + '年）' : '')
       + '，请检查闰月与日期后重新输入。\n' + BIRTH_HINT;
   }
   if (code === 'pillar') {
-    return '四柱写法本版只识别不反查，请改用国历或农历写法。\n' + BIRTH_HINT;
+    const pl = (birth && birth.pillars) || {};
+    const cands = (birth && birth.candidates) || [];
+    if (cands.length > 1) {
+      const list = cands.map((c) => c.y + '年' + c.m + '月' + c.d + '日'
+        + (c.hourText ? ' ' + c.hourText + '时' : '')).join(' / ');
+      return '这组四柱（' + (pl['年'] || '') + ' ' + (pl['月'] || '') + ' ' + (pl['日'] || '')
+        + (pl['时'] ? ' ' + pl['时'] : '') + '）对得上 ' + (birth.candidatesTotal || cands.length)
+        + ' 个日期（六十甲子六十年一轮，本来就会重）：' + list
+        + '。请补一个年份再问，例如「' + (cands[0].y) + '年 排八字 ' + (pl['年'] || '') + ' '
+        + (pl['月'] || '') + ' ' + (pl['日'] || '') + '」；或直接给国历/农历日期。';
+    }
+    return '这组四柱在 1900–2100 年内对不上任何日期，请检查干支是否写错（或改用国历/农历写法）。\n'
+      + BIRTH_HINT;
   }
   if (code === 'solar') {
     return '暂只支持 1900–2100 年的日期推算，请检查年份。\n' + BIRTH_HINT;

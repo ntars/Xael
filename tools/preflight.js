@@ -1,8 +1,12 @@
 /**
  * tools/preflight.js —— 发布前八项自检（一条命令知全部状态）
  *
- * 八项：① 版本号单一真源一致 ② 网页版/小程序产物与源一致 ③ 小程序包体 ≤2MB
+ * 九项：① 版本号单一真源一致 ② 网页版/小程序产物与源一致 ③ 小程序包体 ≤2MB
  *      ④ 全量测试断言通过 ⑤ 关键文件齐全 ⑥ 文档里的数字与实测一致 ⑦ 多端 appid/版本配置齐全
+ *      ⑧ 三壳引用一致 ⑨ 文献引用可回溯（《书名·篇名》能在 refs-texts/ 底本里查到）
+ *      ⑩ 跨模块结构不变量（星门神不重复、值符落值符宫、五行百分比合计 100 等）
+ *      ⑪ 断语数据表逐子句可回溯 ⑫ 参考文献库头部块与结尾完整
+ *      ⑪ 断语逐子句可回溯（紫微 168 格断语每一句都要在底本里原样查到）
  *
  * 大白话：文档最容易写「66 项断言」而实际变 98 项，所以这里把文档里的数字
  * 和真实跑出来的数字对一遍，对不上就报错。
@@ -70,7 +74,7 @@ item('④ 全量测试', testOk && assertFail === 0, `${assertCount} 项断言�
 const KEY = [
   'LICENSE', 'NOTICE', 'README.md', 'README_EN.md', 'package.json',
   'index.html', 'manifest.webmanifest', 'offline.html', '404.html', 'static/sw.js',
-  'core/calendar/astronomy.js', 'core/calendar/lunar2.js', 'core/features/analyzer.js',
+  'core/calendar/astronomy.js', 'core/calendar/lunisolar.js', 'core/features/analyzer.js',
   'src/shells/mp-weixin/pages/index/index.wxml', 'src/shells/uniapp/pages/index/index.vue',
   'docs/CALIBER-NOTES.md', 'dist/mp-weixin/app.json',
 ];
@@ -108,6 +112,58 @@ item('⑦ 多端配置', appidOk && uniCfg.versionName === ver, `appid ${mpCfg.a
 // 三端共用同一套 core/shared，壳层只是手工写的薄壳：最容易出的事是壳引用了已删除的接口。
 const uniCheck = await import('./build-uni.js').then((m) => m.check());
 item('⑧ 三壳引用一致', uniCheck.ok, uniCheck.ok ? 'uni-app 壳导入与样式约束全部成立' : (uniCheck.problems || []).join('；'));
+
+// ---- ⑨ 文献引用可回溯 ----
+// 算法口径必须能回溯到公版底本：这里调 tools/check-cites.mjs，
+// 它把 src/core 下每条《书名·篇名》拿到 refs-texts/ 正文里查，查不到即失败。
+let citeOk = true;
+let citeDetail = '';
+try {
+  citeDetail = execFileSync(process.execPath, [join(ROOT, 'tools/check-cites.mjs')], { encoding: 'utf8' }).trim();
+} catch (e) {
+  citeOk = false;
+  citeDetail = String((e.stdout || e.message || '')).trim();
+}
+item('⑨ 文献引用可回溯', citeOk, citeDetail.split('\n')[0]);
+
+// ---- ⑩ 跨模块结构不变量 ----
+// 口径对不对靠古籍（⑨ 管这个），但「这张盘立不立得住」可以机器验：
+// 九星该一宫一颗、值符该落在值符宫、十二宫名不能重复、五行百分比该合计 100……
+// 这类损坏不会让输出变形，只会让它「看着像模像样地错」，所以单独兜一层。
+let invOk = true;
+let invDetail = '';
+try {
+  invDetail = execFileSync(process.execPath, [join(ROOT, 'tools/audit-invariants.mjs')], { encoding: 'utf8' }).trim();
+} catch (e) {
+  invOk = false;
+  invDetail = String((e.stdout || e.message || '')).trim();
+}
+item('⑩ 结构不变量', invOk, invDetail.split('\n')[0]);
+
+// ---- ⑪ 断语逐子句可回溯 ----
+// 第 ⑨ 项查「篇名存在」，这一项查「内容原样」：断语数据表（紫微 168 格）每格按标点切子句，
+// 逐条到底本正文里找；被润色过的句子仍然通顺、仍然像古文，只有回校能发现。
+let rdOk = true;
+let rdDetail = '';
+try {
+  rdDetail = execFileSync(process.execPath, [join(ROOT, 'tools/check-readings.mjs')], { encoding: 'utf8' }).trim();
+} catch (e) {
+  rdOk = false;
+  rdDetail = String((e.stdout || e.message || '')).trim();
+}
+item('⑪ 断语可回溯', rdOk, rdDetail.split('\n')[0]);
+
+// ---- ⑫ 参考文献库完整 ----
+// 引用的前提是底本文件本身没有截断、头部元数据没走样：这里调 tools/check-refs.mjs。
+let refsOk = true;
+let refsDetail = '';
+try {
+  refsDetail = execFileSync(process.execPath, [join(ROOT, 'tools/check-refs.mjs')], { encoding: 'utf8' }).trim();
+} catch (e) {
+  refsOk = false;
+  refsDetail = String((e.stdout || e.message || '')).trim();
+}
+item('⑫ 参考文献库完整', refsOk, refsDetail.split('\n')[0]);
 
 // ---- 汇总 ----
 const bad = results.filter((r) => !r.ok);

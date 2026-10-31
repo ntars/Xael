@@ -21,6 +21,8 @@ export const MOTION = {
   dTheme: 320,
   dSplash: 400,
   dHalo: 4400,
+  // 滚动词条一圈的时长：条数 × 5.5s（每档停留 5s + 上滑 0.5s）。8 条 → 44000ms
+  dPhRotate: 44000,
 };
 
 /**

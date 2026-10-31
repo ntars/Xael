@@ -14,9 +14,6 @@ import { storage, clearAll } from './storage.js';
 /** 版本真值（与 package.json 同步，preflight 会校验） */
 export const VERSION = '5.0.0';
 
-/** 开屏引言（旧版开屏页在品牌下方另有一行小字） */
-export const SPLASH_LEAD = '玄者，众妙之门；灵犀者，通也。';
-
 /* ------------------------------------------------------------------ *
  * 一、开源项目清单（「开源声明」页正文用）
  * 只列随发布产物一同分发或构成算法口径来源的项目；
@@ -103,7 +100,7 @@ export function about() {
     footerCopy: '©2024-2026 Ntarstudio. All Rights Reserved.',
 
     // —— 开屏页 ——
-    splash: { title: '玄玖灵犀', sub: '演乾坤 · 知天命', lead: SPLASH_LEAD },
+    splash: { title: '玄玖灵犀', sub: '演乾坤 · 知天命' },
 
     // —— 导出图片版式文案（导出与结果页同版式，文字统一取这里） ——
     exportMeta: {
@@ -127,6 +124,23 @@ export function about() {
     },
 
     // —— 起始页 ——
+    // 搜索胶囊的滚动示例问句（真实可点的问法，不是装饰文案）。
+    // 轮播节奏、无缝衔接副本、让位规则见三端 theme 的 .nt-ph-track / @keyframes nt-ph-step：
+    //   每档停留 5s + 上滑 0.5s，一圈 = 条数 × 5.5s（8 条 → 44s）。
+    // ⚠️ 改条数必须同步改 theme 里的 keyframes 档位与 --d-ph-rotate，两边互相指向。
+    // 每条都要能在胶囊里整条读完（可用宽度约 200px ≈ 11 个汉字），
+    // 都是可以直接点/照着问的真实问法，不是装饰文案。
+    searchHints: [
+      '今天宜忌是什么',
+      '查黄历 二月十日',
+      '排八字 一九九〇年',
+      '排紫微 子时 女',
+      '排六爻 午时',
+      '今年立春是哪天',
+      '查命卦 1985年',
+      '排奇门 冬至日',
+    ],
+    // 无障碍/降级用：系统开启「减弱动态效果」时只显示这一句，不轮播
     searchPlaceholder: '今天想了解点什么',
     homeDisclaimer: '内容仅供交流学习',
 
@@ -163,11 +177,14 @@ export function about() {
     aboutNotes: {
       refs: refsPage(),
       intro: introPage([
-        { h: '使用方法', text: '在搜索框中输入你想了解的信息，软件会根据算法告诉你答案。' },
-        { h: '切换主题', text: '主题跟随系统深浅色显示；也可以在搜索框输入「切换主题」，在深色与浅色之间切换。' },
+        { h: '使用方法', text: '在搜索框中输入你想了解的信息，软件会根据算法告诉你答案。多个功能同时命中时并列给出；命理类功能需要生辰，未给生辰会就地提示，不影响其它查询。' },
+        { h: '生辰写法', text: '支持国历（如 1990年6月15日 10点）、农历（如 农历1990年五月廿三 巳时）、四柱（如 庚午 壬午 辛亥 癸巳）三种写法，可夹杂姓名与性别；缺时辰时按 14 时估算，涉及神煞与紫微的功能会另行追问。' },
+        { h: '输入容错', text: '日期怎么写都认：1990年6月15日、1990-6-15、1990.6.15、1990/6/15、15/6/1990、19900615、一九九〇年六月十五日，结果完全相同；零宽字符、全角数字、英文月份（Jun）、上标数字也会自动归一。时刻可写 10点、10:30、十点半、巳时、8pm；「今天适合搬家吗」这类口语问法会转成查黄历。' },
+        { h: '切换主题', text: '主题跟随系统深浅色显示；也可以在搜索框输入「切换主题」，在深色与浅色之间切换，手动选择优先于系统。' },
+        { h: '数据与隐私', text: '全部计算在你设备本地完成，不联网、不上传；提问与结果只保存在本机，点「清除数据」即可一次性删除。' },
       ]),
       studio: [
-        { h: '应用介绍', text: '玄玖灵犀 Xael：中国传统文化文献整理与查阅的学习研究工具。无后端、无网络、无登录、无大模型，所有内容在你设备本地完成，不收集、不外传任何数据；内容仅供传统文化学习与学术研究参考，不构成任何预测、建议或决策依据。' },
+        { h: '应用介绍', text: '玄玖灵犀 Xael：中国传统文化文献整理、校勘与数字化演算的学习研究工具。历法与术数内核全部自研（零第三方运行时依赖、运行时零网络请求），约 536 万例穷举对拍保证口径一致。无后端、无网络、无登录、无大模型，所有内容在你设备本地完成，不收集、不外传任何数据；内容仅供传统文化学习与学术研究参考，不构成任何预测、建议或决策依据。提供网页版（PWA）、微信小程序与 uni-app 三种形态，同一套内核。' },
         { h: '工作室', text: '星玖工作室 Ntarstudio。旗下三个在营项目：玄玖灵犀 Xael（传统文化文献数字化查阅工具）、玄宠 NT-Dpet、玄玖大模型 NT-Sine。' },
         { h: '官网', text: 'https://www.ntars.cn/' },
         { h: '玄玖灵犀 Xael · 网页版', text: 'https://x.ntars.cn/' },
@@ -234,48 +251,48 @@ export function about() {
 /* ------------------------------------------------------------------ *
  * 五、「参考文献」页（书目单一真源）
  * ------------------------------------------------------------------ */
-const REF_GROUPS = [{ 名: '文献清单', 说明: '本工具各算法所依据的书目与口径来源。' }];
+const REF_GROUPS = [{ name: '文献清单', note: '本工具各算法所依据的书目与口径来源。' }];
 
 const BOOKS = [
   // 历法底座
-  { id: 'wuhu-wushu', 书名: '五虎遁·五鼠遁（月干时干起法）', 作者: '传统口诀（作者不详传本）' },
-  { id: 'ziping', 书名: '《子平真诠》', 作者: '清·沈孝瞻' },
-  { id: 'qiongtong', 书名: '《穷通宝鉴》', 作者: '明·余春台' },
-  { id: 'ditiansui', 书名: '《滴天髓》', 作者: '相传唐·京图' },
-  { id: 'sanming', 书名: '《三命通会》', 作者: '明·万民英' },
-  { id: 'yuanhai', 书名: '《渊海子平》', 作者: '宋·徐子平（题）' },
-  { id: 'ziwei-quanshu', 书名: '《紫微斗数全书》', 作者: '明·罗洪先辑（旧题宋·陈希夷）' },
-  { id: 'ziwei-sihua', 书名: '紫微四化表（中州派口径）', 作者: '中州派传本 · 陆斌兆（现代）' },
+  { id: 'wuhu-wushu', bookTitle: '五虎遁·五鼠遁（月干时干起法）', 作者: '传统口诀（作者不详传本）' },
+  { id: 'ziping', bookTitle: '《子平真诠》', 作者: '清·沈孝瞻' },
+  { id: 'qiongtong', bookTitle: '《穷通宝鉴》', 作者: '明·余春台' },
+  { id: 'ditiansui', bookTitle: '《滴天髓》', 作者: '相传唐·京图' },
+  { id: 'sanming', bookTitle: '《三命通会》', 作者: '明·万民英' },
+  { id: 'yuanhai', bookTitle: '《渊海子平》', 作者: '宋·徐子平（题）' },
+  { id: 'ziwei-quanshu', bookTitle: '《紫微斗数全书》', 作者: '明·罗洪先辑（旧题宋·陈希夷）' },
+  { id: 'transformations', bookTitle: '紫微四化表（中州派口径）', 作者: '中州派传本 · 陆斌兆（现代）' },
   // 三式推演
-  { id: 'qimen-tongzong', 书名: '《奇门遁甲统宗》（时家/年家/月家诸篇）', 作者: '明·佚名（传本）' },
-  { id: 'qimen-jing', 书名: '《烟波钓叟歌》', 作者: '传本（作者不详）' },
-  { id: 'qimen-geju', 书名: '《奇门遁甲的预测依据与信息象意》', 作者: '易德轩 / 玄霖易学（现代整理）' },
-  { id: 'zengshan', 书名: '《增删卜易》', 作者: '清·野鹤老人' },
-  { id: 'bushi', 书名: '《卜筮正宗》', 作者: '清·王洪绪' },
-  { id: 'huangjin', 书名: '《黄金策》', 作者: '明·刘基（题）' },
+  { id: 'qimen-tongzong', bookTitle: '《奇门遁甲统宗》（时家/年家/月家诸篇）', 作者: '明·佚名（传本）' },
+  { id: 'qimen-jing', bookTitle: '《烟波钓叟歌》', 作者: '传本（作者不详）' },
+  { id: 'qimen-geju', bookTitle: '《奇门遁甲的预测依据与信息象意》', 作者: '易德轩 / 玄霖易学（现代整理）' },
+  { id: 'zengshan', bookTitle: '《增删卜易》', 作者: '清·野鹤老人' },
+  { id: 'bushi', bookTitle: '《卜筮正宗》', 作者: '清·王洪绪' },
+  { id: 'huangjin', bookTitle: '《黄金策》', 作者: '明·刘基（题）' },
   // 风水堪舆
-  { id: 'zhouyi', 书名: '《周易》', 作者: '先秦传本' },
-  { id: 'meihua', 书名: '《梅花易数》', 作者: '宋·邵雍（题）' },
-  { id: 'bazhai', 书名: '八宅命卦', 作者: '八宅传统（作者不详传本）' },
-  { id: 'feixing', 书名: '玄空飞星（紫白飞星）', 作者: '玄空传统（作者不详传本）' },
+  { id: 'zhouyi', bookTitle: '《周易》', 作者: '先秦传本' },
+  { id: 'plum-blossom', bookTitle: '《梅花易数》', 作者: '宋·邵雍（题）' },
+  { id: 'eight-mansions', bookTitle: '八宅命卦', 作者: '八宅传统（作者不详传本）' },
+  { id: 'flying-stars', bookTitle: '玄空飞星（紫白飞星）', 作者: '玄空传统（作者不详传本）' },
   // 黄历择日
-  { id: 'jinhanyujing', 书名: '《金函玉镜》（神煞口诀）', 作者: '题汉·诸葛亮（传本）' },
-  { id: 'qimen-rike', 书名: '日家奇门口诀（六十日一局）', 作者: '传统日家口诀（作者不详传本）' },
-  { id: 'qimen-ke', 书名: '刻家奇门起例', 作者: '传统时刻分派（作者不详传本）' },
-  { id: 'qimen-baojian', 书名: '《奇门宝鉴》附日奇门起例（日支定局）', 作者: '传本（作者不详）' },
-  { id: 'qimen-feipan', 书名: '飞盘奇门（飞宫法）', 作者: '传统技法（传本）' },
-  { id: 'liuren-zhinan', 书名: '《大六壬指南》', 作者: '明·陈公献' },
-  { id: 'ren-gui', 书名: '《壬归》', 作者: '清·佚名' },
-  { id: 'xinyin-fu', 书名: '《心印赋》', 作者: '传本' },
-  { id: 'liuren-daquan', 书名: '《六壬大全》', 作者: '明·佚名（四库本）' },
-  { id: 'bifa', 书名: '《毕法赋》一百法', 作者: '清·凌福之（四库《六壬大全》卷九/卷十一）' },
-  { id: 'jianchu', 书名: '建除十二神·黄黑道口诀', 作者: '传统口诀（作者不详传本）' },
-  { id: 'pengzu', 书名: '彭祖百忌', 作者: '传为彭祖（作者不详传本）' },
-  { id: 'taishen', 书名: '胎神逐日方位', 作者: '传统口诀（作者不详传本）' },
+  { id: 'jinhanyujing', bookTitle: '《金函玉镜》（神煞口诀）', 作者: '题汉·诸葛亮（传本）' },
+  { id: 'qimen-rike', bookTitle: '日家奇门口诀（六十日一局）', 作者: '传统日家口诀（作者不详传本）' },
+  { id: 'mystic-gates-quarter', bookTitle: '刻家奇门起例', 作者: '传统时刻分派（作者不详传本）' },
+  { id: 'mystic-gates-mirror', bookTitle: '《奇门宝鉴》附日奇门起例（日支定局）', 作者: '传本（作者不详）' },
+  { id: 'qimen-feipan', bookTitle: '飞盘奇门（飞宫法）', 作者: '传统技法（传本）' },
+  { id: 'liuren-zhinan', bookTitle: '《大六壬指南》', 作者: '明·陈公献' },
+  { id: 'ren-gui', bookTitle: '《壬归》', 作者: '清·佚名' },
+  { id: 'xinyin-fu', bookTitle: '《心印赋》', 作者: '传本' },
+  { id: 'liuren-daquan', bookTitle: '《六壬大全》', 作者: '明·佚名（四库本）' },
+  { id: 'bifa', bookTitle: '《毕法赋》一百法', 作者: '清·凌福之（四库《六壬大全》卷九/卷十一）' },
+  { id: 'jianchu', bookTitle: '建除十二神·黄黑道口诀', 作者: '传统口诀（作者不详传本）' },
+  { id: 'pengzu', bookTitle: '彭祖百忌', 作者: '传为彭祖（作者不详传本）' },
+  { id: 'taishen', bookTitle: '胎神逐日方位', 作者: '传统口诀（作者不详传本）' },
   // 工具与算法来源
-  { id: 'lunar-js', 书名: 'lunar-javascript（历法口径参照）', 作者: '6tail（MIT 授权；本项目独立实现，未复制代码）' },
-  { id: 'iztro', 书名: 'iztro（紫微安星法口径参照）', 作者: 'SylarLong（MIT 授权；本项目独立实现，未复制代码）' },
-  { id: 'meeus', 书名: '《Astronomical Algorithms》', 作者: 'Jean Meeus（太阳黄经、朔望、ΔT 经验公式）' },
+  { id: 'lunar-js', bookTitle: 'lunar-javascript（历法口径参照）', 作者: '6tail（MIT 授权；本项目独立实现，未复制代码）' },
+  { id: 'iztro', bookTitle: 'iztro（紫微安星法口径参照）', 作者: 'SylarLong（MIT 授权；本项目独立实现，未复制代码）' },
+  { id: 'meeus', bookTitle: '《Astronomical Algorithms》', 作者: 'Jean Meeus（太阳黄经、朔望、ΔT 经验公式）' },
 ];
 
 /** 取某分组书目 */
@@ -296,9 +313,9 @@ export function refsPage() {
       + '公版古籍的经文以结构化数据内嵌在对应算法里，本页不载原文；现代著作与开源库有版权，请阅原书。',
   });
   REF_GROUPS.forEach((g) => {
-    out.push({ h: CN_NUM[seq++] + '、' + g.名, kind: 'group', text: g.说明 });
+    out.push({ h: CN_NUM[seq++] + '、' + g.name, kind: 'group', text: g.note });
     BOOKS.forEach((b) => {
-      const name = /[《》]/.test(b.书名) ? b.书名 : '《' + b.书名 + '》';
+      const name = /[《》]/.test(b.bookTitle) ? b.bookTitle : '《' + b.bookTitle + '》';
       out.push({ h: name, kind: 'book', text: b.作者 });
     });
   });
@@ -318,8 +335,9 @@ function introPage(fixed) {
   out.push({
     h: num() + '功能清单',
     kind: 'group',
-    text: FEATURE_GROUPS.map((g) => g.板块 + ' · ' + g.items.length + ' 项\n'
-      + g.items.map((it, k) => `${k + 1}. ${it.简介}`).join('\n')).join('\n\n'),
+    text: FEATURE_GROUPS.map((g) => g.section + ' · ' + g.items.length + ' 项\n'
+      + g.items.map((it, k) => `${k + 1}. ${it.简介}`
+        + (it.依据 ? `\n   依据：${it.依据}` : '')).join('\n')).join('\n\n'),
   });
   out.push({ h: num() + fixed[1].h, text: fixed[1].text });
   return out;

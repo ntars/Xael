@@ -1,16 +1,18 @@
 /**
  * src/core/calendar/astronomy.js —— 天文基础算法（自研，零依赖）
+ * 算法来源：Jean Meeus 库外《Astronomical Algorithms》(2nd ed.) 太阳黄经/章动/ΔT 级数；
+ *   朔与节气高精度解参照寿星万年历（SXTWL）的公开算法思想，代码全部自研重写。
  *
  * 大白话：节气 = 太阳黄经每走 15° 的时刻；农历月初一 = 朔（日月同经）的时刻。
  * 这两个「时刻」都能用天体力学位数展开算出来。本文件实现：
- *   1. 太阳几何黄经（Meeus《Astronomical Algorithms》第 25 章低精度级数，精度 ~0.01°≈15 分钟）
+ *   1. 太阳几何黄经（Meeus 库外《Astronomical Algorithms》第 25 章低精度级数，精度 ~0.01°≈15 分钟）
  *   2. 朔日月日（第 49 章级数，精度 ~1 分钟）
  *   3. ΔT（TT−UT 历书时差，Espenak-Meeus 多项式）
  *   4. 儒略日（TT/JDE）与北京时间日序互换
  * 所有级数系数为公开天文常数，代码全新实现。
  */
 
-import { solarToJdn, jdnToSolar } from './solar.js';
+import { solarToJdn, jdnToSolar } from './julian.js';
 
 const RAD = Math.PI / 180;
 const sin = (d) => Math.sin(d * RAD);
@@ -176,7 +178,7 @@ export { sin, cos, RAD, jcen };
 
 /* ───────────────────────── 高精度太阳黄经（节气求解用） ─────────────────────────
  * 上面的 sunLon 是 Meeus 低精度式，误差可达 10 分钟；节气时刻要与权威万年历对齐到
- * 分钟以内，必须换成 VSOP87 截断级数（6 阶）。系数在 data/astro-tables.js。
+ * 分钟以内，必须换成 VSOP87 截断级数（6 阶）。系数在 data/astronomy-tables.js。
  * 下面三个函数是同一套级数的三段拼装：
  *   eLon(t, n)        —— 地球黄经（VSOP87 截断，按精度 n 截项）
  *   nutationLon2(t)   —— 章动黄经
@@ -184,7 +186,7 @@ export { sin, cos, RAD, jcen };
  * 三者相加再加 π，得「视太阳黄经」，t 的单位是「儒略千年（J2000 起）」。
  */
 
-import { XL0, NUT_B, DT_AT } from './data/astro-tables.js';
+import { XL0, NUT_B, DT_AT } from './data/astronomy-tables.js';
 
 const SECOND_PER_RAD = 648000 / Math.PI;
 const ONE_THIRD = 1 / 3;
@@ -293,14 +295,14 @@ function dtT(t) {
 
 /**
  * 求「视黄经 = w」的气时刻，返回「自 J2000 起的天数（北京时）」。
- * 这个数与 jieqi2 的日序换算方式配套：J2000 起点 + 天数 → 北京日期时刻。
+ * 这个数与 solar-terms.js 的日序换算方式配套：J2000 起点 + 天数 → 北京日期时刻。
  */
 export function qiAccurate(w) {
   const t = saLonT(w) * 36525;
   return t - dtT(t) + ONE_THIRD; // +1/3 天 = 东八区
 }
 
-/** 节气序号 → 相对天数（给 jieqi2 用）：w 为弧度，一档 15° */
+/** 节气序号 → 相对天数（给 solar-terms.js 用）：w 为弧度，一档 15° */
 export function qiAt(w) {
   return qiAccurate(w);
 }
