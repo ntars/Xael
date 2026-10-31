@@ -2551,6 +2551,24 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   eq(c2.流曜, null, '紫微流曜：不给流年不出（null）');
 }
 
+
+// ── 黄历·宜忌按神推（卷二十九「表例附」直证） ──
+{
+  const { almanacDaily } = await import('../src/core/almanac/daily.js');
+  const { yongShenStats } = await import('../src/core/almanac/yongshi.js');
+  const r = await almanacDaily(2024, 2, 10, 10);
+  const ys = r.按神推;
+  eq(!!ys, true, '黄历按神推：daily 输出挂载');
+  eq(ys.值神.includes('满') && ys.值神.includes('福德') && ys.值神.includes('天巫'), true, '黄历按神推：值神含建除与别名（满/福德/天巫）');
+  eq(ys.宜.includes('裁制'), true, '黄历按神推：满日宜含裁制（表例附满日条）');
+  eq(ys.忌.includes('嫁娶') && ys.忌.includes('取鱼'), true, '黄历按神推：忌并集（月破类/满日天狗组）');
+  eq(ys.冲突.includes('开市') && ys.冲突.includes('纳财'), true, '黄历按神推：冲突事项并列（原书未给轻重）');
+  eq(ys.依据.includes('卷二十九·用事') || ys.依据.includes('铺注万年书则以事为经以神为纬'), true, '黄历按神推：依据带铺注原理与行号');
+  const st = yongShenStats();
+  eq(st.组, 79, '黄历按神推：表例附 79 组神');
+  eq(st.宜项 > 300 && st.忌项 > 700, true, '黄历按神推：全表宜忌项规模（宜 ' + st.宜项 + ' / 忌 ' + st.忌项 + '）');
+}
+
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
   console.log(`通过 ${passed} 项断言，失败 ${failed} 项`);

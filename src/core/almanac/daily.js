@@ -8,6 +8,7 @@
  * 数据为公版古籍条目；查表算法参考声明见 NOTICE 与 settings.js DEPS。
  */
 
+import { yongShenYiJiOf } from './yongshi.js';
 import { pad2 } from '../calendar/julian.js';
 import { solarToLunisolar } from '../calendar/lunisolar.js';
 import { LUNAR_MONTH_NAMES, LUNAR_DAY_NAMES } from '../calendar/lunisolar.js';
@@ -63,7 +64,7 @@ export function almanacDaily(y, m, d, hour = null) {
   const yi = yj.宜;
   const ji = yj.忌;
 
-  return {
+  const R = {
     solar: `${y}-${pad2(m)}-${pad2(d)}`,
     weekday: weekdayText(y, m, d),
     isWeekend: isWeekend(y, m, d),
@@ -116,7 +117,8 @@ export function almanacDaily(y, m, d, hour = null) {
     吉时说明: auspiciousHoursOf(gz[1]).说明,
     通例参考: '《钦定协纪辨方书》与《玉匣記》（通行本，2026-10-31 补入）两路并用——宜忌取《玉匣記》系通书逐日条目；天神黄黑道断语、建除义理、宿之五行与禽象引《协纪》原文；财神、福神方位依《玉匣記·財神方位歌》《玉匣記·福神方位歌》逐干对表；宿之吉凶依《玉匣記·二十八宿值日吉凶歌》、喜神情态依《玉匣記·喜神喜怒歌》，胎神表为通书通例、原书无载；彭祖百忌用通行本，底本异文另注',
   };
-}
+  R.按神推 = yongShenYiJiOf(R);
+  return R;}
 
 /** 月历视图：某月每日黄历摘要（宜/忌/冲） */
 export function monthView(y, m) {
