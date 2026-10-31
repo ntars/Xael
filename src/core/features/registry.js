@@ -34,7 +34,7 @@ export const FEATURES = [
     key: 'purple-star', name: '紫微斗数', shortName: '排紫微', handler: 'purple-star', needsBirth: true,
     triggers: ['排紫微斗数', '紫微斗数', '排紫微', '紫微命盘', '紫微'],
     note: '农历五虎遁起宫干、纳音定五行局、紫微星按局数与日数定位，十四主星与辅星依口诀入宫，另出大限与生年四化',
-    source: '《紫微斗数全书·诸星问答论》（安星口诀原书全帙缺，取中州派通行诀，见文件头）',
+    source: '《紫微斗數全書》三卷本·诸星问答论（断语直录 168 格）；安星诀见同书卷二（原为口诀缺载，三卷本入库后补直证）',
   },
   {
     key: 'mystic-gates-hour', name: '时家转盘拆补', shortName: '排奇门', handler: 'mystic-gates-hour', needsBirth: true,
@@ -58,7 +58,7 @@ export const FEATURES = [
     key: 'flying-stars', name: '九宫飞星', shortName: '排飞星', handler: 'flying-stars',
     triggers: ['排玄空飞星', '九宫飞星', '玄空飞星', '排飞星', '飞星'],
     note: '三元九运定当运星，年紫白入中逆推、月紫白按节气月、日紫白以节气后甲子日起星、时紫白分三组顺逆飞',
-    source: '《钦定协纪辨方书·卷十四·三元紫白》（年紫白有直证；月/日/时紫白为近世整理）',
+    source: '《钦定协纪辨方书·卷十四·三元紫白》《御定星历考原·三元月九星》（年/月紫白有直证；日/时紫白为近世整理，已标）',
   },
   {
     key: 'eight-mansions', name: '八宅命卦', shortName: '查命卦', handler: 'eight-mansions',
@@ -124,7 +124,7 @@ export const FEATURES = [
     key: 'mystic-gates-patterns', name: '奇门格局库', shortName: '解奇门格局', handler: 'mystic-gates-patterns', needsBirth: true,
     triggers: ['解奇门格局', '奇门格局', '十干克应'],
     note: '以十干克应与经典口诀检出盘中实际出现的格局，逐项给宫位、门星与口诀释义',
-    source: '《奇门宝鉴·释奇墓奇制与日时干墓同凶/释迫/释三奇得使/释三奇游六仪/释天辅时与五合时同吉异理/释玉女守门》',
+    source: '《奇门宝鉴·释奇墓奇制与日时干墓同凶/释迫/释三奇得使/释三奇游六仪/释天辅时与五合时同吉异理/释玉女守门》《遁甲演义·三诈五假》（三诈五假原文直证）',
   },
   {
     key: 'six-ren', name: '大六壬', shortName: '排六壬', handler: 'six-ren', needsBirth: true,
@@ -153,7 +153,7 @@ export const FEATURES = [
       '明日宜忌', '明天黄历', '黄道吉日', '建除值日', '查黄历', '宜忌', '黄历',
     ],
     note: '建除十二值日、黄黑道十二天神、二十八宿、喜财福贵方位、彭祖百忌、胎神冲煞；宜忌与吉凶神煞取库外《玉匣记》系通书逐日条目，另按《协纪辨方书》历例复算 43 神并列校验',
-    source: '《钦定协纪辨方书·卷四至卷六·义例/卷七·义例五·黄道黑道》引库外《神枢经》',
+    source: '《钦定协纪辨方书·卷四至卷六·义例/卷七·义例五·黄道黑道》引库外《神枢经》/卷二十九·用事（宜忌按神推，表例附 79 组直证）',
   },
   {
     key: 'lunisolar-convert', name: '万年历日期换算', shortName: '查农历', handler: 'lunisolar-convert',

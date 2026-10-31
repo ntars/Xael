@@ -261,7 +261,8 @@ const BOOKS = [
   { id: 'ditiansui', bookTitle: '《滴天髓》', 作者: '相传唐·京图' },
   { id: 'sanming', bookTitle: '《三命通会》', 作者: '明·万民英' },
   { id: 'yuanhai', bookTitle: '《渊海子平》', 作者: '宋·徐子平（题）' },
-  { id: 'ziwei-quanshu', bookTitle: '《紫微斗数全书》', 作者: '明·罗洪先辑（旧题宋·陈希夷）' },
+  { id: 'ziwei-quanshu', bookTitle: '《紫微斗数全书》（节录本）', 作者: '明·罗洪先辑（旧题宋·陈希夷）' },
+  { id: 'ziwei-quanshu-3v', bookTitle: '《紫微斗數全書》三卷本（全帙：安星诀/变化诀/庙旺/流曜）', 作者: '明·罗洪先辑（旧题宋·陈希夷）·三卷本' },
   { id: 'transformations', bookTitle: '紫微四化表（中州派口径）', 作者: '中州派传本 · 陆斌兆（现代）' },
   // 三式推演
   { id: 'qimen-tongzong', bookTitle: '《奇门遁甲统宗》（时家/年家/月家诸篇）', 作者: '明·佚名（传本）' },
@@ -280,6 +281,7 @@ const BOOKS = [
   { id: 'jinhanyujing', bookTitle: '《金函玉镜》（神煞口诀）', 作者: '题汉·诸葛亮（传本）' },
   { id: 'qimen-rike', bookTitle: '日家奇门口诀（六十日一局）', 作者: '传统日家口诀（作者不详传本）' },
   { id: 'mystic-gates-quarter', bookTitle: '刻家奇门起例', 作者: '传统时刻分派（作者不详传本）' },
+  { id: 'qimen-baojian', bookTitle: '《奇门宝鉴》（八门/九星/八神/释气应/三奇游六仪等释义四十四则）', 作者: '清·康熙御定' },
   { id: 'mystic-gates-mirror', bookTitle: '《奇门宝鉴》附日奇门起例（日支定局）', 作者: '传本（作者不详）' },
   { id: 'qimen-feipan', bookTitle: '飞盘奇门（飞宫法）', 作者: '传统技法（传本）' },
   { id: 'liuren-zhinan', bookTitle: '《大六壬指南》', 作者: '明·陈公献' },
