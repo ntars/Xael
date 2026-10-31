@@ -27,6 +27,7 @@
 import { STEMS, BRANCHES, SEXAGENARY, nayinOf, wuHuDun } from '../common/constants.js';
 import { ZHI } from '../common/constants.js';
 import { PALACES_12, MAIN_STARS_14 } from './data/order.js';
+import { BRIGHTNESS, LEVEL_NORM, BRIGHT_SOURCE } from './data/brightness.js';
 import {
   lunarYearGzIndex, hourBranchIndex, solarToLunarSafe,
 } from './tables.js';
@@ -48,7 +49,8 @@ export const MAIN_STARS = MAIN_STARS_14;
  * 四化表（年干 → [化禄, 化权, 化科, 化忌]）。
  * 口径：中州派主流。分歧标注：
  *   · 戊干：主流「贪狼禄、太阴权、右弼科、天机忌」，另有「太阳科」派；
- *   · 壬干：主流「天梁禄、紫微权、左辅科、武曲忌」，另有「天府禄、武曲权」派。
+ *   · 四化已获原书直证：《紫微斗數全書》三卷本卷二「安禄权科忌四星变化诀」（十干十句，
+ *     详见 transformations.js SIHUA_VERSE）。壬干科星原书作天府（本表从之）、中州通行作左辅（异说）。
  * 本表取主流，文档中声明。
  */
 const HUA = {
@@ -60,7 +62,7 @@ const HUA = {
   己: ['武曲', '贪狼', '天梁', '文曲'],
   庚: ['太阳', '武曲', '太阴', '天同'],
   辛: ['巨门', '太阳', '文曲', '文昌'],
-  壬: ['天梁', '紫微', '左辅', '武曲'],
+  壬: ['天梁', '紫微', '天府', '武曲'], // 原书「壬梁紫府」；中州通行左辅（异说，见 transformations.SIHUA_VERSE_NOTE）
   癸: ['破军', '巨门', '太阴', '贪狼'],
 };
 
@@ -268,6 +270,13 @@ export function purpleStarChart(input) {
     const mainStars = stars.filter((s) => MAIN_STARS.includes(s));
     const minorStars = stars.filter((s) => !MAIN_STARS.includes(s)).sort((a, b) => rank(a) - rank(b));
     const ordered = [...mainStars, ...minorStars];
+    // 亮度：底本逐宫标注（data/brightness.js，159/168 主星格；9 格底本未标级留缺）。
+    // 只作标签输出，不打分、不排序。
+    const 亮度 = ordered.map((s) => {
+      const hit = BRIGHTNESS[s] && BRIGHTNESS[s][zhi];
+      if (!hit) return { 星: s, 级: null, 说明: '底本未标级' };
+      return { 星: s, 级: hit.级, 归一: hit.归一, 原文: hit.原文 };
+    });
     const HUA_TYPE = {};
     ['禄', '权', '科', '忌'].forEach((t, i) => { if (hua[i]) HUA_TYPE[hua[i]] = t; });
     const mut = [];
@@ -282,6 +291,7 @@ export function purpleStarChart(input) {
       主星: mainStars,
       辅星: minorStars,
       会照,
+      亮度,
       四化: mut,
       是命宫: pos === mingPos,
       是身宫: pos === shenPos,
@@ -338,6 +348,6 @@ export function purpleStarChart(input) {
     cells,
     命宫判,
     大限: luck,
-    口径: '安星取中州派主流；戊干科取右弼、壬干权取紫微，流派分歧见文档。四化表库内《紫微斗数全书》底本无载（全书仅断语中出现「化禄/化权/化科/化忌」字样，无逐干四化表），此处用中州派通行表。',
+    口径: '安星与四化依《紫微斗數全書》三卷本（refs-texts）卷二安星诸诀与「安禄权科忌四星变化诀」原文；壬干科星原书作天府、中州通行作左辅，本仓从原书并注异说；庙旺得地失陷为卷二「一 命宫」篇逐星逐宫原文标注（159/168 主星格；紫微子卯酉、天府子午、天梁巳亥、破军巳亥共 9 格底本未标级，留缺不补；与通行庙旺表差异大，例：底本天梁卯宫入庙、通行作旺）。',
   };
 }

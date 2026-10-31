@@ -88,7 +88,7 @@ export const FEATURES = [
     key: 'transformations', name: '紫微四化流运', shortName: '解四化', handler: 'transformations', needsBirth: true,
     triggers: ['解紫微四化', '紫微四化', '解四化', '四化'],
     note: '依生年天干起禄权科忌四化，标出四化所落宫位，附大限流转',
-    source: '《紫微斗数全书》（四化散见各星条下，取中州派通行表，庚壬两干分歧已标）',
+    source: '《紫微斗數全書》三卷本（安星诸诀与安禄权科忌四星变化诀原书直证；壬科天府/左辅异说已标）',
   },
   {
     key: 'mystic-gates-day', name: '日家奇门', shortName: '排日家', handler: 'mystic-gates-day', needsBirth: true,

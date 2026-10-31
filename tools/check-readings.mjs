@@ -29,6 +29,12 @@ const SOURCES = [
     pick: (m) => Object.values(m.PALACE_READINGS).flatMap((x) => Object.values(x)),
   },
   {
+    data: 'src/core/purple-star/data/brightness.js',
+    book: 'refs-texts/《紫微斗數全書》-明·羅洪先（題陳希夷）·三卷本.md',
+    label: '紫微·庙旺得地失陷（159 格）',
+    pick: (m) => Object.values(m.BRIGHTNESS).flatMap((x) => Object.values(x)).map((b) => b.原文),
+  },
+  {
     data: 'src/core/six-ren/general-branch-images.js',
     book: 'refs-texts/《六壬大全》-明·佚名（四库本）.md',
     label: '六壬·十二将临十二支取象（144 格）',

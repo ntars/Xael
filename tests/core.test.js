@@ -16,6 +16,7 @@ import { LIU_QIN_FA_DONG, SHEN_XIANG } from '../src/core/six-lines/tables.js';
 import { solarToLunisolar, lunisolarToSolar } from '../src/core/calendar/lunisolar.js';
 import { fourPillarsChart as baziChart } from '../src/core/four-pillars/chart.js';
 import { purpleStarChart } from '../src/core/purple-star/chart.js';
+import { BRIGHTNESS, LEVEL_NORM, BRIGHT_SOURCE } from '../src/core/purple-star/data/brightness.js';
 import { mysticGatesHourChart } from '../src/core/mystic-gates/hour-chart.js';
 import { mysticGatesDayChart } from '../src/core/mystic-gates/day-chart.js';
 import { mysticGatesPatternsOf } from '../src/core/mystic-gates/patterns.js';
@@ -2500,6 +2501,29 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   const hl5 = (await analyze('查黄历 2024年2月10日')).results[0].text;
   eq(/大明吉日/.test(hl5) && /玉匣記·大明吉日/.test(hl5), true, '黄历输出含大明吉日（甲辰日）');
   eq((await import('../src/core/almanac/daily.js')).almanacDaily(2024, 2, 10, 12)['特别忌'].length, 0, '大明吉日不混入特别忌');
+}
+
+
+// ── 紫微·亮度（庙旺得地失陷，三卷本直证） ──
+{
+  const stars = Object.keys(BRIGHTNESS);
+  eq(stars.length, 16, '紫微亮度：14 主星 + 2 辅星入表（' + stars.length + '）');
+  eq(!!BRIGHTNESS['天梁'], true, '紫微亮度：天梁入表');
+  eq(BRIGHTNESS['天梁']['卯'] && BRIGHTNESS['天梁']['卯'].级, '入庙', '紫微亮度：底本天梁卯宫入庙（通行作旺——两说分歧已声明）');
+  eq(BRIGHTNESS['天梁']['申'] && BRIGHTNESS['天梁']['申'].级, '陷地', '紫微亮度：底本天梁申宫陷地（通行作得地）');
+  eq(BRIGHTNESS['天梁']['巳'], undefined, '紫微亮度：天梁巳宫底本未标级、留缺');
+  eq(BRIGHTNESS['紫微']['子'], undefined, '紫微亮度：紫微子宫底本未标级、留缺');
+  eq(BRIGHTNESS['太阳']['卯'] && BRIGHTNESS['太阳']['卯'].级, '庙', '紫微亮度：太阳卯宫庙（「第一庙所」）');
+  eq(BRIGHTNESS['天同']['丑'] && BRIGHTNESS['天同']['丑'].级, '不得地', '紫微亮度：底本原级「不得地」照录');
+  eq(LEVEL_NORM['入庙'], '庙', '紫微亮度：归一级映射入庙→庙');
+  eq(BRIGHT_SOURCE.includes('9 格底本未标级'), true, '紫微亮度：缺格 9 处声明在表头');
+  eq(Object.values(BRIGHTNESS).every((d) => Object.values(d).every((b) => typeof b.原文 === 'string' && b.原文.length >= 3)), true, '紫微亮度：每格带底本原文（供 check:readings 回溯）');
+  {
+    const c = await purpleStarChart({ y: 1983, m: 7, d: 12, h: 10, gender: '男' });
+    const ming = c.cells.find((x) => x.是命宫);
+    const br = ming.亮度.find((b) => b.星 === '紫微');
+    eq(br && br.级, '旺地', '紫微亮度：盘面命宫紫微寅宫=旺地');
+  }
 }
 
 export { passed, failed };
