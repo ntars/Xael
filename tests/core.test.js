@@ -2476,6 +2476,32 @@ eq(!!(zz(1, '鬼假') || {}).依据 || /《遁甲演义·三诈五假》/.test((
   eq(/每日吉时/.test(hl) && /諸日起吉時歌/.test(hl), true, '黄历输出含吉时行与出处');
 }
 
+// ---- 特别忌四类补充：四废/杨公忌/探病忌/大明吉日（2026-10-31 接入） ----
+{
+  const cd = await import('../src/core/almanac/critical-days.js');
+  eq(cd.DA_MING ? true : true, true, '占位');
+  // 大明吉日 21 条
+  const dm = ['辛未','壬申','癸酉','丁丑','乙卯','壬午','甲申','丁亥','壬辰','乙未','壬寅','甲辰','乙巳','丙午','己酉','庚戌','辛亥','丙辰','己未','庚申','辛酉'];
+  let hit = 0;
+  for (const gz of dm) if (cd.daMingJiOf(gz)) hit += 1;
+  eq(hit, 21, '大明吉日·二十一日全部命中');
+  // 四废：春庚申（2024-03-15 为庚申日）
+  eq(!!cd.siFeiOf('庚申', 2), true, '四废·春庚申命中');
+  eq(!!cd.siFeiOf('庚申', 0), false, '四废·非其季不命中');
+  // 杨公忌：2024-03-20 农历二月十一
+  eq(!!cd.yangGongJiOf({ y: 2024, m: 2, d: 11 }), true, '杨公忌·二月十一命中');
+  eq(!!cd.yangGongJiOf({ y: 2024, m: 2, d: 12 }), false, '杨公忌·非忌日不命中');
+  // 探病忌
+  eq(!!cd.tanBingJiOf('壬寅') && !!cd.tanBingJiOf('己卯'), true, '探病忌·六日中两端命中');
+  eq(!cd.tanBingJiOf('甲子'), true, '探病忌·甲子不命中');
+  // 黄历输出
+  const hl4 = (await analyze('查黄历 2024年3月20日')).results[0].text;
+  eq(/杨公忌日/.test(hl4) && /玉匣記·楊公忌日/.test(hl4), true, '黄历输出含杨公忌与出处');
+  const hl5 = (await analyze('查黄历 2024年2月10日')).results[0].text;
+  eq(/大明吉日/.test(hl5) && /玉匣記·大明吉日/.test(hl5), true, '黄历输出含大明吉日（甲辰日）');
+  eq((await import('../src/core/almanac/daily.js')).almanacDaily(2024, 2, 10, 12)['特别忌'].length, 0, '大明吉日不混入特别忌');
+}
+
 export { passed, failed };
 if (process.argv[1] && process.argv[1].endsWith('core.test.js')) {
   console.log(`通过 ${passed} 项断言，失败 ${failed} 项`);

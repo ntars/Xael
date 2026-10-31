@@ -96,8 +96,77 @@ export function monthBreakOf(dayZhi, monthZhi) {
   };
 }
 
+/** 四废日（协纪版）：春庚申辛酉、夏壬子癸亥、秋甲寅乙卯、冬丙午丁巳。
+ *  依据《钦定协纪辨方书·四废》歷例：「四废者四时衰谢之辰也，其日忌出军征伐、造舍、迎亲、
+ *  封建拜官、纳财、开市」；曹震圭「四废者干支俱絶也」。
+ *  ★ 与八字神煞（《三命通会》「冬丙午丁未」）一字之差（丁巳/丁未），两书各自成文，
+ *  本仓不代为统一：黄历用协纪版，八字用三命通会版，两处各自注明。 */
+const SI_FEI = {
+  0: ['庚申', '辛酉'], 1: ['壬子', '癸亥'], 2: ['甲寅', '乙卯'], 3: ['丙午', '丁巳'],
+};
+
+/** 杨公忌日（农历月、日）：正月十三…十二月十九，共十三日。
+ *  依据《玉匣記·楊公忌日》原文歌诀：「神仙留下十三日，舉動須防多損失……」
+ *  ★ 底本「六月初二」，通行本多作「六月初三」（递减数列应为三），照录底本并注明异文。 */
+const YANG_GONG_JI = [[1,13],[2,11],[3,9],[4,7],[5,5],[6,2],[7,1],[7,29],[8,27],[9,25],[10,23],[11,21],[12,19]];
+
+/** 探病忌日：六干支日。依据《玉匣記·探病忌日》「壬寅壬午連庚午，甲寅乙卯己卯妨，
+ *  神仙留下此六日，探人疾病替人亡」。 */
+const TAN_BING = ['壬寅', '壬午', '庚午', '甲寅', '乙卯', '己卯'];
+
+/** 大明吉日：二十一日。依据《玉匣記·大明吉日》「此二十一日，乃天地開通、太陽所照之辰，
+ *  百事用之大吉」。与「诸事不宜」类日子同日出现时两说并列（如四离日恰逢大明吉日）。 */
+const DA_MING = ['辛未','壬申','癸酉','丁丑','乙卯','壬午','甲申','丁亥','壬辰','乙未','壬寅','甲辰','乙巳','丙午','己酉','庚戌','辛亥','丙辰','己未','庚申','辛酉'];
+
+const gzStr = (gz) => (Array.isArray(gz) ? gz.join('') : String(gz));
+
+/** 四废判定：按季节（春=寅卯辰月支序 0,1,2 …）取日干支 */
+export function siFeiOf(dayGz, monthZhiIdx) {
+  const season = monthZhiIdx == null ? null : Math.floor(((monthZhiIdx - 2 + 12) % 12) / 3); // 寅月起 0春1夏2秋3冬
+  if (season == null || !SI_FEI[season]) return null;
+  if (!SI_FEI[season].includes(gzStr(dayGz))) return null;
+  const names = ['春', '夏', '秋', '冬'];
+  return {
+    类: '四废',
+    说明: `${names[season]}季四废日（${SI_FEI[season].join('、')}）。原书「四废者四时衰谢之辰也」，其日忌出军征伐、造舍、迎亲、封建拜官、纳财、开市；曹震圭「干支俱絶也」。与八字神煞版（《三命通会》冬作丙午丁未）一字之差，两书并列。`,
+    依据: '《钦定协纪辨方书·四废》',
+  };
+}
+
+/** 杨公忌日判定（按农历月、日） */
+export function yangGongJiOf(lunar) {
+  if (!lunar || !lunar.y || !lunar.m || !lunar.d) return null;
+  const hit = YANG_GONG_JI.some(([mm, dd]) => mm === lunar.m && dd === lunar.d && !lunar.isLeap);
+  if (!hit) return null;
+  return {
+    类: '杨公忌日',
+    说明: `农历${lunar.isLeap ? '闰' : ''}${lunar.m}月${lunar.d}日为杨公忌（十三日之一），原文「神仙留下十三日，舉動須防多損失」，百事忌。底本六月初二、通行本作初三，照录底本并注异文。`,
+    依据: '《玉匣記·楊公忌日》',
+  };
+}
+
+/** 探病忌日判定 */
+export function tanBingJiOf(dayGz) {
+  if (!TAN_BING.includes(gzStr(dayGz))) return null;
+  return {
+    类: '探病忌日',
+    说明: '壬寅、壬午、庚午、甲寅、乙卯、己卯六日探病忌，原文「神仙留下此六日，探人疾病替人亡」',
+    依据: '《玉匣記·探病忌日》',
+  };
+}
+
+/** 大明吉日判定 */
+export function daMingJiOf(dayGz) {
+  if (!DA_MING.includes(gzStr(dayGz))) return null;
+  return {
+    类: '大明吉日',
+    说明: '二十一日之一，原文「乃天地開通、太陽所照之辰，百事用之大吉」。与「诸事不宜」类日子同日出现时两说并列，不合并',
+    依据: '《玉匣記·大明吉日》',
+  };
+}
+
 /** 四种合并：返回命中的条目数组（可能为空） */
-export function criticalDaysOf(y, m, d, dayZhi, monthZhi) {
+export function criticalDaysOf(y, m, d, dayZhi, monthZhi, lunar = null, dayGzFull = null) {
   const out = [];
   const a = siLiSiJueOf(y, m, d);
   if (a) out.push(a);
@@ -105,5 +174,13 @@ export function criticalDaysOf(y, m, d, dayZhi, monthZhi) {
   if (b) out.push(b);
   const c = monthBreakOf(dayZhi, monthZhi);
   if (c) out.push(c);
+  const f = dayGzFull ? siFeiOf(dayGzFull, monthZhi) : null;
+  if (f) out.push(f);
+  const g = yangGongJiOf(lunar);
+  if (g) out.push(g);
+  const h = dayGzFull ? tanBingJiOf(dayGzFull) : null;
+  if (h) out.push(h);
+  const k = dayGzFull ? daMingJiOf(dayGzFull) : null;
+  if (k) out.push(k);
   return out;
 }

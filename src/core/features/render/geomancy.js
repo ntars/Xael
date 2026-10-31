@@ -137,6 +137,9 @@ export function almanacText(ent) {
   L.push('建除用事（原文）：' + JIANCHU_USE_VERSE + '——《玉匣記·黃黑道用事吉日》。该歌字数不齐、「除」位未出（底本如此），故只照录不强解。');
   L.push('宜：' + (r.宜.length ? r.宜.join('、') : '无') + '。');
   L.push('忌：' + (r.忌.length ? r.忌.join('、') : '无') + '。');
+  if ((r.特别吉 || []).length) {
+    for (const x of r.特别吉) L.push('· ' + x.类 + '——' + x.说明 + '（' + x.依据 + '）');
+  }
   if ((r.特别忌 || []).length) {
     L.push('特别忌（原书明定，与上列通书宜忌不同源）：' + r.特别忌.map((x) => x.类).join('、') + '。');
     for (const x of r.特别忌) L.push('· ' + x.类 + '——' + x.说明 + '（' + x.依据 + '）');
