@@ -73,7 +73,7 @@ node tools/build-uni.js
 ## 四、本地开发
 
 ```bash
-npm test          # 142 项断言，Node 直跑，无测试框架
+npm test          # 1389 项断言，Node 直跑，无测试框架
 npm run build     # 网页 + 小程序
 npm run check     # 十二项发布自检
 npm run check:cites # 文献引用审计
@@ -81,3 +81,26 @@ python3 -m http.server 8080   # 起本地静态服务预览网页版
 ```
 
 Service Worker 需要 HTTPS 或 `localhost`；直接用 `file://` 打开会跳过离线缓存。
+
+### uni-app 真机核对清单（尚未真机验证，按此逐项过一遍）
+
+**现状**：uni-app 壳只过了 `tools/build-uni.js` 的静态校验（导入具名导出是否真实存在、样式是否含 rpx/伪元素等），**没有跑过 HBuilderX 真机渲染**。这是三端里唯一未经验证的一环，不能算已完成。
+
+| # | 步骤 | 通过标准 |
+|---|---|---|
+| 1 | HBuilderX 导入 `src/shells/uniapp`，选「运行到微信小程序」 | 编译无报错，首页出 Logo + 玄玖灵犀 + 搜索胶囊 |
+| 2 | 首页尺寸核对（iPhone 16 Pro 402×874 基准） | Logo 64.27×72、胶囊 272×48、页脚距底 738px 量级；与 PWA 截图叠比无位移 |
+| 3 | 输入「排八字 1990年6月15日 10点 男」并回车 | 出四项结果（年柱庚午/月柱壬午/日柱辛亥/时柱癸巳）与网页版逐字相同 |
+| 4 | 转场 | front 层纯位移滑入、back 层视差 −33%、dim 压暗，320ms 内收尾无白闪（深色模式重点看） |
+| 5 | 呼吸光环 | 搜索胶囊外 4.4s 一次，缩放 2px↔5px，不抖动 |
+| 6 | 深色模式 | 跟随系统 + 手动切换均生效，切换 320ms 交叉过渡，图标反色正确 |
+| 7 | 结果长图导出 | `uni.canvasToTempFilePath` 出图，超长自动分页「(接上页)」「第 i/n 张」，右下两码清晰 |
+| 8 | 离线/冷启动 | 断网重开不白屏（快照兜底生效） |
+
+**已知风险点**（静态校验查不出、只能真机看）：
+
+- uni-app 对 `backdrop-filter`、`filter: invert()`、`env(safe-area-inset-*)` 的支持与微信基础库版本相关；
+- `scroll-view` 需 `enhanced` + `show-scrollbar="{{false}}"`（PWA/小程序已处理，uni-app 侧需确认等价写法）；
+- 导出用 canvas 2d，部分机型需等 `canvasToTempFilePath` 回调，不能同步取。
+
+任一项不过，回到 `src/shells/uniapp/pages/index/index.vue` 与 `src/shells/pwa/static/theme.css` 对照——**视觉规格只有一份来源**，改的是壳层写法，不是设计值。
