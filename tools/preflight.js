@@ -72,7 +72,7 @@ item('④ 全量测试', testOk && assertFail === 0, `${assertCount} 项断言�
 
 // ---- ⑤ 关键文件 ----
 const KEY = [
-  'LICENSE', 'NOTICE', 'README.md', 'README.en.md', 'package.json',
+  'LICENSE', 'NOTICE', 'README.md', 'README_EN.md', 'package.json',
   'index.html', 'manifest.webmanifest', 'offline.html', '404.html', 'static/sw.js',
   'core/calendar/astronomy.js', 'core/calendar/lunisolar.js', 'core/features/analyzer.js',
   'src/shells/mp-weixin/pages/index/index.wxml', 'src/shells/uniapp/pages/index/index.vue',
@@ -86,7 +86,7 @@ item('⑤ 关键文件齐全', miss.length === 0, miss.length ? `缺：${miss.jo
 // 否则会把「1,472」读成「472」、把「%20assertions」读成「20 assertions」。
 // ai-entry.test.js 是独立于全量测试的另一套计数（14 项），不在本节口径内，
 // 因此用「全量」「合计」等限定词区分，只在紧邻这些词时报错。
-const docFiles = ['README.md', 'README.en.md', 'docs/CALIBER-NOTES.md', 'NOTICE'];
+const docFiles = ['README.md', 'README_EN.md', 'docs/CALIBER-NOTES.md', 'NOTICE'];
 const claimPatterns = [
   /([\d,]+)\s*项断言/g,
   /([\d,]+)\s*assertions/g,
