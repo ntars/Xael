@@ -1,0 +1,37 @@
+{
+  "appid": "wx7d40cfd5e4849d0d",
+  "projectname": "xael",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "libVersion": "3.17.3",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "packNpmManually": false,
+    "ignoreDevUnusedFiles": false,
+    "babelSetting": {
+      "ignore": [
+        "vendor/*",
+        "src/core/vendor/*"
+      ],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "packOptions": {
+    "include": [
+      {
+        "type": "folder",
+        "value": "src"
+      },
+      {
+        "type": "folder",
+        "value": "static"
+      }
+    ],
+    "ignore": []
+  }
+}

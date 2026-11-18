@@ -1,0 +1,126 @@
+Xael（玄玖灵犀）— 传统术数文献整理与数字化演算内核
+Copyright (c) 2024–2026 星玖工作室 Ntarstudio
+
+本产品是自由软件；在遵守许可的前提下，你可以再分发与/或修改它。
+本 NOTICE 文件回答三个问题：本项目自身归谁、用了别人的什么、再分发时必须保留什么。
+
+================================================================================
+一、本仓库许可
+================================================================================
+
+本仓库按目录分层授权，只使用 Apache License 2.0 与 MIT 两种宽松许可证。
+全文见 LICENSE 与 LICENSES/ 目录。
+
+  版权所有：Copyright (c) 2024–2026 星玖工作室 Ntarstudio
+  项目地址：https://github.com/ntars/Xael
+  产品英文名：Xael（当前版本 5.0.0，真值见 package.json，preflight 校验 9 处一致性）
+
+  · src/core/（演算内核）、src/shared/（共享层）、mcp/、experts/ → Apache-2.0
+  · src/shells/（三端外壳）、bin/、tools/、tests/ → MIT
+  · refs-texts/、material/（古籍与素材）→ 原文公有领域，校勘成果保留所有权利
+  · 品牌名称、Logo、界面设计 → 保留所有权利
+
+许可义务（摘要，法律效力以 LICENSES/ 英文原文为准）：
+  · 保留版权声明、许可文本与各源文件中的声明；
+  · Apache-2.0 覆盖的部分须保留本 NOTICE（第 4 条 d 项）；
+  · 修改版不得使用原品牌暗示官方背书。
+
+================================================================================
+二、第三方组件
+================================================================================
+
+运行时第三方依赖：无（零依赖）。
+
+  全部 12,518 行内核源码（61 个文件）+ 共享层与三端外壳均为纯 JavaScript，
+  仅依赖 ECMAScript 2015+ 语言标准与各端自身运行时，
+  不引入任何 npm 包、任何字体、任何图标库、任何网络 API。
+
+  历史版本曾内嵌 lunar-javascript 与 iztro 的发行包文件；5.0.0 重构后这些
+  内嵌第三方代码已全部移除，对应算法（农历、干支、节气、紫微安星）由本项目
+  依据天文算法与传统规则独立重写。
+
+开发期外部环境（不随本项目分发，无分发义务）：
+  · Node.js（测试与脚本运行环境）
+    - 版权方：OpenJS Foundation
+    - 许可证：MIT（原文见 https://nodejs.org/en/about/previous-releases 与 Node.js 仓库 LICENSE）
+    - 项目地址：https://nodejs.org/
+    - 用途：运行测试与脚本；是否修改：否；是否分发：否。
+
+算法理论出处（不受版权约束，本项目实现为独立编写）：
+  · Jean Meeus, "Astronomical Algorithms"（第二版，Willmann-Bell, 1998）
+    - 版权方：Jean Meeus / Willmann-Bell, Inc.
+    - 项目地址：https://www.willbell.com/math/mc1.htm
+    - 用途：历法层（src/core/calendar/solar.js / astronomy.js / lunar2.js /
+      jieqi2.js）的太阳几何黄经级数（原书第 25 章）、朔日月日级数（第 49 章）
+      与 ΔT 的 Espenak-Meeus 多项式。
+    - 是否修改：算法思想参照原书，全部代码为本项目全新实现，未复制任何源码。
+
+算法思想参考（思路与规则参照；随附数据表逐项声明）：
+
+  · lunar-javascript 1.6.x（版权方：6tail，许可证 MIT）
+    - 项目地址：https://github.com/6tail/lunar-javascript
+    - 参考内容：农历/干支/节气接口的组织方式、四柱换日（子初/子正）与立春换年
+      的口径设计。5.0.0 的历法层（src/core/calendar/）为本项目独立实现，
+      使用儒略日 + Meeus 级数 + 朔日定月 + 无中气置闰，不含其代码。
+    - 数据表声明（MIT 许可收录）：
+      src/core/calendar/data/shuoqi-tables.js —— 寿星精密朔气表
+      （SHUO_KB/QI_KB/SB/QB，条目源自寿星万年历公开数据，用于 1985 年前
+      朔与节气的整日判定）；src/core/calendar/data/yiji-tables.js ——
+      通书宜忌/神煞表（YI_JI/DAY_YI_JI/SHEN_SHA/DAY_SHEN_SHA，条目源自
+      《玉匣记》系公版古籍通书）。两表随该库发行包分发，本项目原样收录
+      数据内容；查表代码（shuoqi.js / huangli/yiji.js）为本项目全新实现。
+    - 是否修改：代码未复制，仅作口径参照；数据表按 MIT 许可收录并声明。
+
+  · iztro 2.6.2（版权方：Sylar Long，许可证 MIT）
+    - 项目地址：https://github.com/SylarLong/iztro
+    - 参考内容：紫微斗数安星步骤的顺序与五行局/命宫取法、闰月归属的通行处理。
+      5.0.0 的紫微模块（src/core/ziwei/）为本项目独立实现。
+    - 是否修改：未复制代码，仅作口径参照与结果对拍（对拍脚本不随源码分发）。
+
+  · 《万年历算法》逆向整理材料（网络流传的 APK 逆向 JS 片段，无明确许可证）
+    - 参考内容：仅参考「九星、节气、干支、神煞方位、黄历宜忌」等功能的
+      功能划分与大致口径；其源码与内嵌数据（观音灵签、解梦、黄历宜忌库）
+      一律未采用、未复制、未分发。
+
+  · 各术数流派口径（奇门拆补法、六壬九宗门、京房纳甲、八宅大游年等）
+    依据公开出版的传统文献整理，属公有领域知识，本项目独立实现。
+
+数据来源说明：
+  · 法定节假日与调休数据（src/core/calendar/festival.js）由本项目依据
+    2007–2026 年国务院历年公告（中国政府网 https://www.gov.cn/ 发布的公开文件）
+    自行录入，非第三方数据集拷贝。
+  · 术数流派口径（docs/CALIBER-NOTES.md）依据公开出版的传统文献与主流
+    流派共识整理，口径选择已在文档中逐条注明。
+  · refs-texts/ 目录收录 18 部公版古籍原书全文（明清及以前传本；民国著作
+    须作者已过著作权保护期），电子底本来自殆知阁电子文本（GitHub
+    daizhigev20，易藏/术数），收录时仅统一换行、删行尾空格、压缩连续空行，
+    文字一字未动；校对状态为「未精校」，对外引用前请核对影印本。该目录
+    仅供仓库内查证，不进小程序 / 网页 / uni-app 发布包。
+
+================================================================================
+三、本项目自有文件
+================================================================================
+
+  · src/core/ 下全部内核模块（calendar / almanac / four-pillars / purple-star / mystic-gates /
+    six-ren / six-lines / plum-blossom / geomancy / common / features，共 61 个文件 12,518 行）
+  · src/shared/ 共享层（storage / conversation / result-format / settings / refs /
+    theme / inflight / guard / export-image / export-metrics，共 9 个文件 1,148 行）
+  · src/shells/ 三端外壳（pwa / mp-weixin / uniapp）
+  · tests/ 全部测试（calendar.test.js / core.test.js / mp-shell.test.js / run.js）
+  · tools/ 构建与自检脚本（build-web.js / build-mp.js / build-uni.js / preflight.js）
+  · docs/ 全部文档（CALIBER-NOTES.md / DEPLOY.md）
+  · README.md / README_EN.md / 本 NOTICE
+
+================================================================================
+四、再分发要求
+================================================================================
+
+使用或再分发本项目时，请一并保留：
+  1. 本 NOTICE 文件；
+  2. LICENSES/Apache-2.0.txt 与 LICENSES/MIT.txt 许可全文；
+  3. 源文件中已有的版权与许可声明。
+
+================================================================================
+
+本文件最后核对：2026-10-28（5.0.0 收口 + AI 接入 + 文献入仓）
+核对范围：src/ 全部源文件的外部依赖扫描（确认零第三方内嵌）、tests/ 运行环境、节假日数据来源、算法思想参考项目声明。

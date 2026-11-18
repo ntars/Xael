@@ -1,0 +1,39 @@
+{
+  "name": "玄玖灵犀 Xael",
+  "short_name": "玄玖灵犀",
+  "version": "5.0.0",
+  "description": "中国传统历法与术数文献整理、校勘与数字化演算工具。无后端、无网络，全部演算在设备本地完成。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "static/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "static/icons/icon-squircle.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

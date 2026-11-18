@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://x.ntars.cn/sitemap.xml
