@@ -16,3 +16,6 @@ node_modules/
 __MACOSX/
 *.swp
 .workbuddy/
+
+# 第三方素材：来源与许可不明确，停止跟踪（2026-11-20）
+/material/

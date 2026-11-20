@@ -9,18 +9,22 @@ Copyright (c) 2024–2026 星玖工作室 Ntarstudio
 ================================================================================
 
 本仓库按目录分层授权，只使用 Apache License 2.0 与 MIT 两种宽松许可证。
-全文见 LICENSE 与 LICENSES/ 目录。
+全文见根目录的 LICENSE 与 LICENSE-MIT（本仓库没有 LICENSES/ 目录）。
+
+默认归属：本节未列出的本项目自研文件，一律适用根 LICENSE（Apache-2.0）。
+
 
   版权所有：Copyright (c) 2024–2026 星玖工作室 Ntarstudio
   项目地址：https://github.com/ntars/Xael
   产品英文名：Xael（当前版本 5.0.0，真值见 package.json，preflight 校验 9 处一致性）
 
-  · src/core/（演算内核）、src/shared/（共享层）、mcp/、experts/ → Apache-2.0
-  · src/shells/（三端外壳）、bin/、tools/、tests/ → MIT
-  · refs-texts/、material/（古籍与素材）→ 原文公有领域，校勘成果保留所有权利
+  · src/core/（演算内核）、src/shared/（共享层）、mcp/、experts/、skills/ → Apache-2.0
+  · src/shells/（三端外壳）、bin/、tools/、tests/、docs/ → MIT
+  · refs-texts/（古籍原文）→ 原文公有领域，校勘成果保留所有权利
+  · material/ → 不入库，已列入 .gitignore（原因为来源与许可不明）
   · 品牌名称、Logo、界面设计 → 保留所有权利
 
-许可义务（摘要，法律效力以 LICENSES/ 英文原文为准）：
+许可义务（摘要，法律效力以 LICENSE 与 LICENSE-MIT 英文原文为准）：
   · 保留版权声明、许可文本与各源文件中的声明；
   · Apache-2.0 覆盖的部分须保留本 NOTICE（第 4 条 d 项）；
   · 修改版不得使用原品牌暗示官方背书。
@@ -117,7 +121,7 @@ Copyright (c) 2024–2026 星玖工作室 Ntarstudio
 
 使用或再分发本项目时，请一并保留：
   1. 本 NOTICE 文件；
-  2. LICENSES/Apache-2.0.txt 与 LICENSES/MIT.txt 许可全文；
+  2. 根目录的 LICENSE（Apache-2.0）与 LICENSE-MIT（MIT）许可全文；
   3. 源文件中已有的版权与许可声明。
 
 ================================================================================

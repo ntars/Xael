@@ -645,9 +645,12 @@ Copyright (c) 2024–2026 星玖工作室 Ntarstudio
 
 | 路径 | 许可 |
 |---|---|
-| `src/core/` `src/shared/` `mcp/` `experts/` | Apache-2.0 |
-| `src/shells/` `bin/` `tools/` `tests/` | MIT |
-| `refs-texts/` `material/` 品牌与界面 | 保留所有权利 |
+| `src/core/` `src/shared/` `mcp/` `experts/` `skills/` | Apache-2.0 |
+| `src/shells/` `bin/` `tools/` `tests/` `docs/` `package.json` | MIT |
+| `refs-texts/` 品牌与界面 | 保留所有权利 |
+| `material/` | 不入库，已列入 `.gitignore` |
+
+**默认归属**：上表未列出的本项目自研文件，一律适用根 `LICENSE`（Apache-2.0）。逐路径路由与再分发须保留的文件清单见 [LICENSING.md](LICENSING.md)。
 
 两种许可都可商用、可修改、可闭源、可再许可，**没有传染性**：你的衍生作品无需开源。再分发时保留版权声明、许可全文与 [NOTICE](NOTICE) 即可。Apache-2.0 另外提供明示专利授权（第 3 条），内核算法因此无专利地雷。
 

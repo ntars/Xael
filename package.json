@@ -4,7 +4,8 @@
   "description": "玄玖灵犀 Xael —— 中国传统术数文献整理、校勘与数字化演算工具（微信小程序 / PWA / uni-app 多端）",
   "type": "module",
   "private": true,
-  "license": "Apache-2.0",
+  "license": "(Apache-2.0 AND MIT)",
+  "licenseNote": "按目录分层：src/core src/shared mcp experts skills 为 Apache-2.0；src/shells bin tools tests docs 为 MIT。逐路径路由见 LICENSING.md。",
   "homepage": "https://x.ntars.cn/",
   "repository": {
     "type": "git",
